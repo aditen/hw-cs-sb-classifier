@@ -36,6 +36,10 @@ data_transforms = {
     ]),
 }
 
+# This is just copied from the finetuning classification example of PyTorch
+# Obviously it does not make too much sense because e. g. using train as test set as well etc
+# but it is just a source to know how to load data, visualize examples etc.
+# Will be removed later on
 if __name__ == "__main__":
     print("hello world", torch.cuda.is_available(), torch.version.cuda)
     df = pd.read_csv("C:/Users/41789/Documents/uni/ma/kinderlabor_unterlagen/train_data/dataset.csv",
