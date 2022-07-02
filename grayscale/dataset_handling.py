@@ -8,7 +8,7 @@ import torchvision
 data_transforms = {
     'train': transforms.Compose([
         transforms.Resize((32, 32)),
-        transforms.RandomAffine(degrees=(-90, 90), translate=(0.25, 0.25), scale=(0.5, 0.95), fill=255),
+        transforms.RandomAffine(degrees=(-90, 90), translate=(0.25, 0.25), scale=(0.75, 1.25), fill=255),
         transforms.Grayscale(),
         transforms.ToTensor(),
         transforms.Normalize([0.485], [0.229])

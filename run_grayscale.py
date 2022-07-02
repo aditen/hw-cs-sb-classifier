@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from grayscale.dataset_handling import create_grayscale_datasets, imshow
 from grayscale.grayscale_model import CNN
 
-train = False
+train = True
 predict = True
 visualize_test_images = False
 
