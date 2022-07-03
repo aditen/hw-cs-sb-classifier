@@ -3,6 +3,9 @@ import shutil
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import torch
+from torchvision import transforms
+from torchvision.datasets import ImageFolder
 
 base_path = "C:/Users/41789/Documents/uni/ma/kinderlabor_unterlagen/train_data/"
 
@@ -44,11 +47,56 @@ class DataloaderKinderlabor:
                                 'label'] + "/" + str(
                                 idx) + ".jpeg")
 
-        # TODO: read image folders
+        # read image folders and create loaders
+        batch_size_train = 16
+        batch_size_valid = 8
+        batch_size_test = 8
+        self.__image_folder_train = ImageFolder(
+            base_path + "train_set",
+            DataloaderKinderlabor.get_transforms(augment=True, rotate=False))
+        self.__dataloader_train = torch.utils.data.DataLoader(self.__image_folder_train, batch_size=batch_size_train,
+                                                              shuffle=True, num_workers=min(batch_size_train, 8))
+        self.__image_folder_valid = ImageFolder(
+            base_path + "validation_set",
+            DataloaderKinderlabor.get_transforms(augment=True, rotate=False))
+        self.__image_folder_valid.classes = self.__image_folder_train.classes
+        self.__image_folder_valid.class_to_idx = self.__image_folder_train.class_to_idx
+        self.__dataloader_valid = torch.utils.data.DataLoader(self.__image_folder_valid, batch_size=batch_size_valid,
+                                                              shuffle=True, num_workers=min(batch_size_valid, 8))
+        self.__image_folder_test = ImageFolder(
+            base_path + "test_set",
+            DataloaderKinderlabor.get_transforms(augment=False, rotate=False))
+        self.__image_folder_test.classes = self.__image_folder_train.classes
+        self.__image_folder_test.class_to_idx = self.__image_folder_train.class_to_idx
+        self.__dataloader_test = torch.utils.data.DataLoader(self.__image_folder_test, batch_size=batch_size_test,
+                                                             shuffle=True, num_workers=min(batch_size_test, 8))
 
     def plot_class_distributions(self):
+        # NOTE: could also plot distributions of train, validation and test sets here
         self.__df.groupby(['type', 'label'] if self.__task_type is None else ['label'])['student'] \
             .count().plot(kind='bar', title='Number of Samples', ylabel='Samples',
                           xlabel='Type and Label', figsize=(6, 5))
         plt.gcf().subplots_adjust(bottom=0.5 if self.__task_type is None else 0.3)
         plt.show()
+
+    def get_data_loaders(self):
+        return self.__dataloader_train, self.__dataloader_valid, self.__dataloader_test
+
+    @staticmethod
+    def get_transforms(augment=False, rotate=False):
+        if augment:
+            return transforms.Compose([
+                transforms.Resize((32, 32)),
+                transforms.RandomAffine(degrees=(-90, 90) if rotate else (0, 0), translate=(0.25, 0.25),
+                                        scale=(0.75, 1.25),
+                                        fill=255),
+                transforms.Grayscale(),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485], [0.229])
+            ])
+        return transforms.Compose([
+            transforms.Resize((32, 32)),
+            transforms.Grayscale(),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485], [0.229])
+        ])
