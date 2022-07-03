@@ -1,8 +1,13 @@
 from data_handling.data_loader import DataloaderKinderlabor
+from training import TrainerKinderlabor
+from visualizing import VisualizerKinderlabor
 
 if __name__ == "__main__":
-    #loader_all = DataloaderKinderlabor()
-    #loader_all.plot_class_distributions()
-
     loader_orientation = DataloaderKinderlabor(task_type="ORIENTATION")
     loader_orientation.plot_class_distributions()
+
+    visualizer_orientation = VisualizerKinderlabor(loader_orientation)
+    visualizer_orientation.visualize_some_samples()
+
+    trainer_orientation = TrainerKinderlabor(loader_orientation)
+    trainer_orientation.train_model()

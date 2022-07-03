@@ -79,16 +79,22 @@ class DataloaderKinderlabor:
         plt.gcf().subplots_adjust(bottom=0.5 if self.__task_type is None else 0.3)
         plt.show()
 
+    def get_num_samples(self):
+        return len(self.__image_folder_train), len(self.__image_folder_valid), len(self.__image_folder_test)
+
     def get_data_loaders(self):
         return self.__dataloader_train, self.__dataloader_valid, self.__dataloader_test
+
+    def get_classes(self):
+        return self.__image_folder_train.classes
 
     @staticmethod
     def get_transforms(augment=False, rotate=False):
         if augment:
             return transforms.Compose([
                 transforms.Resize((32, 32)),
-                transforms.RandomAffine(degrees=(-90, 90) if rotate else (0, 0), translate=(0.25, 0.25),
-                                        scale=(0.75, 1.25),
+                transforms.RandomAffine(degrees=(-90, 90) if rotate else (0, 0), translate=(0.15, 0.15),
+                                        scale=(0.85, 1.15),
                                         fill=255),
                 transforms.Grayscale(),
                 transforms.ToTensor(),
