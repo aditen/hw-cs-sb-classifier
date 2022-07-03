@@ -37,7 +37,9 @@ class TrainerKinderlabor:
 
         for epoch in tqdm(range(n_epochs), unit="epoch"):
             running_loss = 0.0
-            running_corrects = 0
+            running_corrects = torch.tensor(0).to(device)
+
+            model.train()
 
             # Iterate over data.
             for inputs, labels in train_loader:
@@ -65,10 +67,23 @@ class TrainerKinderlabor:
             epoch_loss = running_loss / n_train
             epoch_acc = running_corrects.double() / n_train
 
-            # TODO: use validation set (eval mode of model as well!!)
-            # deep copy the model
-            # if phase == 'val' and epoch_acc > best_acc:
-            if epoch_acc > best_acc:
-                best_acc = epoch_acc
+            model.eval()
+            eval_loss, eval_corr = 0., torch.tensor(0).to(device)
+            with torch.no_grad():
+                for inputs, labels in valid_loader:
+                    inputs = inputs.to(device)
+                    labels = labels.to(device)
+                    outputs = model(inputs)
+                    _, preds = torch.max(outputs, 1)
+                    loss = criterion(outputs, labels)
+                    eval_loss += loss.item() * inputs.size(0)
+                    eval_corr += torch.sum(preds == labels.data)
+
+            eval_acc = eval_corr.double() / n_valid
+
+            if eval_acc > best_acc:
+                best_acc = eval_acc
                 best_model = copy.deepcopy(model.state_dict())
-        print("Best model acc", best_acc * 100)
+
+        print("Best model acc", (best_acc * 100).double())
+        torch.save(best_model, "best_model.pt")

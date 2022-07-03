@@ -10,4 +10,4 @@ if __name__ == "__main__":
     visualizer_orientation.visualize_some_samples()
 
     trainer_orientation = TrainerKinderlabor(loader_orientation)
-    trainer_orientation.train_model()
+    trainer_orientation.train_model(n_epochs=10)
