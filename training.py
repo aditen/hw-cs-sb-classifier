@@ -14,6 +14,7 @@ class TrainerKinderlabor:
     def __init__(self, loader: DataloaderKinderlabor):
         self.__loader = loader
         self.__epochs, self.__train_loss, self.__valid_loss, self.__train_acc, self.__valid_acc = [], [], [], [], []
+        self.__test_actual, self.__test_predicted = [], []
 
     def train_model(self, n_epochs=20):
         train_loader, valid_loader, __ = self.__loader.get_data_loaders()
@@ -103,6 +104,7 @@ class TrainerKinderlabor:
         self.__train_acc = acc_train
         self.__valid_acc = acc_valid
 
+    # TODO: move to visualizer
     def visualize_training_progress(self):
         if len(self.__epochs) > 0:
             plt.plot(self.__epochs, self.__train_loss, label="Train Loss")
@@ -113,3 +115,38 @@ class TrainerKinderlabor:
             plt.show()
         else:
             print("No training done yet! Please call this function after training")
+
+    def predict_on_test_samples(self):
+        _, __, test_loader = self.__loader.get_data_loaders()
+        _, __, n_test = self.__loader.get_num_samples()
+
+
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        model = CNN(n_classes=len(self.__loader.get_classes())).to(device)
+        model.load_state_dict(torch.load("best_model.pt"))
+
+        test_loss, test_corr = 0., torch.tensor(0).to(device)
+        criterion = nn.CrossEntropyLoss()
+
+        actual, predicted = [], []
+        model.eval()
+        with torch.no_grad():
+            for inputs, labels in test_loader:
+                inputs = inputs.to(device)
+                labels = labels.to(device)
+                outputs = model(inputs)
+                _, preds = torch.max(outputs, 1)
+                loss = criterion(outputs, labels)
+                test_loss += loss.item() * inputs.size(0)
+                test_corr += torch.sum(preds == labels.data)
+                actual += labels.cpu().numpy().flatten().tolist()
+                predicted += preds.flatten().cpu().numpy().tolist()
+
+        self.__test_actual = actual
+        self.__test_predicted = predicted
+        test_acc = test_corr.double() / n_test
+        test_loss = test_loss / n_test
+        print(f'Test Accuracy: {test_acc * 100:.2f}%, Test Loss: {test_loss:.4f}')
+
+    def get_predictions(self):
+        return self.__test_actual, self.__test_predicted, self.__loader

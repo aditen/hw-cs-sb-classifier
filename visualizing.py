@@ -1,8 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import torchvision
-
+from sklearn.metrics import ConfusionMatrixDisplay
 from data_handling.data_loader import DataloaderKinderlabor
+from training import TrainerKinderlabor
 
 
 def imshow(inp, title=None):
@@ -31,3 +32,14 @@ class VisualizerKinderlabor:
         out = torchvision.utils.make_grid(inputs)
 
         imshow(out, title=[self.__data_loader.get_classes()[x] for x in classes])
+
+    def visualize_confusion_matrix(self, trainer: TrainerKinderlabor):
+        actual, predicted, loader = trainer.get_predictions()
+        class_transforms = {"ARROW_DOWN": "down", "ARROW_LEFT": "left", "ARROW_RIGHT": "right", "ARROW_UP": "up",
+                            "EMPTY": "empty"}
+        if loader != self.__data_loader:
+            print("Loaders are different! Please check you provide the right instance to the visualizer!")
+            return
+        ConfusionMatrixDisplay.from_predictions(actual, predicted,
+                                                display_labels=[class_transforms[x] for x in loader.get_classes()])
+        plt.show()
