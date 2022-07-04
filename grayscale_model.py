@@ -31,4 +31,5 @@ class CNN(nn.Module):
         # flatten the output of conv2 to (batch_size, 32 * 8 * 8)
         x = x.view(x.size(0), -1)
         output = self.out(x)
-        return output  # , x  # return x for visualization
+        # no softmax necessary because cross entropy loss does it
+        return output

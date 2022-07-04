@@ -2,7 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torchvision
 from sklearn.metrics import ConfusionMatrixDisplay
-from data_handling.data_loader import DataloaderKinderlabor
+
+from data_loading import DataloaderKinderlabor
 from training import TrainerKinderlabor
 
 
@@ -32,6 +33,18 @@ class VisualizerKinderlabor:
         out = torchvision.utils.make_grid(inputs)
 
         imshow(out, title=[self.__data_loader.get_classes()[x] for x in classes])
+
+    def visualize_training_progress(self, trainer: TrainerKinderlabor):
+        epochs, train_loss, valid_loss, train_acc, valid_acc = trainer.get_training_progress()
+        if len(epochs) > 0:
+            plt.plot(epochs, train_loss, label="Train Loss")
+            plt.plot(epochs, valid_loss, label="Validation Loss")
+            plt.plot(epochs, train_acc, label="Training Accuracy")
+            plt.plot(epochs, valid_acc, label="Validation Accuracy")
+            plt.legend()
+            plt.show()
+        else:
+            print("No training done yet! Please call this function after training")
 
     def visualize_confusion_matrix(self, trainer: TrainerKinderlabor):
         actual, predicted, loader = trainer.get_predictions()

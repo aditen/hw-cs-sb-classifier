@@ -1,4 +1,5 @@
 import copy
+import math
 
 import torch
 from torch import nn, optim
@@ -6,8 +7,8 @@ from torch.optim import lr_scheduler
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
-from data_handling.data_loader import DataloaderKinderlabor
-from grayscale.grayscale_model import CNN
+from data_loading import DataloaderKinderlabor
+from grayscale_model import CNN
 
 
 class TrainerKinderlabor:
@@ -36,7 +37,8 @@ class TrainerKinderlabor:
 
         # initialize best model
         best_model = copy.deepcopy(model.state_dict())
-        best_acc = 0.0
+        best_loss = math.inf
+        best_acc = 0.
 
         epochs = [i + 1 for i in range(n_epochs)]
         losses_train, acc_train, losses_valid, acc_valid = [], [], [], []
@@ -91,12 +93,14 @@ class TrainerKinderlabor:
             acc_valid.append(eval_acc.item())
             losses_valid.append(eval_loss / n_valid)
 
-            if eval_acc > best_acc:
-                best_acc = eval_acc
+            if eval_loss < best_loss:
+                best_loss = eval_loss
+                best_acc = eval_acc.item()
                 best_model = copy.deepcopy(model.state_dict())
 
-        print("Best model acc", (best_acc * 100).double())
-        torch.save(best_model, "best_model.pt")
+        print("Best model accuracy", best_acc * 100)
+        torch.save(best_model,
+                   f"best_model_{'all' if self.__loader.get_task_type() is None else self.__loader.get_task_type()}.pt")
 
         self.__epochs = epochs
         self.__train_loss = losses_train
@@ -104,26 +108,17 @@ class TrainerKinderlabor:
         self.__train_acc = acc_train
         self.__valid_acc = acc_valid
 
-    # TODO: move to visualizer
-    def visualize_training_progress(self):
-        if len(self.__epochs) > 0:
-            plt.plot(self.__epochs, self.__train_loss, label="Train Loss")
-            plt.plot(self.__epochs, self.__valid_loss, label="Validation Loss")
-            plt.plot(self.__epochs, self.__train_acc, label="Training Accuracy")
-            plt.plot(self.__epochs, self.__valid_acc, label="Validation Accuracy")
-            plt.legend()
-            plt.show()
-        else:
-            print("No training done yet! Please call this function after training")
+    def get_training_progress(self):
+        return self.__epochs, self.__train_loss, self.__valid_loss, self.__train_acc, self.__valid_acc
 
     def predict_on_test_samples(self):
         _, __, test_loader = self.__loader.get_data_loaders()
         _, __, n_test = self.__loader.get_num_samples()
 
-
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         model = CNN(n_classes=len(self.__loader.get_classes())).to(device)
-        model.load_state_dict(torch.load("best_model.pt"))
+        model.load_state_dict(torch.load(
+            f"best_model_{'all' if self.__loader.get_task_type() is None else self.__loader.get_task_type()}.pt"))
 
         test_loss, test_corr = 0., torch.tensor(0).to(device)
         criterion = nn.CrossEntropyLoss()

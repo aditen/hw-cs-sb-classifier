@@ -58,7 +58,7 @@ class DataloaderKinderlabor:
                                                               shuffle=True, num_workers=min(batch_size_train, 8))
         self.__image_folder_valid = ImageFolder(
             base_path + "validation_set",
-            DataloaderKinderlabor.get_transforms(augment=True, rotate=False))
+            DataloaderKinderlabor.get_transforms(augment=False, rotate=False))
         self.__image_folder_valid.classes = self.__image_folder_train.classes
         self.__image_folder_valid.class_to_idx = self.__image_folder_train.class_to_idx
         self.__dataloader_valid = torch.utils.data.DataLoader(self.__image_folder_valid, batch_size=batch_size_valid,
@@ -87,6 +87,9 @@ class DataloaderKinderlabor:
 
     def get_classes(self):
         return self.__image_folder_train.classes
+
+    def get_task_type(self):
+        return self.__task_type
 
     @staticmethod
     def get_transforms(augment=False, rotate=False):
