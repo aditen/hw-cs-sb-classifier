@@ -16,7 +16,7 @@ def imshow(inp, title=None):
     inp = np.clip(inp, 0, 1)
     plt.imshow(inp)
     if title is not None:
-        plt.title(title)
+        plt.title(title, wrap=True)
     plt.pause(0.001)  # pause a bit so that plots are updated
 
 
@@ -32,7 +32,7 @@ class VisualizerKinderlabor:
         # Make a grid from batch
         out = torchvision.utils.make_grid(inputs)
 
-        imshow(out, title=[self.__data_loader.get_classes()[x] for x in classes])
+        imshow(out, title=" ".join([self.__data_loader.get_classes()[x] for x in classes]))
 
     def visualize_training_progress(self, trainer: TrainerKinderlabor):
         epochs, train_loss, valid_loss, train_acc, valid_acc = trainer.get_training_progress()
@@ -48,11 +48,15 @@ class VisualizerKinderlabor:
 
     def visualize_confusion_matrix(self, trainer: TrainerKinderlabor):
         actual, predicted, loader = trainer.get_predictions()
-        class_transforms = {"ARROW_DOWN": "down", "ARROW_LEFT": "left", "ARROW_RIGHT": "right", "ARROW_UP": "up",
-                            "EMPTY": "empty"}
+
         if loader != self.__data_loader:
             print("Loaders are different! Please check you provide the right instance to the visualizer!")
             return
+
+        def transform_class_name(class_name_orig: str):
+            parts = class_name_orig.split("_")
+            return parts[len(parts) - 1].lower()
+
         ConfusionMatrixDisplay.from_predictions(actual, predicted,
-                                                display_labels=[class_transforms[x] for x in loader.get_classes()])
+                                                display_labels=[transform_class_name(x) for x in loader.get_classes()])
         plt.show()
