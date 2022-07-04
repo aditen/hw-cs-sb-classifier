@@ -22,6 +22,8 @@ the three sets (training, validation, test sets) and then moves the images to th
 - Implement data splits with semantic meaning (keeping out students, respectively classes in test set)
 - Further visualizations: allow to grasp through wrong classifications
 - Minor code adaptions 
-  - Better labels for heatmap -> create good dictionary
   - Better title for sample displaying
+  - Allow data augmentation for commands and crosses (but not orientation!)
 - Maybe experiment with cropping of images, if cropping over the border helps (questionable)
+- Start experimenting with known/unknown unknowns
+- Start evaluating identical base models for different tasks (probs needs large code adaptations!)

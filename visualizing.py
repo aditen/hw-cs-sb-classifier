@@ -21,8 +21,9 @@ def imshow(inp, title=None):
 
 
 class VisualizerKinderlabor:
-    def __init__(self, data_loader: DataloaderKinderlabor):
+    def __init__(self, data_loader: DataloaderKinderlabor, save_plots_to_disk=True):
         self.__data_loader = data_loader
+        self.__save_plots_to_disk = save_plots_to_disk
 
     def visualize_some_samples(self):
         train_loader, valid_loader, test_loader = self.__data_loader.get_data_loaders()
@@ -42,6 +43,9 @@ class VisualizerKinderlabor:
             plt.plot(epochs, train_acc, label="Training Accuracy")
             plt.plot(epochs, valid_acc, label="Validation Accuracy")
             plt.legend()
+            if self.__save_plots_to_disk:
+                plt.savefig(
+                    f'output_visualizations/learning_progress_{"all" if self.__data_loader.get_task_type() is None else self.__data_loader.get_task_type()}.jpg')
             plt.show()
         else:
             print("No training done yet! Please call this function after training")
@@ -53,10 +57,15 @@ class VisualizerKinderlabor:
             print("Loaders are different! Please check you provide the right instance to the visualizer!")
             return
 
-        def transform_class_name(class_name_orig: str):
-            parts = class_name_orig.split("_")
-            return parts[len(parts) - 1].lower()
-
+        class_name_dict = {"TURN_RIGHT": "↷", "TURN_LEFT": "↶",
+                           "LOOP_THREE_TIMES": "3x", "LOOP_END": "end",
+                           "LOOP_TWICE": "2x", "LOOP_FOUR_TIMES": "4x",
+                           "PLUS_ONE": "+1", "MINUS_ONE": "-1", "EMPTY": "empty",
+                           "ARROW_RIGHT": "→", "ARROW_LEFT": "←", "ARROW_UP": "↑", "ARROW_DOWN": "↓",
+                           "CHECKED": "X", "NOT_READABLE": "?"}
         ConfusionMatrixDisplay.from_predictions(actual, predicted,
-                                                display_labels=[transform_class_name(x) for x in loader.get_classes()])
+                                                display_labels=[class_name_dict[x] for x in loader.get_classes()])
+        if self.__save_plots_to_disk:
+            plt.savefig(
+                f'output_visualizations/conf_matrix_{"all" if self.__data_loader.get_task_type() is None else self.__data_loader.get_task_type()}.jpg')
         plt.show()

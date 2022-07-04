@@ -8,7 +8,7 @@ if __name__ == "__main__":
     RunUtilsKinderlabor.random_seed()
 
     # Initialize data loader: data splits and loading from images from disk
-    loader_orientation = DataloaderKinderlabor(task_type="ORIENTATION")
+    loader_orientation = DataloaderKinderlabor(task_type="CROSS")
     loader_orientation.plot_class_distributions()
 
     # visualize some (train) samples

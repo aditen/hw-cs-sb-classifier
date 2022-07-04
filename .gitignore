@@ -2,3 +2,5 @@ venv/
 **.pyc
 .idea
 **.pt
+output_visualizations/*
+!output_visualizations/.gitkeep

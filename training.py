@@ -5,19 +5,25 @@ import torch
 from torch import nn, optim
 from torch.optim import lr_scheduler
 from tqdm import tqdm
-import matplotlib.pyplot as plt
+import os
 
 from data_loading import DataloaderKinderlabor
 from grayscale_model import CNN
 
 
 class TrainerKinderlabor:
-    def __init__(self, loader: DataloaderKinderlabor):
+    def __init__(self, loader: DataloaderKinderlabor, load_model_from_disk=True):
         self.__loader = loader
+        self.__load_model_from_disk = load_model_from_disk
         self.__epochs, self.__train_loss, self.__valid_loss, self.__train_acc, self.__valid_acc = [], [], [], [], []
         self.__test_actual, self.__test_predicted = [], []
 
     def train_model(self, n_epochs=20):
+        if self.__load_model_from_disk and os.path.isfile(
+                f"best_model_{'all' if self.__loader.get_task_type() is None else self.__loader.get_task_type()}.pt"):
+            print("Found model already on disk. Set load_model_from_disk=False on function call to force training!")
+            return
+
         train_loader, valid_loader, __ = self.__loader.get_data_loaders()
         n_train, n_valid, __ = self.__loader.get_num_samples()
 
@@ -126,7 +132,7 @@ class TrainerKinderlabor:
         actual, predicted = [], []
         model.eval()
         with torch.no_grad():
-            for inputs, labels in test_loader:
+            for inputs, labels in tqdm(test_loader, unit="test batch"):
                 inputs = inputs.to(device)
                 labels = labels.to(device)
                 outputs = model(inputs)
