@@ -11,3 +11,4 @@ if __name__ == "__main__":
 
     trainer_orientation = TrainerKinderlabor(loader_orientation)
     trainer_orientation.train_model(n_epochs=10)
+    trainer_orientation.visualize_training_progress()
