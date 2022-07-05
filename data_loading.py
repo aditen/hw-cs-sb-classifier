@@ -32,18 +32,20 @@ class DataloaderKinderlabor:
 
         # create/drop folders and then move samples
         for set_name in ["train_set", "validation_set", "test_set"]:
-            if os.path.exists(base_path + set_name):
-                shutil.rmtree(base_path + set_name)
-            os.mkdir(base_path + set_name)
+            if os.path.exists(base_path + self.__task_type + "/" + set_name):
+                shutil.rmtree(base_path + self.__task_type + "/" + set_name)
+            if not os.path.exists(base_path + self.__task_type):
+                os.mkdir(base_path + self.__task_type)
+            os.mkdir(base_path + self.__task_type + "/" + set_name)
 
         for set_name, set_df in [("train_set", self.__train_df),
                                  ("validation_set", self.__valid_df),
                                  ("test_set", self.__test_df)]:
             for idx, row in set_df.iterrows():
-                if not os.path.isdir(base_path + set_name + "/" + row['label']):
-                    os.mkdir(base_path + set_name + "/" + row['label'])
+                if not os.path.isdir(base_path + self.__task_type + "/" + set_name + "/" + row['label']):
+                    os.mkdir(base_path + self.__task_type + "/" + set_name + "/" + row['label'])
                 shutil.copy(base_path + "20220702_niklas/" + str(idx) + ".jpeg",
-                            base_path + set_name + "/" + row[
+                            base_path + self.__task_type + "/" + set_name + "/" + row[
                                 'label'] + "/" + str(
                                 idx) + ".jpeg")
 
@@ -52,19 +54,19 @@ class DataloaderKinderlabor:
         batch_size_valid = 8
         batch_size_test = 8
         self.__image_folder_train = ImageFolder(
-            base_path + "train_set",
+            base_path + self.__task_type + "/" + "train_set",
             DataloaderKinderlabor.get_transforms(augment=True, rotate=False))
         self.__dataloader_train = torch.utils.data.DataLoader(self.__image_folder_train, batch_size=batch_size_train,
                                                               shuffle=True, num_workers=min(batch_size_train, 8))
         self.__image_folder_valid = ImageFolder(
-            base_path + "validation_set",
+            base_path + self.__task_type + "/" + "validation_set",
             DataloaderKinderlabor.get_transforms(augment=False, rotate=False))
         self.__image_folder_valid.classes = self.__image_folder_train.classes
         self.__image_folder_valid.class_to_idx = self.__image_folder_train.class_to_idx
         self.__dataloader_valid = torch.utils.data.DataLoader(self.__image_folder_valid, batch_size=batch_size_valid,
                                                               shuffle=True, num_workers=min(batch_size_valid, 8))
         self.__image_folder_test = ImageFolder(
-            base_path + "test_set",
+            base_path + self.__task_type + "/" + "test_set",
             DataloaderKinderlabor.get_transforms(augment=False, rotate=False))
         self.__image_folder_test.classes = self.__image_folder_train.classes
         self.__image_folder_test.class_to_idx = self.__image_folder_train.class_to_idx
@@ -96,7 +98,7 @@ class DataloaderKinderlabor:
         if augment:
             return transforms.Compose([
                 transforms.Resize((32, 32)),
-                transforms.RandomAffine(degrees=(-90, 90) if rotate else (0, 0), translate=(0.15, 0.15),
+                transforms.RandomAffine(degrees=(-30, 30) if rotate else (0, 0), translate=(0.15, 0.15),
                                         scale=(0.85, 1.15),
                                         fill=255),
                 transforms.Grayscale(),
