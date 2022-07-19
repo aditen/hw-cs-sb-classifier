@@ -8,14 +8,20 @@ from torchvision import transforms
 from torchvision.datasets import ImageFolder
 
 base_path = "C:/Users/41789/Documents/uni/ma/kinderlabor_unterlagen/train_data/"
+dataset_sub_path = "20220702_niklas/"
 
 
 class DataloaderKinderlabor:
 
-    def __init__(self, task_type=None, filter_not_readable=True):
+    def __init__(self, task_type=None, filter_not_readable=True, data_split=None):
         self.__task_type = task_type
+        self.__data_split = data_split
         self.__df = pd.read_csv(
-            base_path + "20220702_niklas/dataset.csv", sep=";", index_col="id")
+            f'{base_path}{dataset_sub_path}dataset.csv', sep=";", index_col="id")
+        self.__full_df = self.__df
+
+        if self.__data_split is not None:
+            raise ValueError("Data split is not yet implemented!")
 
         if self.__task_type is not None:
             self.__df = self.__df.loc[(self.__df['type'] == self.__task_type)]
@@ -44,41 +50,47 @@ class DataloaderKinderlabor:
             for idx, row in set_df.iterrows():
                 if not os.path.isdir(base_path + self.__task_type + "/" + set_name + "/" + row['label']):
                     os.mkdir(base_path + self.__task_type + "/" + set_name + "/" + row['label'])
-                shutil.copy(base_path + "20220702_niklas/" + str(idx) + ".jpeg",
-                            base_path + self.__task_type + "/" + set_name + "/" + row[
-                                'label'] + "/" + str(
-                                idx) + ".jpeg")
+                shutil.copy(f'{base_path}{dataset_sub_path}{str(idx)}.jpeg',
+                            f'{base_path}{self.__task_type}/{set_name}/{row["label"]}/{str(idx)}.jpeg')
 
         # read image folders and create loaders
         batch_size_train = 16
         batch_size_valid = 8
         batch_size_test = 8
-        self.__image_folder_train = ImageFolder(
-            base_path + self.__task_type + "/" + "train_set",
-            DataloaderKinderlabor.get_transforms(augment=True, rotate=False))
+        self.__image_folder_train = ImageFolder(f'{base_path}{self.__task_type}/train_set',
+                                                DataloaderKinderlabor.get_transforms(augment=True, rotate=False))
         self.__dataloader_train = torch.utils.data.DataLoader(self.__image_folder_train, batch_size=batch_size_train,
                                                               shuffle=True, num_workers=min(batch_size_train, 8))
-        self.__image_folder_valid = ImageFolder(
-            base_path + self.__task_type + "/" + "validation_set",
-            DataloaderKinderlabor.get_transforms(augment=False, rotate=False))
+        self.__image_folder_valid = ImageFolder(f'{base_path}{self.__task_type}/validation_set',
+                                                DataloaderKinderlabor.get_transforms(augment=False, rotate=False))
         self.__image_folder_valid.classes = self.__image_folder_train.classes
         self.__image_folder_valid.class_to_idx = self.__image_folder_train.class_to_idx
         self.__dataloader_valid = torch.utils.data.DataLoader(self.__image_folder_valid, batch_size=batch_size_valid,
                                                               shuffle=True, num_workers=min(batch_size_valid, 8))
-        self.__image_folder_test = ImageFolder(
-            base_path + self.__task_type + "/" + "test_set",
-            DataloaderKinderlabor.get_transforms(augment=False, rotate=False))
+        self.__image_folder_test = ImageFolder(f'{base_path}{self.__task_type}/test_set',
+                                               DataloaderKinderlabor.get_transforms(augment=False, rotate=False))
         self.__image_folder_test.classes = self.__image_folder_train.classes
         self.__image_folder_test.class_to_idx = self.__image_folder_train.class_to_idx
         self.__dataloader_test = torch.utils.data.DataLoader(self.__image_folder_test, batch_size=batch_size_test,
                                                              shuffle=True, num_workers=min(batch_size_test, 8))
 
     def plot_class_distributions(self):
-        # NOTE: could also plot distributions of train, validation and test sets here
-        self.__df.groupby(['type', 'label'] if self.__task_type is None else ['label'])['student'] \
-            .count().plot(kind='bar', title='Number of Samples', ylabel='Samples',
-                          xlabel='Type and Label', figsize=(6, 5))
-        plt.gcf().subplots_adjust(bottom=0.5 if self.__task_type is None else 0.3)
+        labels = self.__df['label'].unique()
+        vals_train = [len(self.__train_df[self.__train_df['label'] == label]) for label in labels]
+        vals_valid = [len(self.__valid_df[self.__valid_df['label'] == label]) for label in labels]
+        vals_test = [len(self.__test_df[self.__test_df['label'] == label]) for label in labels]
+        vals_total = [len(self.__df[self.__df['label'] == label]) for label in labels]
+
+        fig, ax = plt.subplots()
+
+        ax.bar(labels, vals_train, label='Train Set')
+        ax.bar(labels, vals_valid, label='Validation Set', bottom=vals_train)
+        ax.bar(labels, vals_test, label='Test Set', bottom=[sum(x) for x in zip(vals_train, vals_valid)])
+
+        ax.set_ylabel('Number of Samples')
+        ax.set_title('Number of Samples per Class and Set')
+        ax.legend()
+
         plt.show()
 
     def get_num_samples(self):

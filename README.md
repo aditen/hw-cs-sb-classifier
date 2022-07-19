@@ -24,7 +24,6 @@ the three sets (training, validation, test sets) and then moves the images to th
 - Minor code adaptions 
   - Better title for sample displaying
   - Allow *rotation* data augmentation for commands and crosses (but not orientation!)
-  - Sample visualization: plot number of samples in splits (train, validation, test) and total as stacked bar chart or multiple bars
   - Allow reusage of image folders if present and make force_recreation parameter in constructor to force dataset recreation
 - Maybe experiment with cropping of images, if cropping over the border helps (questionable)
 - Start experimenting with known/unknown unknowns
