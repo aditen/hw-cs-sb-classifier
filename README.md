@@ -19,9 +19,10 @@ the three sets (training, validation, test sets) and then moves the images to th
 - You are ready to go :sunglasses:
 
 # :ledger: TODOs
-- Implement data splits with semantic meaning (keeping out students, respectively classes in test set)
+- Implement further data splits with semantic meaning (keeping out students, respectively classes in test set)
 - Further visualizations: allow to grasp through wrong classifications
 - Minor code adaptions 
+  - Data Augmentation: Invert grayscale (such that written signs have actually high values and not background) 
   - Better title for sample displaying
   - Allow *rotation* data augmentation for commands and crosses (but not orientation!)
   - Allow reusage of image folders if present and make force_recreation parameter in constructor to force dataset recreation

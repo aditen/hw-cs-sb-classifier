@@ -8,7 +8,7 @@ if __name__ == "__main__":
     RunUtilsKinderlabor.random_seed()
 
     # Initialize data loader: data splits and loading from images from disk
-    loader_orientation = DataloaderKinderlabor(task_type="ORIENTATION")
+    loader_orientation = DataloaderKinderlabor(task_type="ORIENTATION", data_split="hold_out_2nd")
     loader_orientation.plot_class_distributions()
 
     # visualize some (train) samples
@@ -16,7 +16,7 @@ if __name__ == "__main__":
     visualizer_orientation.visualize_some_samples()
 
     # Train model and analyze training progress (mainly when it starts overfitting on validation set)
-    trainer_orientation = TrainerKinderlabor(loader_orientation)
+    trainer_orientation = TrainerKinderlabor(loader_orientation, load_model_from_disk=False)
     trainer_orientation.train_model(n_epochs=20)
     visualizer_orientation.visualize_training_progress(trainer_orientation)
 

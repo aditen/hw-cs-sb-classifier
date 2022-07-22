@@ -8,7 +8,8 @@ from torchvision import transforms
 from torchvision.datasets import ImageFolder
 
 base_path = "C:/Users/41789/Documents/uni/ma/kinderlabor_unterlagen/train_data/"
-dataset_sub_path = "20220702_niklas/"
+# TODO: new one!
+dataset_sub_path = "20220718_erste_hefter/"
 
 
 class DataloaderKinderlabor:
@@ -20,21 +21,36 @@ class DataloaderKinderlabor:
             f'{base_path}{dataset_sub_path}dataset.csv', sep=";", index_col="id")
         self.__full_df = self.__df
 
-        if self.__data_split is not None:
-            raise ValueError("Data split is not yet implemented!")
-
         if self.__task_type is not None:
             self.__df = self.__df.loc[(self.__df['type'] == self.__task_type)]
         if filter_not_readable:
             self.__df = self.__df.loc[(self.__df['label'] != "NOT_READABLE")]
 
-        # split train/test randomly
-        self.__train_df = self.__df.sample(frac=0.85, random_state=42)
-        self.__test_df = self.__df.drop(self.__train_df.index)
 
-        # split train/valid randomly
-        self.__valid_df = self.__train_df.sample(frac=0.1, random_state=42)
-        self.__train_df = self.__train_df.drop(self.__valid_df.index)
+        # for now filter out vishaws labelling as it is not done and has many blanks
+        #   TODO: reenable his class and ignore empties (use them in test only anyway)
+        self.__df = self.__df[self.__df['class'] != 'Vishwas Labelling 1']
+
+        if self.__data_split is not None:
+            if self.__data_split == "hold_out_2nd":
+                # Test Set based on class 'Data Collection 2. Klasse'
+                # split train/test accordingly
+                self.__train_df = self.__df[self.__df['class'] != 'Data Collection 2. Klasse']
+                self.__test_df = self.__df.drop(self.__train_df.index)
+
+                # split train/valid randomly
+                self.__valid_df = self.__train_df.sample(frac=0.1, random_state=42)
+                self.__train_df = self.__train_df.drop(self.__valid_df.index)
+            else:
+                raise ValueError("Data split is not yet implemented for this value!")
+        else:
+            # split train/test randomly
+            self.__train_df = self.__df.sample(frac=0.85, random_state=42)
+            self.__test_df = self.__df.drop(self.__train_df.index)
+
+            # split train/valid randomly
+            self.__valid_df = self.__train_df.sample(frac=0.1, random_state=42)
+            self.__train_df = self.__train_df.drop(self.__valid_df.index)
 
         # create/drop folders and then move samples
         for set_name in ["train_set", "validation_set", "test_set"]:
