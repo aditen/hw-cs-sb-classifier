@@ -89,30 +89,14 @@ class DataloaderKinderlabor:
         self.__dataloader_test = torch.utils.data.DataLoader(self.__image_folder_test, batch_size=batch_size_test,
                                                              shuffle=True, num_workers=min(batch_size_test, 8))
 
-    def plot_class_distributions(self):
-        labels = self.__df['label'].unique()
-        vals_train = [len(self.__train_df[self.__train_df['label'] == label]) for label in labels]
-        vals_valid = [len(self.__valid_df[self.__valid_df['label'] == label]) for label in labels]
-        vals_test = [len(self.__test_df[self.__test_df['label'] == label]) for label in labels]
-        vals_total = [len(self.__df[self.__df['label'] == label]) for label in labels]
-
-        fig, ax = plt.subplots()
-
-        ax.bar(labels, vals_train, label='Train Set')
-        ax.bar(labels, vals_valid, label='Validation Set', bottom=vals_train)
-        ax.bar(labels, vals_test, label='Test Set', bottom=[sum(x) for x in zip(vals_train, vals_valid)])
-
-        ax.set_ylabel('Number of Samples')
-        ax.set_title('Number of Samples per Class and Set')
-        ax.legend()
-
-        plt.show()
-
     def get_num_samples(self):
         return len(self.__image_folder_train), len(self.__image_folder_valid), len(self.__image_folder_test)
 
     def get_data_loaders(self):
         return self.__dataloader_train, self.__dataloader_valid, self.__dataloader_test
+
+    def get_set_dfs(self):
+        return self.__train_df, self.__valid_df, self.__test_df, self.__df
 
     def get_classes(self):
         return self.__image_folder_train.classes

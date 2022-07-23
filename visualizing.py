@@ -6,6 +6,13 @@ from sklearn.metrics import ConfusionMatrixDisplay
 from data_loading import DataloaderKinderlabor
 from training import TrainerKinderlabor
 
+class_name_dict = {"TURN_RIGHT": "↷", "TURN_LEFT": "↶",
+                   "LOOP_THREE_TIMES": "3x", "LOOP_END": "end",
+                   "LOOP_TWICE": "2x", "LOOP_FOUR_TIMES": "4x",
+                   "PLUS_ONE": "+1", "MINUS_ONE": "-1", "EMPTY": "empty",
+                   "ARROW_RIGHT": "→", "ARROW_LEFT": "←", "ARROW_UP": "↑", "ARROW_DOWN": "↓",
+                   "CHECKED": "X", "NOT_READABLE": "?"}
+
 
 def imshow(inp, title=None):
     """Imshow for Tensor."""
@@ -33,7 +40,7 @@ class VisualizerKinderlabor:
         # Make a grid from batch
         out = torchvision.utils.make_grid(inputs)
 
-        imshow(out, title=" ".join([self.__data_loader.get_classes()[x] for x in classes]))
+        imshow(out, title=" ".join([class_name_dict[self.__data_loader.get_classes()[x]] for x in classes]))
 
     def visualize_training_progress(self, trainer: TrainerKinderlabor):
         epochs, train_loss, valid_loss, train_acc, valid_acc = trainer.get_training_progress()
@@ -43,7 +50,8 @@ class VisualizerKinderlabor:
             plt.plot(epochs, train_acc, label="Training Accuracy")
             plt.plot(epochs, valid_acc, label="Validation Accuracy")
             plt.xlabel("Epoch")
-            plt.title("Accuracy and Loss over Epochs")
+            plt.ylabel("Model Performance")
+            plt.title("Model Performance over Epochs")
             plt.legend()
             if self.__save_plots_to_disk:
                 plt.savefig(
@@ -59,15 +67,29 @@ class VisualizerKinderlabor:
             print("Loaders are different! Please check you provide the right instance to the visualizer!")
             return
 
-        class_name_dict = {"TURN_RIGHT": "↷", "TURN_LEFT": "↶",
-                           "LOOP_THREE_TIMES": "3x", "LOOP_END": "end",
-                           "LOOP_TWICE": "2x", "LOOP_FOUR_TIMES": "4x",
-                           "PLUS_ONE": "+1", "MINUS_ONE": "-1", "EMPTY": "empty",
-                           "ARROW_RIGHT": "→", "ARROW_LEFT": "←", "ARROW_UP": "↑", "ARROW_DOWN": "↓",
-                           "CHECKED": "X", "NOT_READABLE": "?"}
         ConfusionMatrixDisplay.from_predictions(actual, predicted,
                                                 display_labels=[class_name_dict[x] for x in loader.get_classes()])
         if self.__save_plots_to_disk:
             plt.savefig(
                 f'output_visualizations/conf_matrix_{"all" if self.__data_loader.get_task_type() is None else self.__data_loader.get_task_type()}.jpg')
+        plt.show()
+
+    def plot_class_distributions(self):
+        train_df, valid_df, test_df, all_df = self.__data_loader.get_set_dfs()
+        labels = all_df['label'].unique()
+        vals_train = [len(train_df[train_df['label'] == label]) for label in labels]
+        vals_valid = [len(valid_df[valid_df['label'] == label]) for label in labels]
+        vals_test = [len(test_df[test_df['label'] == label]) for label in labels]
+        #vals_total = [len(all_df[all_df['label'] == label]) for label in labels]
+
+        fig, ax = plt.subplots()
+
+        ax.bar(labels, vals_train, label='Train Set')
+        ax.bar(labels, vals_valid, label='Validation Set', bottom=vals_train)
+        ax.bar(labels, vals_test, label='Test Set', bottom=[sum(x) for x in zip(vals_train, vals_valid)])
+
+        ax.set_ylabel('Number of Samples')
+        ax.set_title('Number of Samples per Class and Set')
+        ax.legend()
+
         plt.show()

@@ -8,18 +8,18 @@ if __name__ == "__main__":
     RunUtilsKinderlabor.random_seed()
 
     # Initialize data loader: data splits and loading from images from disk
-    loader_orientation = DataloaderKinderlabor(task_type="COMMAND")
-    loader_orientation.plot_class_distributions()
+    loader_commands = DataloaderKinderlabor(task_type="COMMAND")
 
-    # visualize some (train) samples
-    visualizer_orientation = VisualizerKinderlabor(loader_orientation)
-    visualizer_orientation.visualize_some_samples()
+    # visualize class distribution and some (train) samples
+    visualizer_commands = VisualizerKinderlabor(loader_commands)
+    visualizer_commands.plot_class_distributions()
+    visualizer_commands.visualize_some_samples()
 
     # Train model and analyze training progress (mainly when it starts overfitting on validation set)
-    trainer_orientation = TrainerKinderlabor(loader_orientation)
-    trainer_orientation.train_model(n_epochs=20)
-    visualizer_orientation.visualize_training_progress(trainer_orientation)
+    trainer_commands = TrainerKinderlabor(loader_commands)
+    trainer_commands.train_model(n_epochs=20)
+    visualizer_commands.visualize_training_progress(trainer_commands)
 
     # Predict on test samples
-    trainer_orientation.predict_on_test_samples()
-    visualizer_orientation.visualize_confusion_matrix(trainer_orientation)
+    trainer_commands.predict_on_test_samples()
+    visualizer_commands.visualize_confusion_matrix(trainer_commands)
