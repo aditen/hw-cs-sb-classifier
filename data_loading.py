@@ -8,7 +8,6 @@ from torchvision import transforms
 from torchvision.datasets import ImageFolder
 
 base_path = "C:/Users/41789/Documents/uni/ma/kinderlabor_unterlagen/train_data/"
-# TODO: new one!
 dataset_sub_path = "20220718_erste_hefter/"
 
 
@@ -130,12 +129,14 @@ class DataloaderKinderlabor:
                                         scale=(0.85, 1.15),
                                         fill=255),
                 transforms.Grayscale(),
+                transforms.RandomInvert(p=1.),
                 transforms.ToTensor(),
                 transforms.Normalize([0.485], [0.229])
             ])
         return transforms.Compose([
             transforms.Resize((32, 32)),
             transforms.Grayscale(),
+            transforms.RandomInvert(p=1.),
             transforms.ToTensor(),
             transforms.Normalize([0.485], [0.229])
         ])

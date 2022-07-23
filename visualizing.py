@@ -42,6 +42,8 @@ class VisualizerKinderlabor:
             plt.plot(epochs, valid_loss, label="Validation Loss")
             plt.plot(epochs, train_acc, label="Training Accuracy")
             plt.plot(epochs, valid_acc, label="Validation Accuracy")
+            plt.xlabel("Epoch")
+            plt.title("Accuracy and Loss over Epochs")
             plt.legend()
             if self.__save_plots_to_disk:
                 plt.savefig(
