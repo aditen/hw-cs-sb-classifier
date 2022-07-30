@@ -18,13 +18,18 @@ the three sets (training, validation, test sets) and then moves the images to th
 - Install PyTorch 1.11 or higher as stated in their docs: https://pytorch.org/get-started/locally/
 - You are ready to go :sunglasses:
 
+# :rocket: Herby Integration
+- Script model (see trainer class) with torch jit, in a further model transforms could be scripted as well
+- Load model using DJL (https://djl.ai/) with the according synset (class names) from disk and predict on image
+
 # :ledger: TODOs
+- Calculate mean and std deviation on training set instead of using some values from a single mnist channel :blush:
 - Implement further data splits with semantic meaning (keeping out students, respectively classes in test set)
-- Further visualizations: allow to grasp through wrong classifications
 - Minor code adaptions 
   - Better title for sample displaying
   - Allow *rotation* data augmentation for commands and crosses (but not orientation!)
   - Allow reusage of image folders if present and make force_recreation parameter in constructor to force dataset recreation
-- Maybe experiment with cropping of images, if cropping over the border helps (questionable)
 - Start experimenting with known/unknown unknowns
 - Start evaluating identical base models for different tasks (probs needs large code adaptations!)
+- Further visualizations: allow to grasp through wrong classifications (evtl. in Herby UI)
+- Maybe experiment with cropping of images, if cropping over the border helps (questionable)
