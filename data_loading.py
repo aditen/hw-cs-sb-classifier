@@ -1,3 +1,4 @@
+import math
 import os
 import shutil
 
@@ -67,23 +68,55 @@ class DataloaderKinderlabor:
                 shutil.copy(f'{base_path}{dataset_sub_path}{str(idx)}.jpeg',
                             f'{base_path}{self.__task_type}/{set_name}/{row["label"]}/{str(idx)}.jpeg')
 
+        # calculate mean and std on dataset
+        transforms_get_mean_std = transforms.Compose([
+            transforms.Resize((32, 32)),
+            transforms.Grayscale(),
+            transforms.RandomInvert(p=1.),
+            transforms.ToTensor()
+        ])
+        self.__image_folder_std_mean = ImageFolder(f'{base_path}{self.__task_type}/train_set',
+                                                   transforms_get_mean_std)
+        self.__dataloader_std_mean = torch.utils.data.DataLoader(self.__image_folder_std_mean,
+                                                                 batch_size=8,
+                                                                 shuffle=True, num_workers=8)
+
+        mean_sum = 0.
+        n_total = 0
+        var_sum = 0.
+
+        for imgs, _ in self.__dataloader_std_mean:
+            for img in imgs:
+                mean_sum += img.mean().item()
+                n_total += 1
+        self.__mean = mean_sum / n_total
+
+        for imgs, _ in self.__dataloader_std_mean:
+            for img in imgs:
+                stds = ((img - self.__mean) ** 2)
+                var = stds.sum().item() / (32 * 32)
+                var_sum += var
+
+        self.__std = math.sqrt(var_sum / n_total)
+        print(f'Dataset mean: {self.__mean}, std: {self.__std}')
+
         # read image folders and create loaders
         batch_size_train = 16
         batch_size_valid = 8
         batch_size_test = 8
         self.__image_folder_train = ImageFolder(f'{base_path}{self.__task_type}/train_set',
-                                                DataloaderKinderlabor.get_transforms(augment=True,
-                                                                                     rotate=self.__task_type != "ORIENTATION"))
+                                                self.get_transforms(augment=True,
+                                                                    rotate=self.__task_type != "ORIENTATION"))
         self.__dataloader_train = torch.utils.data.DataLoader(self.__image_folder_train, batch_size=batch_size_train,
                                                               shuffle=True, num_workers=min(batch_size_train, 8))
         self.__image_folder_valid = ImageFolder(f'{base_path}{self.__task_type}/validation_set',
-                                                DataloaderKinderlabor.get_transforms(augment=False, rotate=False))
+                                                self.get_transforms(augment=False, rotate=False))
         self.__image_folder_valid.classes = self.__image_folder_train.classes
         self.__image_folder_valid.class_to_idx = self.__image_folder_train.class_to_idx
         self.__dataloader_valid = torch.utils.data.DataLoader(self.__image_folder_valid, batch_size=batch_size_valid,
                                                               shuffle=True, num_workers=min(batch_size_valid, 8))
         self.__image_folder_test = ImageFolder(f'{base_path}{self.__task_type}/test_set',
-                                               DataloaderKinderlabor.get_transforms(augment=False, rotate=False))
+                                               self.get_transforms(augment=False, rotate=False))
         self.__image_folder_test.classes = self.__image_folder_train.classes
         self.__image_folder_test.class_to_idx = self.__image_folder_train.class_to_idx
         self.__dataloader_test = torch.utils.data.DataLoader(self.__image_folder_test, batch_size=batch_size_test,
@@ -104,8 +137,7 @@ class DataloaderKinderlabor:
     def get_task_type(self):
         return self.__task_type
 
-    @staticmethod
-    def get_transforms(augment=False, rotate=False):
+    def get_transforms(self, augment=False, rotate=False):
         if augment:
             return transforms.Compose([
                 transforms.Resize((32, 32)),
@@ -115,12 +147,15 @@ class DataloaderKinderlabor:
                 transforms.Grayscale(),
                 transforms.RandomInvert(p=1.),
                 transforms.ToTensor(),
-                transforms.Normalize([0.485], [0.229])
+                transforms.Normalize([self.__mean], [self.__std])
             ])
         return transforms.Compose([
             transforms.Resize((32, 32)),
             transforms.Grayscale(),
             transforms.RandomInvert(p=1.),
             transforms.ToTensor(),
-            transforms.Normalize([0.485], [0.229])
+            transforms.Normalize([self.__mean], [self.__std])
         ])
+
+    def get_mean_std(self):
+        return self.__mean, self.__std

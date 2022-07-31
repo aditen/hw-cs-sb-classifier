@@ -19,13 +19,15 @@ the three sets (training, validation, test sets) and then moves the images to th
 - You are ready to go :sunglasses:
 
 # :rocket: Herby Integration
-- Script model (see trainer class) with torch jit, in a further model transforms could be scripted as well
+- Script model (see trainer class) with torch jit
 - Load model using DJL (https://djl.ai/) with the according synset (class names) from disk and predict on image
 
 # :ledger: TODOs
-- Calculate mean and std deviation on training set instead of using some values from a single mnist channel :blush:
-- Implement further data splits with semantic meaning (keeping out students, respectively classes in test set)
+- Compare Std Scaling performance to ordinary min-max scaling (in \[0, 1\])
+- Implement further data splits with semantic meaning (keeping out students, respectively classes in test set) 
+once more data is labelled
 - Minor code adaptions 
+  - Herby integration: Script whole model including transforms
   - Allow reusage of image folders if present and make force_recreation parameter in constructor to force dataset recreation
 - Start experimenting with known/unknown unknowns
 - Start evaluating identical base models for different tasks (probs needs large code adaptations!)

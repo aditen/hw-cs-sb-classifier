@@ -14,11 +14,11 @@ class_name_dict = {"TURN_RIGHT": "↷", "TURN_LEFT": "↶",
                    "CHECKED": "X", "NOT_READABLE": "?"}
 
 
-def imshow(inp, title=None):
+def imshow(inp, title=None, mean=0.485, std=0.229):
     """Imshow for Tensor."""
     inp = inp.numpy().transpose((1, 2, 0))
-    mean = np.array([0.485])
-    std = np.array([0.229])
+    mean = np.array([mean])
+    std = np.array([std])
     inp = std * inp + mean
     inp = np.clip(inp, 0, 1)
     plt.imshow(inp)
@@ -34,13 +34,14 @@ class VisualizerKinderlabor:
 
     def visualize_some_samples(self):
         train_loader, valid_loader, test_loader = self.__data_loader.get_data_loaders()
+        mean, std = self.__data_loader.get_mean_std()
         # Get a batch of training data
         inputs, classes = next(iter(train_loader))
 
         # Make a grid from batch
         out = torchvision.utils.make_grid(inputs)
 
-        imshow(out, title=" ".join(
+        imshow(out, mean=mean, std=std, title=" ".join(
             [(class_name_dict[self.__data_loader.get_classes()[x]] + ("\n" if i % 8 == 7 else "")) for i, x
              in
              enumerate(classes)]))
