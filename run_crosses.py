@@ -23,3 +23,6 @@ if __name__ == "__main__":
     # Predict on test samples
     trainer_crosses.predict_on_test_samples()
     visualizer_crosses.visualize_confusion_matrix(trainer_crosses)
+
+    # save scripted model to disk
+    trainer_crosses.script_model()

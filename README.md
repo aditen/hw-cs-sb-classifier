@@ -26,8 +26,6 @@ the three sets (training, validation, test sets) and then moves the images to th
 - Calculate mean and std deviation on training set instead of using some values from a single mnist channel :blush:
 - Implement further data splits with semantic meaning (keeping out students, respectively classes in test set)
 - Minor code adaptions 
-  - Better title for sample displaying
-  - Allow *rotation* data augmentation for commands and crosses (but not orientation!)
   - Allow reusage of image folders if present and make force_recreation parameter in constructor to force dataset recreation
 - Start experimenting with known/unknown unknowns
 - Start evaluating identical base models for different tasks (probs needs large code adaptations!)

@@ -153,7 +153,7 @@ class TrainerKinderlabor:
         return self.__test_actual, self.__test_predicted, self.__loader
 
     def script_model(self):
-        model = CNN(5)
+        model = CNN(n_classes=len(self.__loader.get_classes()))
         model.load_state_dict(torch.load(
             f"best_model_{'all' if self.__loader.get_task_type() is None else self.__loader.get_task_type()}.pt"))
         model.eval()

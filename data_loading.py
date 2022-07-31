@@ -25,7 +25,6 @@ class DataloaderKinderlabor:
         if filter_not_readable:
             self.__df = self.__df.loc[(self.__df['label'] != "NOT_READABLE")]
 
-
         # for now filter out vishaws labelling as it is not done and has many blanks
         #   TODO: reenable his class and ignore empties (use them in test only anyway)
         self.__df = self.__df[self.__df['class'] != 'Vishwas Labelling 1']
@@ -73,7 +72,8 @@ class DataloaderKinderlabor:
         batch_size_valid = 8
         batch_size_test = 8
         self.__image_folder_train = ImageFolder(f'{base_path}{self.__task_type}/train_set',
-                                                DataloaderKinderlabor.get_transforms(augment=True, rotate=False))
+                                                DataloaderKinderlabor.get_transforms(augment=True,
+                                                                                     rotate=self.__task_type != "ORIENTATION"))
         self.__dataloader_train = torch.utils.data.DataLoader(self.__image_folder_train, batch_size=batch_size_train,
                                                               shuffle=True, num_workers=min(batch_size_train, 8))
         self.__image_folder_valid = ImageFolder(f'{base_path}{self.__task_type}/validation_set',

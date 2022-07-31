@@ -40,7 +40,10 @@ class VisualizerKinderlabor:
         # Make a grid from batch
         out = torchvision.utils.make_grid(inputs)
 
-        imshow(out, title=" ".join([class_name_dict[self.__data_loader.get_classes()[x]] for x in classes]))
+        imshow(out, title=" ".join(
+            [(class_name_dict[self.__data_loader.get_classes()[x]] + ("\n" if i % 8 == 7 else "")) for i, x
+             in
+             enumerate(classes)]))
 
     def visualize_training_progress(self, trainer: TrainerKinderlabor):
         epochs, train_loss, valid_loss, train_acc, valid_acc = trainer.get_training_progress()
@@ -80,7 +83,7 @@ class VisualizerKinderlabor:
         vals_train = [len(train_df[train_df['label'] == label]) for label in labels]
         vals_valid = [len(valid_df[valid_df['label'] == label]) for label in labels]
         vals_test = [len(test_df[test_df['label'] == label]) for label in labels]
-        #vals_total = [len(all_df[all_df['label'] == label]) for label in labels]
+        # vals_total = [len(all_df[all_df['label'] == label]) for label in labels]
 
         fig, ax = plt.subplots()
 
