@@ -1,6 +1,7 @@
 import torch.nn as nn
 
 
+# TODO: global average pooling, eventually raise # of channels
 # simple CNN from
 # https://medium.com/@nutanbhogendrasharma/pytorch-convolutional-neural-network-with-mnist-dataset-4e8a4265e118
 class CNN(nn.Module):

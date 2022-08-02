@@ -137,6 +137,8 @@ class DataloaderKinderlabor:
     def get_task_type(self):
         return self.__task_type
 
+    # TODO: change to 28x28 if using MNIST for pre-training/unknowns
+    # TODO: cut over borders in Herby, random Crop down (e.g. 36x36 to 28x28)
     def get_transforms(self, augment=False, rotate=False):
         if augment:
             return transforms.Compose([
