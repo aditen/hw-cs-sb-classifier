@@ -8,7 +8,8 @@ if __name__ == "__main__":
     RunUtilsKinderlabor.random_seed()
 
     # Initialize data loader: data splits and loading from images from disk
-    loader_commands = DataloaderKinderlabor(task_type="COMMAND")
+    data_split = "train_sheets_test_booklets"
+    loader_commands = DataloaderKinderlabor(task_type="COMMAND", data_split=data_split)
 
     # visualize class distribution and some (train) samples
     visualizer_commands = VisualizerKinderlabor(loader_commands)
@@ -16,7 +17,7 @@ if __name__ == "__main__":
     visualizer_commands.visualize_some_samples()
 
     # Train model and analyze training progress (mainly when it starts overfitting on validation set)
-    trainer_commands = TrainerKinderlabor(loader_commands)
+    trainer_commands = TrainerKinderlabor(loader_commands, load_model_from_disk=False)
     trainer_commands.train_model(n_epochs=20)
     visualizer_commands.visualize_training_progress(trainer_commands)
 

@@ -85,7 +85,8 @@ class VisualizerKinderlabor:
         vals_train = [len(train_df[train_df['label'] == label]) for label in labels]
         vals_valid = [len(valid_df[valid_df['label'] == label]) for label in labels]
         vals_test = [len(test_df[test_df['label'] == label]) for label in labels]
-        # vals_total = [len(all_df[all_df['label'] == label]) for label in labels]
+
+        labels = [class_name_dict[x] for x in labels]
 
         fig, ax = plt.subplots()
 

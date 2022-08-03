@@ -40,8 +40,15 @@ class DataloaderKinderlabor:
                 self.__valid_df = self.__train_df.sample(frac=0.1, random_state=42)
                 self.__train_df = self.__train_df.drop(self.__valid_df.index)
             elif self.__data_split == "train_sheets_test_booklets":
+                # TODO: remove again and use mask or similar, but we hardly have any loops in the test set as of now
+                if self.__task_type == "COMMAND":
+                    self.__df = self.__df[
+                        (self.__df['label'] != 'LOOP_FOUR_TIMES') & (self.__df['label'] != 'LOOP_THREE_TIMES') & (
+                                self.__df['label'] != 'LOOP_TWICE') & (self.__df['label'] != 'LOOP_END')]
                 self.__train_df = self.__df[
-                    (self.__df['class'] != 'Vishwas Labelling 1') & (self.__df['class'] != 'Vishwas Labeling 2')]
+                    (self.__df['class'] != 'Vishwas Labelling 1')
+                    #& (self.__df['class'] != 'Vishwas Labeling 2')
+                    ]
                 self.__test_df = self.__df.drop(self.__train_df.index)
                 # split train/valid randomly
                 self.__valid_df = self.__train_df.sample(frac=0.1, random_state=42)
@@ -78,6 +85,7 @@ class DataloaderKinderlabor:
         transforms_get_mean_std = transforms.Compose([
             transforms.Resize((32, 32)),
             transforms.Grayscale(),
+            transforms.RandomAutocontrast(p=1.),
             transforms.RandomInvert(p=1.),
             transforms.ToTensor()
         ])
@@ -104,7 +112,7 @@ class DataloaderKinderlabor:
                 var_sum += var
 
         self.__std = math.sqrt(var_sum / n_total)
-        print(f'Dataset mean: {self.__mean}, std: {self.__std}')
+        print(f'Dataset mean: {self.__mean:.4f}, std: {self.__std:.4f}')
 
         # read image folders and create loaders
         batch_size_train = 16
@@ -149,17 +157,18 @@ class DataloaderKinderlabor:
         if augment:
             return transforms.Compose([
                 transforms.Resize((32, 32)),
-                transforms.RandomAffine(degrees=(-30, 30) if rotate else (0, 0), translate=(0.15, 0.15),
-                                        scale=(0.85, 1.15),
-                                        fill=255),
                 transforms.Grayscale(),
+                transforms.RandomAutocontrast(p=1.),
                 transforms.RandomInvert(p=1.),
+                transforms.RandomAffine(degrees=(-30, 30) if rotate else (0, 0), translate=(0.15, 0.15),
+                                        scale=(0.85, 1.15)),
                 transforms.ToTensor(),
                 transforms.Normalize([self.__mean], [self.__std])
             ])
         return transforms.Compose([
             transforms.Resize((32, 32)),
             transforms.Grayscale(),
+            transforms.RandomAutocontrast(p=1.),
             transforms.RandomInvert(p=1.),
             transforms.ToTensor(),
             transforms.Normalize([self.__mean], [self.__std])
