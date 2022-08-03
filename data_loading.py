@@ -9,7 +9,7 @@ from torchvision import transforms
 from torchvision.datasets import ImageFolder
 
 base_path = "C:/Users/41789/Documents/uni/ma/kinderlabor_unterlagen/train_data/"
-dataset_sub_path = "20220718_erste_hefter/"
+dataset_sub_path = "20220803_over_border_cropping/"
 
 
 class DataloaderKinderlabor:
@@ -26,17 +26,23 @@ class DataloaderKinderlabor:
         if filter_not_readable:
             self.__df = self.__df.loc[(self.__df['label'] != "NOT_READABLE")]
 
-        # for now filter out vishaws labelling as it is not done and has many blanks
-        #   TODO: reenable his class and ignore empties (use them in test only anyway)
-        self.__df = self.__df[self.__df['class'] != 'Vishwas Labelling 1']
-
         if self.__data_split is not None:
             if self.__data_split == "hold_out_2nd":
                 # Test Set based on class 'Data Collection 2. Klasse'
                 # split train/test accordingly
+                self.__df = self.__df[self.__df['class'] != 'Vishwas Labelling 1']
+                self.__df = self.__df[self.__df['class'] != 'Vishwas Labeling 2']
+
                 self.__train_df = self.__df[self.__df['class'] != 'Data Collection 2. Klasse']
                 self.__test_df = self.__df.drop(self.__train_df.index)
 
+                # split train/valid randomly
+                self.__valid_df = self.__train_df.sample(frac=0.1, random_state=42)
+                self.__train_df = self.__train_df.drop(self.__valid_df.index)
+            elif self.__data_split == "train_sheets_test_booklets":
+                self.__train_df = self.__df[
+                    (self.__df['class'] != 'Vishwas Labelling 1') & (self.__df['class'] != 'Vishwas Labeling 2')]
+                self.__test_df = self.__df.drop(self.__train_df.index)
                 # split train/valid randomly
                 self.__valid_df = self.__train_df.sample(frac=0.1, random_state=42)
                 self.__train_df = self.__train_df.drop(self.__valid_df.index)

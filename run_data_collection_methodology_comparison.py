@@ -7,8 +7,8 @@ from visualizing import class_name_dict
 
 if __name__ == "__main__":
     df = pd.read_csv(
-        'C:/Users/41789/Documents/uni/ma/kinderlabor_unterlagen/train_data/20220731_vishwas_done/dataset.csv', sep=";",
-        index_col="id")
+        'C:/Users/41789/Documents/uni/ma/kinderlabor_unterlagen/train_data/20220803_over_border_cropping/dataset.csv',
+        sep=";", index_col="id")
     classes = df['class'].unique()
     print(f'classes currently in df: {classes}')
 
@@ -41,4 +41,3 @@ if __name__ == "__main__":
         plt.show()
         fig.savefig(
             f'output_visualizations/methodology_comparison_{task_type}.jpg')
-

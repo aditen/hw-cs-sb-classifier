@@ -32,4 +32,3 @@ once more data is labelled
 - Start experimenting with known/unknown unknowns
 - Start evaluating identical base models for different tasks (probs needs large code adaptations!)
 - Further visualizations: allow to grasp through wrong classifications (evtl. in Herby UI)
-- Maybe experiment with cropping of images, if cropping over the border helps (questionable)

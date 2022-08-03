@@ -72,7 +72,8 @@ class VisualizerKinderlabor:
             return
 
         ConfusionMatrixDisplay.from_predictions(actual, predicted,
-                                                display_labels=[class_name_dict[x] for x in loader.get_classes()])
+                                                display_labels=[class_name_dict[x] for x in loader.get_classes()],
+                                                normalize='true')
         if self.__save_plots_to_disk:
             plt.savefig(
                 f'output_visualizations/conf_matrix_{"all" if self.__data_loader.get_task_type() is None else self.__data_loader.get_task_type()}.jpg')
