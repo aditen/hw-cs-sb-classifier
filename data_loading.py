@@ -2,14 +2,13 @@ import math
 import os
 import shutil
 
-import matplotlib.pyplot as plt
 import pandas as pd
 import torch
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
 
 base_path = "C:/Users/41789/Documents/uni/ma/kinderlabor_unterlagen/train_data/"
-dataset_sub_path = "20220803_over_border_cropping/"
+dataset_sub_path = "20220812_more_data/"
 
 
 class DataloaderKinderlabor:
@@ -47,7 +46,8 @@ class DataloaderKinderlabor:
                                 self.__df['label'] != 'LOOP_TWICE') & (self.__df['label'] != 'LOOP_END')]
                 self.__train_df = self.__df[
                     (self.__df['class'] != 'Vishwas Labelling 1')
-                    #& (self.__df['class'] != 'Vishwas Labeling 2')
+                    & (self.__df['class'] != 'Vishwas Labeling 2')
+                    & (self.__df['class'] != 'Adrian Labelling 1')
                     ]
                 self.__test_df = self.__df.drop(self.__train_df.index)
                 # split train/valid randomly

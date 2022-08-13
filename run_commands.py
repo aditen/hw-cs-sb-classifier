@@ -17,7 +17,7 @@ if __name__ == "__main__":
     visualizer_commands.visualize_some_samples()
 
     # Train model and analyze training progress (mainly when it starts overfitting on validation set)
-    trainer_commands = TrainerKinderlabor(loader_commands, load_model_from_disk=False)
+    trainer_commands = TrainerKinderlabor(loader_commands, load_model_from_disk=False, model_path="sn_cmd_shtrbkte.pt")
     trainer_commands.train_model(n_epochs=20)
     visualizer_commands.visualize_training_progress(trainer_commands)
 

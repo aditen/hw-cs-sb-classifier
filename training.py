@@ -8,19 +8,22 @@ from tqdm import tqdm
 import os
 
 from data_loading import DataloaderKinderlabor
-from grayscale_model import CNN
+from grayscale_model import CNN, Simplenet
 
 
 class TrainerKinderlabor:
-    def __init__(self, loader: DataloaderKinderlabor, load_model_from_disk=True):
+    def __init__(self, loader: DataloaderKinderlabor, load_model_from_disk=True, model_path=None):
         self.__loader = loader
         self.__load_model_from_disk = load_model_from_disk
         self.__epochs, self.__train_loss, self.__valid_loss, self.__train_acc, self.__valid_acc = [], [], [], [], []
         self.__test_actual, self.__test_predicted = [], []
+        if model_path is None:
+            self.__model_path = f"best_model_{'all' if self.__loader.get_task_type() is None else self.__loader.get_task_type()}.pt"
+        else:
+            self.__model_path = model_path
 
     def train_model(self, n_epochs=20):
-        if self.__load_model_from_disk and os.path.isfile(
-                f"best_model_{'all' if self.__loader.get_task_type() is None else self.__loader.get_task_type()}.pt"):
+        if self.__load_model_from_disk and os.path.isfile(self.__model_path):
             print("Found model already on disk. Set load_model_from_disk=False on function call to force training!")
             return
 
@@ -30,7 +33,7 @@ class TrainerKinderlabor:
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         # initialize model as well as optimizer, scheduler
-        model = CNN(n_classes=len(self.__loader.get_classes()))
+        model = Simplenet(classes=len(self.__loader.get_classes()))
         model = model.to(device)
         criterion = nn.CrossEntropyLoss()
         # Observe that all parameters are being optimized
@@ -104,9 +107,8 @@ class TrainerKinderlabor:
                 best_acc = eval_acc.item()
                 best_model = copy.deepcopy(model.state_dict())
 
-        print("Best model accuracy", best_acc * 100)
-        torch.save(best_model,
-                   f"best_model_{'all' if self.__loader.get_task_type() is None else self.__loader.get_task_type()}.pt")
+        print(f"Best model accuracy: {(best_acc * 100):.2f}%")
+        torch.save(best_model, self.__model_path)
 
         self.__epochs = epochs
         self.__train_loss = losses_train
@@ -122,15 +124,14 @@ class TrainerKinderlabor:
         _, __, n_test = self.__loader.get_num_samples()
 
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        model = CNN(n_classes=len(self.__loader.get_classes())).to(device)
-        model.load_state_dict(torch.load(
-            f"best_model_{'all' if self.__loader.get_task_type() is None else self.__loader.get_task_type()}.pt"))
+        model = Simplenet(classes=len(self.__loader.get_classes())).to(device)
+        model.load_state_dict(torch.load(self.__model_path))
+        model.eval()
 
         test_loss, test_corr = 0., torch.tensor(0).to(device)
         criterion = nn.CrossEntropyLoss()
 
         actual, predicted = [], []
-        model.eval()
         with torch.no_grad():
             for inputs, labels in tqdm(test_loader, unit="test batch"):
                 inputs = inputs.to(device)
@@ -153,10 +154,8 @@ class TrainerKinderlabor:
         return self.__test_actual, self.__test_predicted, self.__loader
 
     def script_model(self):
-        model = CNN(n_classes=len(self.__loader.get_classes()))
-        model.load_state_dict(torch.load(
-            f"best_model_{'all' if self.__loader.get_task_type() is None else self.__loader.get_task_type()}.pt"))
+        model = Simplenet(classes=len(self.__loader.get_classes()))
+        model.load_state_dict(torch.load(self.__model_path))
         model.eval()
         scripted = torch.jit.script(model)
-        scripted.save(
-            f"scripted_{'all' if self.__loader.get_task_type() is None else self.__loader.get_task_type()}.pt")
+        scripted.save(f"{self.__model_path}.scripted")

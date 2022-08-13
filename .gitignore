@@ -2,6 +2,7 @@ venv/
 **.pyc
 .idea
 **.pt
+**.scripted
 output_visualizations/*
 !output_visualizations/.gitkeep
 playground.py
