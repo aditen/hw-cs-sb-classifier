@@ -39,8 +39,8 @@ class DataloaderKinderlabor:
                 self.__valid_df = self.__train_df.sample(frac=0.1, random_state=42)
                 self.__train_df = self.__train_df.drop(self.__valid_df.index)
             elif self.__data_split == "train_sheets_test_booklets":
-                # TODO: remove again and use mask or similar, but we hardly have any loops in the test set as of now
-                if self.__task_type == "COMMAND":
+                # TODO: analyze different ways to deal with this issue (zero out before softmax)?
+                if False and self.__task_type == "COMMAND":
                     self.__df = self.__df[
                         (self.__df['label'] != 'LOOP_FOUR_TIMES') & (self.__df['label'] != 'LOOP_THREE_TIMES') & (
                                 self.__df['label'] != 'LOOP_TWICE') & (self.__df['label'] != 'LOOP_END')]
@@ -48,6 +48,7 @@ class DataloaderKinderlabor:
                     (self.__df['class'] != 'Vishwas Labelling 1')
                     & (self.__df['class'] != 'Vishwas Labeling 2')
                     & (self.__df['class'] != 'Adrian Labelling 1')
+                    & ((self.__df['student'] != 'Laura_Heft_komplett_Test') | (self.__df['label'] == 'EMPTY'))
                     ]
                 self.__test_df = self.__df.drop(self.__train_df.index)
                 # split train/valid randomly
