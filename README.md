@@ -27,7 +27,7 @@ the three sets (training, validation, test sets) and then moves the images to th
   - scaling
   - inverting
   - contrast
-  - flip / shift / scale
+  - rotate / shift / scale
   - center crop?
 - Implement further data splits with semantic meaning (keeping out students, respectively classes in test set) 
 once more data is labelled, maybe include some real samples in training and see if it is better
@@ -38,6 +38,5 @@ once more data is labelled, maybe include some real samples in training and see 
   - add unknown class
   - add known unknowns in training, use unknown unknowns (mnist?) in prediction
 - Visualizations: allow to grasp through wrong classifications
-  - Update sample visualization to use proper grid from matplotlib with title per image
   - Apply it to some validation samples and mainly on test samples to see errors on prediction samples
 - Distinguish basic and extended command exercises and see whether model is better when having limited class space 

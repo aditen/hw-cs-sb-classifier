@@ -17,7 +17,8 @@ if __name__ == "__main__":
     visualizer_orientation.visualize_some_samples()
 
     # Train model and analyze training progress (mainly when it starts overfitting on validation set)
-    trainer_orientation = TrainerKinderlabor(loader_orientation, load_model_from_disk=True)
+    trainer_orientation = TrainerKinderlabor(loader_orientation, load_model_from_disk=True,
+                                             model_path="sn_ort_shtrbkte.pt")
     trainer_orientation.train_model(n_epochs=12)
     visualizer_orientation.visualize_training_progress(trainer_orientation)
 

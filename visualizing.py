@@ -1,6 +1,7 @@
+import math
+
 import matplotlib.pyplot as plt
 import numpy as np
-import torchvision
 from sklearn.metrics import ConfusionMatrixDisplay
 
 from data_loading import DataloaderKinderlabor
@@ -14,17 +15,18 @@ class_name_dict = {"TURN_RIGHT": "↷", "TURN_LEFT": "↶",
                    "CHECKED": "X", "NOT_READABLE": "?"}
 
 
-def imshow(inp, title=None, mean=0.485, std=0.229):
-    """Imshow for Tensor."""
-    inp = inp.numpy().transpose((1, 2, 0))
+def show_on_axis(ax, img_tensor, class_name, mean, std, class_name_predicted=None):
+    inp = img_tensor.numpy().transpose((1, 2, 0))
     mean = np.array([mean])
     std = np.array([std])
     inp = std * inp + mean
     inp = np.clip(inp, 0, 1)
-    plt.imshow(inp)
-    if title is not None:
-        plt.title(title, wrap=True)
-    plt.pause(0.001)  # pause a bit so that plots are updated
+    inp = inp.squeeze()
+    ax.imshow(inp, cmap='gray_r', vmin=0, vmax=1)
+    title = class_name
+    if class_name_predicted is not None:
+        title = f'pred: {class_name_predicted}, act: {class_name}'
+    ax.set_title(title)
 
 
 class VisualizerKinderlabor:
@@ -38,13 +40,15 @@ class VisualizerKinderlabor:
         # Get a batch of training data
         inputs, classes = next(iter(train_loader))
 
-        # Make a grid from batch
-        out = torchvision.utils.make_grid(inputs)
+        fig, axs = plt.subplots(4, math.ceil(len(classes) / 4))
+        fig.suptitle('Batch of Training Samples', fontsize=16)
 
-        imshow(out, mean=mean, std=std, title=" ".join(
-            [(class_name_dict[self.__data_loader.get_classes()[x]] + ("\n" if i % 8 == 7 else "")) for i, x
-             in
-             enumerate(classes)]))
+        for img_idx in range(len(inputs)):
+            show_on_axis(axs.flat[img_idx], inputs[img_idx, :, :],
+                         class_name_dict[self.__data_loader.get_classes()[classes[img_idx]]], mean,
+                         std)
+        fig.tight_layout()
+        plt.show()
 
     def visualize_training_progress(self, trainer: TrainerKinderlabor):
         epochs, train_loss, valid_loss, train_acc, valid_acc = trainer.get_training_progress()
