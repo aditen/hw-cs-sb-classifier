@@ -1,14 +1,14 @@
 import copy
 import math
+import os
 
 import torch
 from torch import nn, optim
 from torch.optim import lr_scheduler
 from tqdm import tqdm
-import os
 
 from data_loading import DataloaderKinderlabor
-from grayscale_model import CNN, Simplenet
+from grayscale_model import Simplenet
 
 
 class TrainerKinderlabor:
@@ -16,7 +16,7 @@ class TrainerKinderlabor:
         self.__loader = loader
         self.__load_model_from_disk = load_model_from_disk
         self.__epochs, self.__train_loss, self.__valid_loss, self.__train_acc, self.__valid_acc = [], [], [], [], []
-        self.__test_actual, self.__test_predicted = [], []
+        self.__test_actual, self.__test_predicted, self.__err_samples = [], [], []
         if model_path is None:
             self.__model_path = f"best_model_{'all' if self.__loader.get_task_type() is None else self.__loader.get_task_type()}.pt"
         else:
@@ -141,9 +141,13 @@ class TrainerKinderlabor:
                 loss = criterion(outputs, labels)
                 test_loss += loss.item() * inputs.size(0)
                 test_corr += torch.sum(preds == labels.data)
-                actual += labels.cpu().numpy().flatten().tolist()
-                predicted += preds.flatten().cpu().numpy().tolist()
-
+                actual_batch = labels.cpu().numpy().flatten().tolist()
+                actual += actual_batch
+                predicted_batch = preds.flatten().cpu().numpy().tolist()
+                predicted += predicted_batch
+                for i in range(len(actual_batch)):
+                    if actual_batch[i] != predicted_batch[i]:
+                        self.__err_samples.append((inputs[i, :, :].cpu().numpy(), actual_batch[i], predicted_batch[i]))
         self.__test_actual = actual
         self.__test_predicted = predicted
         test_acc = test_corr.double() / n_test
@@ -151,7 +155,7 @@ class TrainerKinderlabor:
         print(f'Test Accuracy: {test_acc * 100:.2f}%, Test Loss: {test_loss:.4f}')
 
     def get_predictions(self):
-        return self.__test_actual, self.__test_predicted, self.__loader
+        return self.__test_actual, self.__test_predicted, self.__err_samples, self.__loader
 
     def script_model(self):
         model = Simplenet(classes=len(self.__loader.get_classes()))

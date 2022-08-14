@@ -23,4 +23,4 @@ if __name__ == "__main__":
 
     # Predict on test samples
     trainer_commands.predict_on_test_samples()
-    visualizer_commands.visualize_confusion_matrix(trainer_commands)
+    visualizer_commands.visualize_model_errors(trainer_commands)

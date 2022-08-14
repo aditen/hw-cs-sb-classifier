@@ -37,6 +37,4 @@ once more data is labelled, maybe include some real samples in training and see 
 - Start experimenting with known/unknown unknowns
   - add unknown class
   - add known unknowns in training, use unknown unknowns (mnist?) in prediction
-- Visualizations: allow to grasp through wrong classifications
-  - Apply it to some validation samples and mainly on test samples to see errors on prediction samples
 - Distinguish basic and extended command exercises and see whether model is better when having limited class space 

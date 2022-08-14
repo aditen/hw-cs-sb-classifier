@@ -24,4 +24,4 @@ if __name__ == "__main__":
 
     # Predict on test samples
     trainer_orientation.predict_on_test_samples()
-    visualizer_orientation.visualize_confusion_matrix(trainer_orientation)
+    visualizer_orientation.visualize_model_errors(trainer_orientation)
