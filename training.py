@@ -9,6 +9,7 @@ from tqdm import tqdm
 
 from data_loading import DataloaderKinderlabor
 from grayscale_model import Simplenet
+from sklearn.metrics import f1_score
 
 
 class TrainerKinderlabor:
@@ -152,7 +153,9 @@ class TrainerKinderlabor:
         self.__test_predicted = predicted
         test_acc = test_corr.double() / n_test
         test_loss = test_loss / n_test
-        print(f'Test Accuracy: {test_acc * 100:.2f}%, Test Loss: {test_loss:.4f}')
+        f1 = f1_score(actual, predicted, average='macro')
+        print(
+            f'Test Accuracy: {test_acc * 100:.2f}%, Test Loss: {test_loss:.4f}, Macro-average F1 Score: {f1 * 100:.2f}%')
 
     def get_predictions(self):
         return self.__test_actual, self.__test_predicted, self.__err_samples, self.__loader
