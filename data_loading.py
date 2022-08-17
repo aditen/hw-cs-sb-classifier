@@ -4,6 +4,7 @@ import shutil
 
 import pandas as pd
 import torch
+import torch.nn as nn
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
 
@@ -152,13 +153,12 @@ class DataloaderKinderlabor:
     def get_task_type(self):
         return self.__task_type
 
-    # TODO: change to 28x28 if using MNIST for pre-training/unknowns
-    # TODO: cut over borders in Herby, random Crop down (e.g. 36x36 to 28x28)
-    def get_transforms(self, augment=False, rotate=False):
+    # TODO: change to 28x28 if using MNIST for pre-training/unknowns OR rescale MNIST
+    def get_transforms(self, augment=False, rotate=False, return_as_module=False):
         if augment:
             return transforms.Compose([
-                transforms.Resize((32, 32)),
                 transforms.Grayscale(),
+                transforms.Resize((32, 32)),
                 transforms.RandomAutocontrast(p=1.),
                 transforms.RandomInvert(p=1.),
                 transforms.RandomAffine(degrees=(-30, 30) if rotate else (0, 0), translate=(0.15, 0.15),
@@ -166,9 +166,17 @@ class DataloaderKinderlabor:
                 transforms.ToTensor(),
                 transforms.Normalize([self.__mean], [self.__std])
             ])
+        elif return_as_module:
+            return nn.Sequential(
+                transforms.Grayscale(),
+                transforms.Resize((32, 32)),
+                transforms.RandomAutocontrast(p=1.),
+                transforms.RandomInvert(p=1.),
+                transforms.Normalize([self.__mean], [self.__std])
+            )
         return transforms.Compose([
-            transforms.Resize((32, 32)),
             transforms.Grayscale(),
+            transforms.Resize((32, 32)),
             transforms.RandomAutocontrast(p=1.),
             transforms.RandomInvert(p=1.),
             transforms.ToTensor(),

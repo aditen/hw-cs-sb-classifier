@@ -161,5 +161,9 @@ class TrainerKinderlabor:
         model = Simplenet(classes=len(self.__loader.get_classes()))
         model.load_state_dict(torch.load(self.__model_path))
         model.eval()
-        scripted = torch.jit.script(model)
+        model_including_transforms = nn.Sequential(
+            self.__loader.get_transforms(return_as_module=True),
+            model)
+        scripted = torch.jit.script(model_including_transforms)
         scripted.save(f"{self.__model_path}.scripted")
+        print(f'Scripted model, use following classes in Synset: {self.__loader.get_classes()}')

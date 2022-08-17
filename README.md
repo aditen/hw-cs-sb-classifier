@@ -21,20 +21,21 @@ the three sets (training, validation, test sets) and then moves the images to th
 # :rocket: Herby Integration
 - Script model (see trainer class) with torch jit
 - Load model using DJL (https://djl.ai/) with the according synset (class names) from disk and predict on image
+- About scripting transforms as well: see https://github.com/deepjavalibrary/djl/issues/1556, works by adding
+environment variable PYTORCH_EXTRA_LIBRARY_PATH=python3.9/site-packages/torchvision/_C.so (.pyd on Windows)
 
 # :ledger: TODOs
 - Add experiments that compare different data augmentations
-  - scaling
+  - scaling (std vs only min-max in range [[0, 1]])
   - inverting
   - contrast
   - rotate / shift / scale
-  - center crop?
+  - center crop for pre-processing comparisons?
 - Implement further data splits with semantic meaning (keeping out students, respectively classes in test set) 
 once more data is labelled, maybe include some real samples in training and see if it is better
-- Minor code adaptions 
-  - Herby integration: Script whole model including transforms
-  - Allow reusage of image folders if present and make force_recreation parameter in constructor to force dataset recreation
 - Start experimenting with known/unknown unknowns
   - add unknown class
   - add known unknowns in training, use unknown unknowns (mnist?) in prediction
 - Distinguish basic and extended command exercises and see whether model is better when having limited class space 
+- Minor code adaptions 
+  - Allow reusage of image folders if present and make force_recreation parameter in constructor to force dataset recreation
