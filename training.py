@@ -7,6 +7,7 @@ from torch import nn, optim
 from torch.optim import lr_scheduler
 from tqdm import tqdm
 
+from data_augmentation import DataAugmentationUtils
 from data_loading import DataloaderKinderlabor
 from grayscale_model import Simplenet
 from sklearn.metrics import f1_score
@@ -166,7 +167,7 @@ class TrainerKinderlabor:
         model.load_state_dict(torch.load(self.__model_path))
         model.eval()
         model_including_transforms = nn.Sequential(
-            self.__loader.get_transforms(return_as_module=True),
+            DataAugmentationUtils.get_scriptable_augmentation(self.__loader.get_augmentation_options()),
             model)
         scripted = torch.jit.script(model_including_transforms)
         scripted.save(f"{self.__model_path}.scripted")

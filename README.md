@@ -26,7 +26,6 @@ environment variable PYTORCH_EXTRA_LIBRARY_PATH=python3.9/site-packages/torchvis
 
 # :ledger: TODOs
 - Add experiments that compare different data augmentations
-  - use Data Augmentation class throughout Code 
   - scaling (std vs only min-max in range [[0, 1]])
   - inverting
   - contrast

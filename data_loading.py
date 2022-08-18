@@ -1,20 +1,33 @@
-import math
 import os
 import shutil
+from enum import Enum
 
 import pandas as pd
 import torch
-import torch.nn as nn
-from torchvision import transforms
 from torchvision.datasets import ImageFolder
+
+from data_augmentation import DataAugmentationOptions, DataAugmentationUtils
 
 base_path = "C:/Users/41789/Documents/uni/ma/kinderlabor_unterlagen/train_data/"
 dataset_sub_path = "20220812_more_data/"
 
 
+class TaskType(Enum):
+    ORIENTATION = "ORIENTATION",
+    COMMAND = "COMMAND",
+    CROSS = "CROSS"
+
+
+class DataSplit(Enum):
+    TRAIN_SHEETS_TEST_BOOKLETS = "TRAIN_SHEETS_TEST_BOOKLETS"
+    HOLD_OUT_WITHIN_SHEETS = "HOLD_OUT_WITHIN_SHEETS"
+
+
 class DataloaderKinderlabor:
 
-    def __init__(self, task_type=None, filter_not_readable=True, data_split=None):
+    def __init__(self, augmentation_options: DataAugmentationOptions = DataAugmentationOptions(),
+                 task_type=None, filter_not_readable=True, data_split=None):
+        self.__augmentation_options = augmentation_options
         self.__task_type = task_type
         self.__data_split = data_split
         self.__df = pd.read_csv(
@@ -83,56 +96,28 @@ class DataloaderKinderlabor:
                 shutil.copy(f'{base_path}{dataset_sub_path}{str(idx)}.jpeg',
                             f'{base_path}{self.__task_type}/{set_name}/{row["label"]}/{str(idx)}.jpeg')
 
-        # calculate mean and std on dataset
-        transforms_get_mean_std = transforms.Compose([
-            transforms.Resize((32, 32)),
-            transforms.Grayscale(),
-            transforms.RandomAutocontrast(p=1.),
-            transforms.RandomInvert(p=1.),
-            transforms.ToTensor()
-        ])
-        self.__image_folder_std_mean = ImageFolder(f'{base_path}{self.__task_type}/train_set',
-                                                   transforms_get_mean_std)
-        self.__dataloader_std_mean = torch.utils.data.DataLoader(self.__image_folder_std_mean,
-                                                                 batch_size=8,
-                                                                 shuffle=True, num_workers=8)
-
-        mean_sum = 0.
-        n_total = 0
-        var_sum = 0.
-
-        for imgs, _ in self.__dataloader_std_mean:
-            for img in imgs:
-                mean_sum += img.mean().item()
-                n_total += 1
-        self.__mean = mean_sum / n_total
-
-        for imgs, _ in self.__dataloader_std_mean:
-            for img in imgs:
-                stds = ((img - self.__mean) ** 2)
-                var = stds.sum().item() / (32 * 32)
-                var_sum += var
-
-        self.__std = math.sqrt(var_sum / n_total)
-        print(f'Dataset mean: {self.__mean:.4f}, std: {self.__std:.4f}')
+        self.__mean, self.__std = DataAugmentationUtils.determine_mean_std_for_augmentation(self.__augmentation_options,
+                                                                                            f'{base_path}{self.__task_type}/train_set')
 
         # read image folders and create loaders
         batch_size_train = 16
         batch_size_valid = 8
         batch_size_test = 8
         self.__image_folder_train = ImageFolder(f'{base_path}{self.__task_type}/train_set',
-                                                self.get_transforms(augment=True,
-                                                                    rotate=self.__task_type != "ORIENTATION"))
+                                                DataAugmentationUtils.get_augmentations(self.__augmentation_options,
+                                                                                        include_affine=True))
         self.__dataloader_train = torch.utils.data.DataLoader(self.__image_folder_train, batch_size=batch_size_train,
                                                               shuffle=True, num_workers=min(batch_size_train, 8))
         self.__image_folder_valid = ImageFolder(f'{base_path}{self.__task_type}/validation_set',
-                                                self.get_transforms(augment=False, rotate=False))
+                                                DataAugmentationUtils.get_augmentations(self.__augmentation_options,
+                                                                                        include_affine=False))
         self.__image_folder_valid.classes = self.__image_folder_train.classes
         self.__image_folder_valid.class_to_idx = self.__image_folder_train.class_to_idx
         self.__dataloader_valid = torch.utils.data.DataLoader(self.__image_folder_valid, batch_size=batch_size_valid,
                                                               shuffle=True, num_workers=min(batch_size_valid, 8))
         self.__image_folder_test = ImageFolder(f'{base_path}{self.__task_type}/test_set',
-                                               self.get_transforms(augment=False, rotate=False))
+                                               DataAugmentationUtils.get_augmentations(self.__augmentation_options,
+                                                                                       include_affine=False))
         self.__image_folder_test.classes = self.__image_folder_train.classes
         self.__image_folder_test.class_to_idx = self.__image_folder_train.class_to_idx
         self.__dataloader_test = torch.utils.data.DataLoader(self.__image_folder_test, batch_size=batch_size_test,
@@ -153,35 +138,8 @@ class DataloaderKinderlabor:
     def get_task_type(self):
         return self.__task_type
 
-    # TODO: change to 28x28 if using MNIST for pre-training/unknowns OR rescale MNIST
-    def get_transforms(self, augment=False, rotate=False, return_as_module=False):
-        if augment:
-            return transforms.Compose([
-                transforms.Grayscale(),
-                transforms.Resize((32, 32)),
-                transforms.RandomAutocontrast(p=1.),
-                transforms.RandomInvert(p=1.),
-                transforms.RandomAffine(degrees=(-30, 30) if rotate else (0, 0), translate=(0.15, 0.15),
-                                        scale=(0.85, 1.15)),
-                transforms.ToTensor(),
-                transforms.Normalize([self.__mean], [self.__std])
-            ])
-        elif return_as_module:
-            return nn.Sequential(
-                transforms.Grayscale(),
-                transforms.Resize((32, 32)),
-                transforms.RandomAutocontrast(p=1.),
-                transforms.RandomInvert(p=1.),
-                transforms.Normalize([self.__mean], [self.__std])
-            )
-        return transforms.Compose([
-            transforms.Grayscale(),
-            transforms.Resize((32, 32)),
-            transforms.RandomAutocontrast(p=1.),
-            transforms.RandomInvert(p=1.),
-            transforms.ToTensor(),
-            transforms.Normalize([self.__mean], [self.__std])
-        ])
+    def get_augmentation_options(self):
+        return self.__augmentation_options
 
     def get_mean_std(self):
         return self.__mean, self.__std
