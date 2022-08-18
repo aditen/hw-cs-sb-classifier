@@ -26,16 +26,20 @@ environment variable PYTORCH_EXTRA_LIBRARY_PATH=python3.9/site-packages/torchvis
 
 # :ledger: TODOs
 - Add experiments that compare different data augmentations
+  - use Data Augmentation class throughout Code 
   - scaling (std vs only min-max in range [[0, 1]])
   - inverting
   - contrast
   - rotate / shift / scale
   - center crop for pre-processing comparisons?
+  - Add a sheer?
 - Implement further data splits with semantic meaning (keeping out students, respectively classes in test set) 
 once more data is labelled, maybe include some real samples in training and see if it is better
 - Start experimenting with known/unknown unknowns
   - add unknown class
   - add known unknowns in training, use unknown unknowns (mnist?) in prediction
+  - add adapted soft max from prof
 - Distinguish basic and extended command exercises and see whether model is better when having limited class space 
 - Minor code adaptions 
   - Allow reusage of image folders if present and make force_recreation parameter in constructor to force dataset recreation
+  - Fix herby not correcting known rotation

@@ -17,7 +17,7 @@ class TrainerKinderlabor:
         self.__loader = loader
         self.__load_model_from_disk = load_model_from_disk
         self.__epochs, self.__train_loss, self.__valid_loss, self.__train_acc, self.__valid_acc = [], [], [], [], []
-        self.__test_actual, self.__test_predicted, self.__err_samples = [], [], []
+        self.__test_actual, self.__test_predicted, self.__err_samples, self.__f1 = [], [], [], math.nan
         if model_path is None:
             self.__model_path = f"best_model_{'all' if self.__loader.get_task_type() is None else self.__loader.get_task_type()}.pt"
         else:
@@ -154,6 +154,7 @@ class TrainerKinderlabor:
         test_acc = test_corr.double() / n_test
         test_loss = test_loss / n_test
         f1 = f1_score(actual, predicted, average='macro')
+        self.__f1 = f1
         print(
             f'Test Accuracy: {test_acc * 100:.2f}%, Test Loss: {test_loss:.4f}, Macro-average F1 Score: {f1 * 100:.2f}%')
 
