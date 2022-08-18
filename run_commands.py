@@ -1,4 +1,4 @@
-from data_loading import DataloaderKinderlabor
+from data_loading import DataloaderKinderlabor, TaskType, DataSplit
 from run_utils import RunUtilsKinderlabor
 from training import TrainerKinderlabor
 from visualizing import VisualizerKinderlabor
@@ -8,8 +8,8 @@ if __name__ == "__main__":
     RunUtilsKinderlabor.random_seed()
 
     # Initialize data loader: data splits and loading from images from disk
-    data_split = "train_sheets_test_booklets"
-    loader_commands = DataloaderKinderlabor(task_type="COMMAND", data_split=data_split)
+    loader_commands = DataloaderKinderlabor(task_type=TaskType.COMMAND,
+                                            data_split=DataSplit.TRAIN_SHEETS_TEST_BOOKLETS)
 
     # visualize class distribution and some (train) samples
     visualizer_commands = VisualizerKinderlabor(loader_commands)
