@@ -14,15 +14,15 @@ from sklearn.metrics import f1_score
 
 
 class TrainerKinderlabor:
-    def __init__(self, loader: DataloaderKinderlabor, load_model_from_disk=True, model_path=None):
+    def __init__(self, loader: DataloaderKinderlabor, load_model_from_disk=True, run_id=None):
+        self.__model_dir = f'output_visualizations/{run_id if run_id is not None else loader.get_folder_name()}'
+        if not os.path.isdir(self.__model_dir):
+            os.mkdir(self.__model_dir)
         self.__loader = loader
         self.__load_model_from_disk = load_model_from_disk
         self.__epochs, self.__train_loss, self.__valid_loss, self.__train_acc, self.__valid_acc = [], [], [], [], []
         self.__test_actual, self.__test_predicted, self.__err_samples, self.__f1 = [], [], [], math.nan
-        if model_path is None:
-            self.__model_path = f"best_model_{'all' if self.__loader.get_task_type() is None else self.__loader.get_task_type()}.pt"
-        else:
-            self.__model_path = model_path
+        self.__model_path = f"{self.__model_dir}/model.pt"
 
     def train_model(self, n_epochs=20):
         if self.__load_model_from_disk and os.path.isfile(self.__model_path):
@@ -171,4 +171,9 @@ class TrainerKinderlabor:
             model)
         scripted = torch.jit.script(model_including_transforms)
         scripted.save(f"{self.__model_path}.scripted")
-        print(f'Scripted model, use following classes in Synset: {self.__loader.get_classes()}')
+        synset_path = f'{self.__model_dir}/synset.txt'
+        if os.path.isfile(synset_path):
+            os.remove(synset_path)
+        with open(f'{self.__model_dir}/synset.txt', 'w', encoding="utf-8") as f:
+            f.writelines("\n".join(self.__loader.get_classes()))
+        print(f'Scripted model and written synset')

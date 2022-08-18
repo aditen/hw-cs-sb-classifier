@@ -5,8 +5,10 @@ from Kinderlabor exercise (types). It can be used to analyse the data set as wel
 
 # :open_file_folder: Code structure
 
-So far, the code has three main parts:
+So far, the code has these main parts:
 
+- data_augmentation.py: The Data Augmentation utils allowing to run different Data Augmentation strategies (all of them
+  building on a 32x32 grayscale image)
 - data_loading.py: The Data Loader class, which reads the CSV file, splits it into
   the three sets (training, validation, test sets) and then moves the images to the respective folder
 - grayscale_model.py: A neural network that operates on a grayscale image of size 32x32, inspired by the VGG model
@@ -46,6 +48,4 @@ So far, the code has three main parts:
     - add adapted soft max from prof
 - Distinguish basic and extended command exercises and see whether model is better when having limited class space
 - Minor code adaptions
-    - Instead of only model path, add run_id that is used for model and visualizations
-    - Save plots of errors as well
     - Fix herby not correcting known rotation

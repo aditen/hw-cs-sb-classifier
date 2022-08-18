@@ -14,7 +14,7 @@ from torch.utils.data import DataLoader
 class DataAugmentationOptions:
     auto_contrast: bool = True
     invert: bool = True
-    normalize: Tuple[float] | bool | DataLoader = False
+    normalize: Tuple[float] | bool = False
     rotate: int | Tuple[int] | bool = (-30, 30)
     translate: float | Tuple[float] | bool = (0.15, 0.15)
     scale: float | Tuple[float] | bool = (0.85, 1.15)

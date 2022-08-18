@@ -105,8 +105,10 @@ class DataloaderKinderlabor:
 
         else:
             print(f"Skipping dataset folder generation, loading from folder {self.__dataset_folder_name}")
+
         self.__mean, self.__std = DataAugmentationUtils.determine_mean_std_for_augmentation(
             self.__augmentation_options, f'{base_path}{self.__dataset_folder_name}/train_set')
+        self.__augmentation_options.normalize = (self.__mean, self.__std)
 
         # read image folders and create loaders
         batch_size_train = 16
@@ -152,3 +154,6 @@ class DataloaderKinderlabor:
 
     def get_mean_std(self):
         return self.__mean, self.__std
+
+    def get_folder_name(self):
+        return self.__dataset_folder_name

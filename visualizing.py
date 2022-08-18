@@ -1,4 +1,5 @@
 import math
+import os.path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -30,7 +31,11 @@ def show_on_axis(ax, img_np, class_name, mean, std, class_name_predicted=None):
 
 
 class VisualizerKinderlabor:
-    def __init__(self, data_loader: DataloaderKinderlabor, save_plots_to_disk=True):
+    def __init__(self, data_loader: DataloaderKinderlabor, save_plots_to_disk=True, run_id=None):
+        self.__run_id = run_id if run_id is not None else data_loader.get_folder_name()
+        self.__visualization_dir = f'output_visualizations/{self.__run_id}'
+        if not os.path.isdir(self.__visualization_dir):
+            os.mkdir(self.__visualization_dir)
         self.__data_loader = data_loader
         self.__save_plots_to_disk = save_plots_to_disk
 
@@ -48,6 +53,8 @@ class VisualizerKinderlabor:
                          class_name_dict[self.__data_loader.get_classes()[classes[img_idx]]], mean,
                          std)
         fig.tight_layout()
+        if self.__save_plots_to_disk:
+            plt.savefig(f'{self.__visualization_dir}/train_samples.pdf')
         plt.show()
 
     def visualize_training_progress(self, trainer: TrainerKinderlabor):
@@ -63,7 +70,7 @@ class VisualizerKinderlabor:
             plt.legend()
             if self.__save_plots_to_disk:
                 plt.savefig(
-                    f'output_visualizations/learning_progress_{"all" if self.__data_loader.get_task_type() is None else self.__data_loader.get_task_type()}.jpg')
+                    f'{self.__visualization_dir}/learning_progress.pdf')
             plt.show()
         else:
             print("No training done yet! Please call this function after training")
@@ -87,6 +94,9 @@ class VisualizerKinderlabor:
                              class_name_predicted=class_name_dict[
                                  self.__data_loader.get_classes()[err_samples[img_idx][2]]])
             fig.tight_layout()
+            if self.__save_plots_to_disk:
+                plt.savefig(
+                    f'{self.__visualization_dir}/test_errors.pdf')
             plt.show()
 
         ConfusionMatrixDisplay.from_predictions(actual, predicted,
@@ -94,7 +104,7 @@ class VisualizerKinderlabor:
                                                 normalize='true')
         if self.__save_plots_to_disk:
             plt.savefig(
-                f'output_visualizations/conf_matrix_{"all" if self.__data_loader.get_task_type() is None else self.__data_loader.get_task_type()}.jpg')
+                f'{self.__visualization_dir}/conf_matrix.pdf')
         plt.show()
 
     def plot_class_distributions(self):
@@ -116,4 +126,7 @@ class VisualizerKinderlabor:
         ax.set_title('Number of Samples per Class and Set')
         ax.legend()
 
+        if self.__save_plots_to_disk:
+            plt.savefig(
+                f'{self.__visualization_dir}/class_dist.pdf')
         plt.show()
