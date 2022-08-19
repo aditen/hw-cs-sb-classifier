@@ -33,7 +33,7 @@ So far, the code has these main parts:
 
 # :ledger: TODOs
 
-- Add experiments that compare different data augmentations
+- Update experiments that compare different data augmentations from following options. Limit combinations
     - scaling (std vs only min-max in range [[0, 1]])
     - inverting
     - contrast
@@ -49,3 +49,5 @@ So far, the code has these main parts:
 - Distinguish basic and extended command exercises and see whether model is better when having limited class space
 - Minor code adaptions
     - Fix herby not correcting known rotation
+    - Drop task (12e-f), where version problem was present and evtl 16c where bounding box was badly, alternatively make
+      label bounding box error (shortcut b) in Herby

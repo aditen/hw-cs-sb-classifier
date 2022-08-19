@@ -1,3 +1,4 @@
+import math
 import os
 import shutil
 from enum import Enum
@@ -38,6 +39,8 @@ class DataloaderKinderlabor:
             f'{base_path}{dataset_sub_path}dataset.csv', sep=";", index_col="id")
         self.__full_df = self.__df
 
+        self.__mean, self.__std = math.nan, math.nan
+
         if self.__task_type is not None:
             self.__df = self.__df.loc[(self.__df['type'] == self.__task_type.value)]
         if filter_not_readable:
@@ -59,7 +62,7 @@ class DataloaderKinderlabor:
                 self.__train_df = self.__train_df.drop(self.__valid_df.index)
             elif self.__data_split == DataSplit.TRAIN_SHEETS_TEST_BOOKLETS:
                 # TODO: analyze different ways to deal with this issue (zero out before softmax)?
-                if False and self.__task_type == TaskType.COMMAND:
+                if self.__task_type == TaskType.COMMAND:
                     self.__df = self.__df[
                         (self.__df['label'] != 'LOOP_FOUR_TIMES') & (self.__df['label'] != 'LOOP_THREE_TIMES') & (
                                 self.__df['label'] != 'LOOP_TWICE') & (self.__df['label'] != 'LOOP_END')]

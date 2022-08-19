@@ -19,14 +19,11 @@ if __name__ == "__main__":
     RunUtilsKinderlabor.random_seed()
 
     # Initialize data loader: data splits and loading from images from disk
-    loader_orientation = DataloaderKinderlabor(task_type=TaskType.ORIENTATION,
+    loader_orientation = DataloaderKinderlabor(task_type=TaskType.COMMAND,
                                                data_split=DataSplit.TRAIN_SHEETS_TEST_BOOKLETS)
 
     for version in SimpleNetVersion:
-        if version == SimpleNetVersion.LG:
-            continue
-
-        run_id = f"{version.name.lower()}_ort_shbl"
+        run_id = f"{version.name.lower()}_cmd_shbl"
         print(f'Running for model size {version.name}')
 
         # visualize class distribution and some (train) samples
@@ -37,7 +34,7 @@ if __name__ == "__main__":
         # Train model and analyze training progress (mainly when it starts overfitting on validation set)
         trainer_orientation = TrainerKinderlabor(loader_orientation, load_model_from_disk=True, run_id=run_id,
                                                  model_version=version)
-        trainer_orientation.train_model(n_epochs=10)
+        trainer_orientation.train_model(n_epochs=12)
         visualizer_orientation.visualize_training_progress(trainer_orientation)
 
         # Predict on test samples
