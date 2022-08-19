@@ -1,13 +1,14 @@
 import math
-import matplotlib.pyplot as plt
 
+import matplotlib.pyplot as plt
 import pandas as pd
 
+from data_loading import base_path, dataset_sub_path
 from visualizing import class_name_dict
 
 if __name__ == "__main__":
     df = pd.read_csv(
-        'C:/Users/41789/Documents/uni/ma/kinderlabor_unterlagen/train_data/20220803_over_border_cropping/dataset.csv',
+        f'{base_path}{dataset_sub_path}dataset.csv',
         sep=";", index_col="id")
     classes = df['class'].unique()
     print(f'classes currently in df: {classes}')

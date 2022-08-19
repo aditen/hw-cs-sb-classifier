@@ -18,9 +18,10 @@ class_name_dict = {"TURN_RIGHT": "↷", "TURN_LEFT": "↶",
 
 def show_on_axis(ax, img_np, class_name, mean, std, class_name_predicted=None):
     inp = img_np.transpose((1, 2, 0))
-    mean = np.array([mean])
-    std = np.array([std])
-    inp = std * inp + mean
+    if not math.isnan(mean) and not math.isnan(std):
+        mean = np.array([mean])
+        std = np.array([std])
+        inp = std * inp + mean
     inp = np.clip(inp, 0, 1)
     inp = inp.squeeze()
     ax.imshow(inp, cmap='gray_r', vmin=0, vmax=1)

@@ -14,7 +14,7 @@ from torch.utils.data import DataLoader
 class DataAugmentationOptions:
     auto_contrast: bool = True
     invert: bool = True
-    normalize: Tuple[float] | bool = False
+    normalize: Tuple[float] | bool = True
     rotate: int | Tuple[int] | bool = (-30, 30)
     translate: float | Tuple[float] | bool = (0.15, 0.15)
     scale: float | Tuple[float] | bool = (0.85, 1.15)
@@ -38,7 +38,7 @@ class DataAugmentationUtils:
 
         # Rotation, translation or scaling can be
         if options.rotate or options.translate or options.scale:
-            kwargs = {}
+            kwargs = {'degrees': (0, 0)}
             # Rotation degrees
             if isinstance(options.rotate, tuple):
                 kwargs['degrees'] = options.rotate

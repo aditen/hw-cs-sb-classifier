@@ -9,15 +9,17 @@ from tqdm import tqdm
 
 from data_augmentation import DataAugmentationUtils
 from data_loading import DataloaderKinderlabor
-from grayscale_model import Simplenet
+from grayscale_model import Simplenet, SimpleNetVersion
 from sklearn.metrics import f1_score
 
 
 class TrainerKinderlabor:
-    def __init__(self, loader: DataloaderKinderlabor, load_model_from_disk=True, run_id=None):
+    def __init__(self, loader: DataloaderKinderlabor, load_model_from_disk=True, run_id=None,
+                 model_version: SimpleNetVersion = SimpleNetVersion.LG):
         self.__model_dir = f'output_visualizations/{run_id if run_id is not None else loader.get_folder_name()}'
         if not os.path.isdir(self.__model_dir):
             os.mkdir(self.__model_dir)
+        self.__model_version = model_version
         self.__loader = loader
         self.__load_model_from_disk = load_model_from_disk
         self.__epochs, self.__train_loss, self.__valid_loss, self.__train_acc, self.__valid_acc = [], [], [], [], []
@@ -35,7 +37,7 @@ class TrainerKinderlabor:
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         # initialize model as well as optimizer, scheduler
-        model = Simplenet(classes=len(self.__loader.get_classes()))
+        model = Simplenet(classes=len(self.__loader.get_classes()), version=self.__model_version)
         model = model.to(device)
         criterion = nn.CrossEntropyLoss()
         # Observe that all parameters are being optimized
@@ -126,7 +128,7 @@ class TrainerKinderlabor:
         _, __, n_test = self.__loader.get_num_samples()
 
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        model = Simplenet(classes=len(self.__loader.get_classes())).to(device)
+        model = Simplenet(classes=len(self.__loader.get_classes()), version=self.__model_version).to(device)
         model.load_state_dict(torch.load(self.__model_path))
         model.eval()
 
@@ -163,7 +165,7 @@ class TrainerKinderlabor:
         return self.__test_actual, self.__test_predicted, self.__err_samples, self.__loader
 
     def script_model(self):
-        model = Simplenet(classes=len(self.__loader.get_classes()))
+        model = Simplenet(classes=len(self.__loader.get_classes()), version=self.__model_version)
         model.load_state_dict(torch.load(self.__model_path))
         model.eval()
         model_including_transforms = nn.Sequential(

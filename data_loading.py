@@ -106,9 +106,13 @@ class DataloaderKinderlabor:
         else:
             print(f"Skipping dataset folder generation, loading from folder {self.__dataset_folder_name}")
 
-        self.__mean, self.__std = DataAugmentationUtils.determine_mean_std_for_augmentation(
-            self.__augmentation_options, f'{base_path}{self.__dataset_folder_name}/train_set')
-        self.__augmentation_options.normalize = (self.__mean, self.__std)
+        if isinstance(self.__augmentation_options.normalize, bool) and self.__augmentation_options.normalize is True:
+            self.__mean, self.__std = DataAugmentationUtils.determine_mean_std_for_augmentation(
+                self.__augmentation_options, f'{base_path}{self.__dataset_folder_name}/train_set')
+            self.__augmentation_options.normalize = (self.__mean, self.__std)
+
+        if self.__task_type == TaskType.ORIENTATION:
+            self.__augmentation_options.rotate = None
 
         # read image folders and create loaders
         batch_size_train = 16
