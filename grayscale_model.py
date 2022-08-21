@@ -77,21 +77,21 @@ class SimpleNet(nn.Module):
     def __init__(self, classes=10, in_channels=1, version: ModelVersion = ModelVersion.LG):
         super(SimpleNet, self).__init__()
         self.features = self._make_layers(in_channels=in_channels, channel_divisor=version.value)
-        n_channels_to_int = int(64 / version.value)
-        self.classifier = nn.Linear(n_channels_to_int * 4, classes)
+        self.classifier = nn.Linear(2, classes)
         self.drp = nn.Dropout(0.1)
 
     def forward(self, x):
-        out = self.features(x)
+        out_2d = self.features(x)
 
         # Global Max Pooling (if input is >32x32, in our case already is 1x1)
-        out = F.max_pool2d(out, kernel_size=out.size()[2:])
+        # out = F.max_pool2d(out, kernel_size=out.size()[2:])
         # dropout, as it is 1x1 already no 2D Dropout is necessary
-        out = self.drp(out)
+        # out = self.drp(out)
 
-        out = out.view(out.size(0), -1)
-        out = self.classifier(out)
+        # out = out.view(out.size(0), -1)
+        out = self.classifier(out_2d)
         return out
+        # return out_2d, out
 
     def _make_layers(self, in_channels=1, channel_divisor=1):
 
@@ -163,10 +163,11 @@ class SimpleNet(nn.Module):
             nn.Conv2d(n_channels_to_int * 4, n_channels_to_int * 4, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
             nn.BatchNorm2d(n_channels_to_int * 4, eps=1e-05, momentum=0.05, affine=True),
             nn.ReLU(inplace=True),
-        )
 
-        for m in model.modules():
-            if isinstance(m, nn.Conv2d):
-                nn.init.xavier_uniform_(m.weight.data, gain=nn.init.calculate_gain('relu'))
+            # NOTE: global max pooling would be before this layer for bigger input sizes
+            nn.Flatten(),
+            nn.Dropout(0.1),
+            nn.Linear(n_channels_to_int * 4, 2),
+        )
 
         return model
