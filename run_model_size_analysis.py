@@ -1,7 +1,7 @@
 from tabulate import tabulate
 
 from data_loading import DataloaderKinderlabor, TaskType, DataSplit
-from grayscale_model import SimpleNetVersion, Simplenet
+from grayscale_model import ModelVersion, SimpleNet
 from run_utils import RunUtilsKinderlabor
 from training import TrainerKinderlabor
 from visualizing import VisualizerKinderlabor
@@ -12,7 +12,7 @@ def count_parameters(model):
 
 
 if __name__ == "__main__":
-    size_map = [[version.name, count_parameters(Simplenet(classes=5, version=version))] for version in SimpleNetVersion]
+    size_map = [[version.name, count_parameters(SimpleNet(classes=5, version=version))] for version in ModelVersion]
     print(f'Sizes of different models: {size_map}')
     print(tabulate(size_map, headers=["Model Size", "Num Parameters"]))
 
@@ -22,7 +22,7 @@ if __name__ == "__main__":
     loader_orientation = DataloaderKinderlabor(task_type=TaskType.COMMAND,
                                                data_split=DataSplit.TRAIN_SHEETS_TEST_BOOKLETS)
 
-    for version in SimpleNetVersion:
+    for version in ModelVersion:
         run_id = f"{version.name.lower()}_cmd_shbl"
         print(f'Running for model size {version.name}')
 

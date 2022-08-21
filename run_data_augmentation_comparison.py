@@ -1,6 +1,6 @@
 from data_augmentation import DataAugmentationOptions
 from data_loading import DataloaderKinderlabor, TaskType, DataSplit
-from grayscale_model import SimpleNetVersion
+from grayscale_model import ModelVersion
 from run_utils import RunUtilsKinderlabor
 from training import TrainerKinderlabor
 from visualizing import VisualizerKinderlabor
@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
         # Train model and analyze training progress (mainly when it starts overfitting on validation set)
         trainer_orientation = TrainerKinderlabor(loader_orientation, load_model_from_disk=True, run_id=run_id,
-                                                 model_version=SimpleNetVersion.SM)
+                                                 model_version=ModelVersion.SM)
         trainer_orientation.train_model(n_epochs=12)
         visualizer_orientation.visualize_training_progress(trainer_orientation)
 

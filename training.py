@@ -3,19 +3,19 @@ import math
 import os
 
 import torch
+from sklearn.metrics import f1_score
 from torch import nn, optim
 from torch.optim import lr_scheduler
 from tqdm import tqdm
 
 from data_augmentation import DataAugmentationUtils
 from data_loading import DataloaderKinderlabor
-from grayscale_model import Simplenet, SimpleNetVersion
-from sklearn.metrics import f1_score
+from grayscale_model import ModelVersion, get_model
 
 
 class TrainerKinderlabor:
     def __init__(self, loader: DataloaderKinderlabor, load_model_from_disk=True, run_id=None,
-                 model_version: SimpleNetVersion = SimpleNetVersion.LG):
+                 model_version: ModelVersion = ModelVersion.LG):
         self.__model_dir = f'output_visualizations/{run_id if run_id is not None else loader.get_folder_name()}'
         if not os.path.isdir(self.__model_dir):
             os.mkdir(self.__model_dir)
@@ -26,7 +26,7 @@ class TrainerKinderlabor:
         self.__test_actual, self.__test_predicted, self.__err_samples, self.__f1 = [], [], [], math.nan
         self.__model_path = f"{self.__model_dir}/model.pt"
 
-    def train_model(self, n_epochs=20):
+    def train_model(self, n_epochs=20, lr=0.001, sched=(7, 0.1)):
         if self.__load_model_from_disk and os.path.isfile(self.__model_path):
             print("Found model already on disk. Set load_model_from_disk=False on function call to force training!")
             return
@@ -37,13 +37,13 @@ class TrainerKinderlabor:
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         # initialize model as well as optimizer, scheduler
-        model = Simplenet(classes=len(self.__loader.get_classes()), version=self.__model_version)
+        model = get_model(num_classes=len(self.__loader.get_classes()), model_version=self.__model_version)
         model = model.to(device)
         criterion = nn.CrossEntropyLoss()
         # Observe that all parameters are being optimized
-        optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+        optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
         # Decay LR by a factor of 0.1 every 7 epochs
-        scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
+        scheduler = lr_scheduler.StepLR(optimizer, step_size=sched[0], gamma=sched[1])
 
         # enable training mode (allow batch norm to be adjusted etc.)
         model.train()
@@ -128,7 +128,7 @@ class TrainerKinderlabor:
         _, __, n_test = self.__loader.get_num_samples()
 
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        model = Simplenet(classes=len(self.__loader.get_classes()), version=self.__model_version).to(device)
+        model = get_model(num_classes=len(self.__loader.get_classes()), model_version=self.__model_version).to(device)
         model.load_state_dict(torch.load(self.__model_path))
         model.eval()
 
@@ -165,7 +165,7 @@ class TrainerKinderlabor:
         return self.__test_actual, self.__test_predicted, self.__err_samples, self.__loader
 
     def script_model(self):
-        model = Simplenet(classes=len(self.__loader.get_classes()), version=self.__model_version)
+        model = get_model(num_classes=len(self.__loader.get_classes()), model_version=self.__model_version)
         model.load_state_dict(torch.load(self.__model_path))
         model.eval()
         model_including_transforms = nn.Sequential(

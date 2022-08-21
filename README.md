@@ -49,5 +49,6 @@ So far, the code has these main parts:
 - Distinguish basic and extended command exercises and see whether model is better when having limited class space
 - Minor code adaptions
     - Fix herby not correcting known rotation
+    - Actually visualization of dataset could be stored per split and not per run (class distribution and some samples)
     - Drop task (12e-f), where version problem was present and evtl 16c where bounding box was badly, alternatively make
       label bounding box error (shortcut b) in Herby
