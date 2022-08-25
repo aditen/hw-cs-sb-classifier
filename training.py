@@ -23,7 +23,7 @@ class TrainerKinderlabor:
         self.__loader = loader
         self.__load_model_from_disk = load_model_from_disk
         self.__epochs, self.__train_loss, self.__valid_loss, self.__train_acc, self.__valid_acc = [], [], [], [], []
-        self.__test_actual, self.__test_predicted, self.__err_samples, self.__f1 = [], [], [], math.nan
+        self.__test_actual, self.__test_predicted, self.__2d, self.__err_samples, self.__f1 = [], [], [], [], math.nan
         self.__model_path = f"{self.__model_dir}/model.pt"
 
     def train_model(self, n_epochs=20, lr=0.001, sched=(7, 0.1)):
@@ -72,7 +72,7 @@ class TrainerKinderlabor:
 
                 # forward
                 # track history if only in train
-                outputs = model(inputs)
+                outputs, outputs_2d = model(inputs)
                 _, preds = torch.max(outputs, 1)
                 loss = criterion(outputs, labels)
 
@@ -96,7 +96,7 @@ class TrainerKinderlabor:
                 for inputs, labels in valid_loader:
                     inputs = inputs.to(device)
                     labels = labels.to(device)
-                    outputs = model(inputs)
+                    outputs, outputs_2d = model(inputs)
                     _, preds = torch.max(outputs, 1)
                     loss = criterion(outputs, labels)
                     eval_loss += loss.item() * inputs.size(0)
@@ -140,7 +140,7 @@ class TrainerKinderlabor:
             for inputs, labels in tqdm(test_loader, unit="test batch"):
                 inputs = inputs.to(device)
                 labels = labels.to(device)
-                outputs = model(inputs)
+                outputs, outputs_2d = model(inputs)
                 _, preds = torch.max(outputs, 1)
                 loss = criterion(outputs, labels)
                 test_loss += loss.item() * inputs.size(0)
@@ -150,6 +150,7 @@ class TrainerKinderlabor:
                 predicted_batch = preds.flatten().cpu().numpy().tolist()
                 predicted += predicted_batch
                 for i in range(len(actual_batch)):
+                    self.__2d.append(outputs_2d[i, :].cpu().numpy().flatten().tolist())
                     if actual_batch[i] != predicted_batch[i]:
                         self.__err_samples.append((inputs[i, :, :].cpu().numpy(), actual_batch[i], predicted_batch[i]))
         self.__test_actual = actual
@@ -162,7 +163,7 @@ class TrainerKinderlabor:
             f'Test Accuracy: {test_acc * 100:.2f}%, Test Loss: {test_loss:.4f}, Macro-average F1 Score: {f1 * 100:.2f}%')
 
     def get_predictions(self):
-        return self.__test_actual, self.__test_predicted, self.__err_samples, self.__loader
+        return self.__test_actual, self.__test_predicted, self.__err_samples, self.__2d, self.__loader
 
     def script_model(self):
         model = get_model(num_classes=len(self.__loader.get_classes()), model_version=self.__model_version)

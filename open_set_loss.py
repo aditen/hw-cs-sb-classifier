@@ -8,6 +8,8 @@ from torch.nn import functional as F
 _device = None
 
 
+# TODO: Objectosphere loss from https://github.com/Vastlab/Reducing-Network-Agnostophobia/blob/master/MNIST/Mnist_Training.py
+
 def device(x):
     global _device
     if _device is None:

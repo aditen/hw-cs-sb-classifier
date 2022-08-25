@@ -60,9 +60,7 @@ class LeNetPP(nn.Module):
         x = self.prelu_fc1(self.fc1(x))
         y = self.fc2(x)
 
-        # TODO: enable later for plotting
-        # return x, y
-        return y
+        return y, x
 
 
 '''
@@ -78,20 +76,11 @@ class SimpleNet(nn.Module):
         super(SimpleNet, self).__init__()
         self.features = self._make_layers(in_channels=in_channels, channel_divisor=version.value)
         self.classifier = nn.Linear(2, classes)
-        self.drp = nn.Dropout(0.1)
 
     def forward(self, x):
         out_2d = self.features(x)
-
-        # Global Max Pooling (if input is >32x32, in our case already is 1x1)
-        # out = F.max_pool2d(out, kernel_size=out.size()[2:])
-        # dropout, as it is 1x1 already no 2D Dropout is necessary
-        # out = self.drp(out)
-
-        # out = out.view(out.size(0), -1)
         out = self.classifier(out_2d)
-        return out
-        # return out_2d, out
+        return out, out_2d
 
     def _make_layers(self, in_channels=1, channel_divisor=1):
 

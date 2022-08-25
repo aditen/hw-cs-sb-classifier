@@ -8,6 +8,8 @@ from sklearn.metrics import ConfusionMatrixDisplay
 from data_loading import DataloaderKinderlabor
 from training import TrainerKinderlabor
 
+from tqdm import tqdm
+
 class_name_dict = {"TURN_RIGHT": "↷", "TURN_LEFT": "↶",
                    "LOOP_THREE_TIMES": "3x", "LOOP_END": "end",
                    "LOOP_TWICE": "2x", "LOOP_FOUR_TIMES": "4x",
@@ -77,7 +79,7 @@ class VisualizerKinderlabor:
             print("No training done yet! Please call this function after training")
 
     def visualize_model_errors(self, trainer: TrainerKinderlabor):
-        actual, predicted, err_samples, loader = trainer.get_predictions()
+        actual, predicted, err_samples, _, loader = trainer.get_predictions()
         if loader != self.__data_loader:
             print("Loaders are different! Please check you provide the right instance to the visualizer!")
             return
@@ -130,4 +132,28 @@ class VisualizerKinderlabor:
         if self.__save_plots_to_disk:
             plt.savefig(
                 f'{self.__visualization_dir}/class_dist.pdf')
+        plt.show()
+
+    # TODO: extend color array
+    def plot_2d_space(self, trainer: TrainerKinderlabor):
+        actual, predicted, _, coords, loader = trainer.get_predictions()
+        if loader != self.__data_loader:
+            print("Loaders are different! Please check you provide the right instance to the visualizer!")
+            return
+        fig, ax = plt.subplots()
+        xes = [coord[0] for coord in coords]
+        ys = [coord[1] for coord in coords]
+        labels = [class_name_dict[loader.get_classes()[x]] for x in actual]
+        colors = ['red', 'green', 'blue', 'orange', 'yellow', 'gray', 'pink']
+        already_plotted_legends = set()
+        for i in tqdm(range(min(len(labels), 1000))):
+            if labels[i] not in already_plotted_legends:
+                ax.scatter(xes[i], ys[i], label=labels[i], color=colors[actual[i]])
+                already_plotted_legends.add(labels[i])
+            else:
+                ax.scatter(xes[i], ys[i], color=colors[actual[i]])
+        plt.legend()
+        if self.__save_plots_to_disk:
+            plt.savefig(
+                f'{self.__visualization_dir}/scatter.pdf')
         plt.show()
