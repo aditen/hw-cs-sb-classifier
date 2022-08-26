@@ -42,8 +42,9 @@ class VisualizerKinderlabor:
         self.__data_loader = data_loader
         self.__save_plots_to_disk = save_plots_to_disk
 
+    # TODO: add a row of unknowns
     def visualize_some_samples(self):
-        train_loader, valid_loader, test_loader = self.__data_loader.get_data_loaders()
+        train_loader, valid_loader, test_loader, uu_loader = self.__data_loader.get_data_loaders()
         mean, std = self.__data_loader.get_mean_std()
         # Get a batch of training data
         inputs, classes = next(iter(train_loader))
@@ -79,7 +80,7 @@ class VisualizerKinderlabor:
             print("No training done yet! Please call this function after training")
 
     def visualize_model_errors(self, trainer: TrainerKinderlabor):
-        actual, predicted, err_samples, _, loader = trainer.get_predictions()
+        actual, predicted, err_samples, _, __, loader = trainer.get_predictions()
         if loader != self.__data_loader:
             print("Loaders are different! Please check you provide the right instance to the visualizer!")
             return
@@ -136,7 +137,7 @@ class VisualizerKinderlabor:
 
     # TODO: extend color array
     def plot_2d_space(self, trainer: TrainerKinderlabor):
-        actual, predicted, _, coords, loader = trainer.get_predictions()
+        actual, predicted, _, coords, uu_coords, loader = trainer.get_predictions()
         if loader != self.__data_loader:
             print("Loaders are different! Please check you provide the right instance to the visualizer!")
             return
@@ -152,6 +153,14 @@ class VisualizerKinderlabor:
                 already_plotted_legends.add(labels[i])
             else:
                 ax.scatter(xes[i], ys[i], color=colors[actual[i]])
+
+        for i in tqdm(range(min(len(uu_coords), 1000))):
+            if "unknown" not in already_plotted_legends:
+                ax.scatter(uu_coords[i][0], uu_coords[i][1], label="unknown", color="black")
+                already_plotted_legends.add("unknown")
+            else:
+                ax.scatter(uu_coords[i][0], uu_coords[i][1], color="black")
+
         plt.legend()
         if self.__save_plots_to_disk:
             plt.savefig(

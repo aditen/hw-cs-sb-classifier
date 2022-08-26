@@ -4,6 +4,8 @@ import shutil
 from enum import Enum
 
 import pandas as pd
+import torch
+import torchvision.datasets
 from torch.utils.data import DataLoader
 from torchvision.datasets import ImageFolder
 
@@ -24,15 +26,22 @@ class DataSplit(Enum):
     HOLD_OUT_WITHIN_SHEETS = "HOLD_OUT_WITHIN_SHEETS"
 
 
+class Unknowns(Enum):
+    DEVANAGARI = "DEVANAGARI"
+    EMNIST = "EMNIST"
+    FASHION_MNIST = "FASHION_MNIST"
+
+
 class DataloaderKinderlabor:
 
     def __init__(self, augmentation_options: DataAugmentationOptions = DataAugmentationOptions(),
                  task_type: TaskType = None, data_split: DataSplit = None, filter_not_readable=True,
-                 force_reload_data=False):
+                 force_reload_data=False, unknown_unknowns: Unknowns = None):
         self.__augmentation_options = augmentation_options
         self.__task_type = task_type
         self.__data_split = data_split
         self.__force_reload_data = force_reload_data
+        self.__unknown_unknowns = unknown_unknowns
         self.__dataset_folder_name = f"{'all' if task_type is None else task_type.value}___" \
                                      f"{'all' if data_split is None else data_split.value}"
         self.__df = pd.read_csv(
@@ -141,11 +150,33 @@ class DataloaderKinderlabor:
         self.__dataloader_test = DataLoader(self.__image_folder_test, batch_size=batch_size_test,
                                             shuffle=True, num_workers=min(batch_size_test, 8))
 
+        if self.__unknown_unknowns is not None:
+            if self.__unknown_unknowns == Unknowns.EMNIST:
+                self.__augmentation_options.grayscale = False
+                self.__augmentation_options.invert = False
+                uu_set = torchvision.datasets.EMNIST(root="./dataset_root_emnist", split="letters",
+                                                     download=True,
+                                                     transform=DataAugmentationUtils.get_augmentations(
+                                                         self.__augmentation_options, include_affine=False),
+                                                     target_transform=lambda _: -1)
+                indices = torch.randperm(len(uu_set))[:3000]
+                sampler = torch.utils.data.SubsetRandomSampler(indices)
+                self.__uu_loader = DataLoader(uu_set, batch_size=16, sampler=sampler)
+            elif self.__unknown_unknowns == Unknowns.FASHION_MNIST:
+                self.__augmentation_options.grayscale = False
+                self.__augmentation_options.invert = False
+                fm_set = torchvision.datasets.FashionMNIST(root="./dataset_root_fashion_mnist", download=True,
+                                                           transform=DataAugmentationUtils.get_augmentations(
+                                                               self.__augmentation_options,
+                                                               include_affine=False),
+                                                           target_transform=lambda _: -1)
+                self.__uu_loader = DataLoader(fm_set, batch_size=16)
+
     def get_num_samples(self):
         return len(self.__image_folder_train), len(self.__image_folder_valid), len(self.__image_folder_test)
 
     def get_data_loaders(self):
-        return self.__dataloader_train, self.__dataloader_valid, self.__dataloader_test
+        return self.__dataloader_train, self.__dataloader_valid, self.__dataloader_test, self.__uu_loader
 
     def get_set_dfs(self):
         return self.__train_df, self.__valid_df, self.__test_df, self.__df

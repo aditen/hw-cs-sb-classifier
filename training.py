@@ -23,7 +23,7 @@ class TrainerKinderlabor:
         self.__loader = loader
         self.__load_model_from_disk = load_model_from_disk
         self.__epochs, self.__train_loss, self.__valid_loss, self.__train_acc, self.__valid_acc = [], [], [], [], []
-        self.__test_actual, self.__test_predicted, self.__2d, self.__err_samples, self.__f1 = [], [], [], [], math.nan
+        self.__test_actual, self.__test_predicted, self.__2d, self.__uu_coords, self.__err_samples, self.__f1 = [], [], [], [], [], math.nan
         self.__model_path = f"{self.__model_dir}/model.pt"
 
     def train_model(self, n_epochs=20, lr=0.001, sched=(7, 0.1)):
@@ -31,7 +31,7 @@ class TrainerKinderlabor:
             print("Found model already on disk. Set load_model_from_disk=False on function call to force training!")
             return
 
-        train_loader, valid_loader, __ = self.__loader.get_data_loaders()
+        train_loader, valid_loader, _, __ = self.__loader.get_data_loaders()
         n_train, n_valid, __ = self.__loader.get_num_samples()
 
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -124,7 +124,7 @@ class TrainerKinderlabor:
         return self.__epochs, self.__train_loss, self.__valid_loss, self.__train_acc, self.__valid_acc
 
     def predict_on_test_samples(self):
-        _, __, test_loader = self.__loader.get_data_loaders()
+        _, __, test_loader, uu_loader = self.__loader.get_data_loaders()
         _, __, n_test = self.__loader.get_num_samples()
 
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -153,6 +153,13 @@ class TrainerKinderlabor:
                     self.__2d.append(outputs_2d[i, :].cpu().numpy().flatten().tolist())
                     if actual_batch[i] != predicted_batch[i]:
                         self.__err_samples.append((inputs[i, :, :].cpu().numpy(), actual_batch[i], predicted_batch[i]))
+            if uu_loader is not None:
+                for inputs, labels in tqdm(uu_loader, unit="unknowns batch"):
+                    inputs = inputs.to(device)
+                    outputs, outputs_2d = model(inputs)
+                    _, preds = torch.max(outputs, 1)
+                    for i in range(len(labels)):
+                        self.__uu_coords.append(outputs_2d[i, :].cpu().numpy().flatten().tolist())
         self.__test_actual = actual
         self.__test_predicted = predicted
         test_acc = test_corr.double() / n_test
@@ -163,7 +170,7 @@ class TrainerKinderlabor:
             f'Test Accuracy: {test_acc * 100:.2f}%, Test Loss: {test_loss:.4f}, Macro-average F1 Score: {f1 * 100:.2f}%')
 
     def get_predictions(self):
-        return self.__test_actual, self.__test_predicted, self.__err_samples, self.__2d, self.__loader
+        return self.__test_actual, self.__test_predicted, self.__err_samples, self.__2d, self.__uu_coords, self.__loader
 
     def script_model(self):
         model = get_model(num_classes=len(self.__loader.get_classes()), model_version=self.__model_version)

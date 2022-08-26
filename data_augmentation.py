@@ -12,6 +12,7 @@ from torch.utils.data import DataLoader
 
 @dataclass
 class DataAugmentationOptions:
+    grayscale: bool = True
     auto_contrast: bool = True
     invert: bool = True
     normalize: Tuple[float] | bool = True
@@ -24,9 +25,13 @@ class DataAugmentationUtils:
 
     @staticmethod
     def __get_transforms(options: DataAugmentationOptions):
-        transforms_list = [transforms.ToTensor(),
-                           transforms.Grayscale(),
-                           transforms.Resize((32, 32))]
+        transforms_list = [transforms.ToTensor()]
+
+        # because it is not necessary for all the unknown data sets, some are already gray scaled
+        if options.grayscale:
+            transforms_list.append(transforms.Grayscale())
+
+        transforms_list.append(transforms.Resize((32, 32)))
 
         # Auto Contrast is yes or no
         if options.auto_contrast:
