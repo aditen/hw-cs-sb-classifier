@@ -147,19 +147,19 @@ class VisualizerKinderlabor:
         labels = [class_name_dict[loader.get_classes()[x]] for x in actual]
         colors = ['red', 'green', 'blue', 'orange', 'yellow', 'gray', 'pink']
         already_plotted_legends = set()
-        for i in tqdm(range(min(len(labels), 1000))):
+        for i in tqdm(range(min(len(labels), 1000)), unit="Coordinates Known"):
             if labels[i] not in already_plotted_legends:
                 ax.scatter(xes[i], ys[i], label=labels[i], color=colors[actual[i]])
                 already_plotted_legends.add(labels[i])
             else:
                 ax.scatter(xes[i], ys[i], color=colors[actual[i]])
 
-        for i in tqdm(range(min(len(uu_coords), 1000))):
+        for i in tqdm(range(min(len(uu_coords), 1000)), unit="Coordinates Unknown"):
             if "unknown" not in already_plotted_legends:
-                ax.scatter(uu_coords[i][0], uu_coords[i][1], label="unknown", color="black")
+                ax.scatter(uu_coords[i][0], uu_coords[i][1], label="unknown", color="black", alpha=0.1)
                 already_plotted_legends.add("unknown")
             else:
-                ax.scatter(uu_coords[i][0], uu_coords[i][1], color="black")
+                ax.scatter(uu_coords[i][0], uu_coords[i][1], color="black", alpha=0.1)
 
         plt.legend()
         if self.__save_plots_to_disk:

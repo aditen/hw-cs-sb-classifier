@@ -6,7 +6,7 @@ from enum import Enum
 import pandas as pd
 import torch
 import torchvision.datasets
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 from torchvision.datasets import ImageFolder
 
 from data_augmentation import DataAugmentationOptions, DataAugmentationUtils
@@ -42,6 +42,7 @@ class DataloaderKinderlabor:
         self.__data_split = data_split
         self.__force_reload_data = force_reload_data
         self.__unknown_unknowns = unknown_unknowns
+        self.__uu_loader = None
         self.__dataset_folder_name = f"{'all' if task_type is None else task_type.value}___" \
                                      f"{'all' if data_split is None else data_split.value}"
         self.__df = pd.read_csv(
@@ -159,9 +160,9 @@ class DataloaderKinderlabor:
                                                      transform=DataAugmentationUtils.get_augmentations(
                                                          self.__augmentation_options, include_affine=False),
                                                      target_transform=lambda _: -1)
-                indices = torch.randperm(len(uu_set))[:3000]
-                sampler = torch.utils.data.SubsetRandomSampler(indices)
-                self.__uu_loader = DataLoader(uu_set, batch_size=16, sampler=sampler)
+                indices = torch.randperm(len(uu_set))[:500]
+                uu_set = Subset(uu_set, indices)
+                self.__uu_loader = DataLoader(uu_set, batch_size=16)
             elif self.__unknown_unknowns == Unknowns.FASHION_MNIST:
                 self.__augmentation_options.grayscale = False
                 self.__augmentation_options.invert = False
@@ -170,6 +171,8 @@ class DataloaderKinderlabor:
                                                                self.__augmentation_options,
                                                                include_affine=False),
                                                            target_transform=lambda _: -1)
+                indices = torch.randperm(len(fm_set))[:500]
+                fm_set = Subset(fm_set, indices)
                 self.__uu_loader = DataLoader(fm_set, batch_size=16)
 
     def get_num_samples(self):
