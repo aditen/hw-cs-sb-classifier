@@ -43,8 +43,10 @@ So far, the code has these main parts:
 - Implement further data splits with semantic meaning (keeping out students, respectively classes in test set)
   once more data is labelled, maybe include some real samples in training and see if it is better
 - Open Set Experiments
-    - maybe add more loss functions (Objectosphere?)
-    - add to visualization from samples (now broken)
+    - add unknowns to the visualization of samples (now broken due to -1 index always pointing out last -> push unknown
+      to class list)
+    - add ability to select loss (entropic, objectosphere, classic softmax cross entropy)
+    - track softmax probabilities and plot them
 - Distinguish basic and extended command exercises and see whether model is better when having limited class space
 - Minor code adaptions
     - Fix herby not correcting known rotation

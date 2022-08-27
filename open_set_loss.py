@@ -57,6 +57,30 @@ class EntropicOpenSetLoss:
         return sample_loss
 
 
+# Objectosphere Loss as in Paper (self-implemented). Default eps is there 50 (!)
+class ObjectosphereLoss:
+    def __init__(self, num_of_classes=10, lmbda=0.0001, eps=1.):
+        self.entropic = EntropicOpenSetLoss(num_of_classes=num_of_classes)
+        self.__lmbda = lmbda
+        self.__eps = eps
+
+    @loss_reducer
+    def __call__(self, logit_values, target, points, sample_weights=None):
+        je = self.entropic(logit_values, target, sample_weights=sample_weights)
+        known_indexes = target != -1
+        unknown_indexes = ~known_indexes
+        # unknown error
+        uk_err = device(torch.square(torch.norm(points, dim=1)))
+        # known error
+        kn_err = device(torch.square(
+            torch.maximum(device(torch.ones(len(logit_values))) * self.__eps - torch.norm(points, dim=1),
+                          device(torch.zeros(len(logit_values))))))
+        categorical_targets = device(torch.zeros(len(logit_values)))
+        categorical_targets[known_indexes] = kn_err[known_indexes]
+        categorical_targets[unknown_indexes] = uk_err[unknown_indexes]
+        return je + self.__lmbda * categorical_targets
+
+
 # see https://github.com/KaiyangZhou/pytorch-center-loss/blob/master/center_loss.py
 class CenterLoss(nn.Module):
     """Center loss.
