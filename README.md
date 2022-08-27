@@ -33,19 +33,18 @@ So far, the code has these main parts:
 
 # :ledger: TODOs
 
-- Update experiments that compare different data augmentations from following options. Limit combinations
+- Update experiments that compare different data augmentations from following options. Limit combinations from those:
     - scaling (std vs only min-max in range [[0, 1]])
     - inverting
     - contrast
     - rotate / shift / scale
     - center crop for pre-processing comparisons?
-    - Add a sheer?
+    - Sheer?
 - Implement further data splits with semantic meaning (keeping out students, respectively classes in test set)
   once more data is labelled, maybe include some real samples in training and see if it is better
-- Start experimenting with known/unknown unknowns
-    - add unknown class
-    - add known unknowns in training, use unknown unknowns (mnist?) in prediction
-    - add adapted soft max from prof
+- Open Set Experiments
+    - maybe add more loss functions (Objectosphere?)
+    - add to visualization from samples (now broken)
 - Distinguish basic and extended command exercises and see whether model is better when having limited class space
 - Minor code adaptions
     - Fix herby not correcting known rotation

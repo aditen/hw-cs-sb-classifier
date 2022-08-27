@@ -11,6 +11,7 @@ from tqdm import tqdm
 from data_augmentation import DataAugmentationUtils
 from data_loading import DataloaderKinderlabor
 from grayscale_model import ModelVersion, get_model
+from open_set_loss import EntropicOpenSetLoss
 
 
 class TrainerKinderlabor:
@@ -39,7 +40,8 @@ class TrainerKinderlabor:
         # initialize model as well as optimizer, scheduler
         model = get_model(num_classes=len(self.__loader.get_classes()), model_version=self.__model_version)
         model = model.to(device)
-        criterion = nn.CrossEntropyLoss()
+        # criterion = nn.CrossEntropyLoss()
+        criterion = EntropicOpenSetLoss(num_of_classes=len(self.__loader.get_classes()))
         # Observe that all parameters are being optimized
         optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
         # Decay LR by a factor of 0.1 every 7 epochs
@@ -74,7 +76,7 @@ class TrainerKinderlabor:
                 # track history if only in train
                 outputs, outputs_2d = model(inputs)
                 _, preds = torch.max(outputs, 1)
-                loss = criterion(outputs, labels)
+                loss = criterion(outputs, labels, reduction='mean')
 
                 loss.backward()
                 optimizer.step()
@@ -98,7 +100,7 @@ class TrainerKinderlabor:
                     labels = labels.to(device)
                     outputs, outputs_2d = model(inputs)
                     _, preds = torch.max(outputs, 1)
-                    loss = criterion(outputs, labels)
+                    loss = criterion(outputs, labels, reduction='mean')
                     eval_loss += loss.item() * inputs.size(0)
                     eval_corr += torch.sum(preds == labels.data)
 

@@ -31,7 +31,7 @@ def loss_reducer(func):
     return __loss_reducer__
 
 
-class EntropicOpensetLoss:
+class EntropicOpenSetLoss:
     def __init__(self, num_of_classes=10):
         self.num_of_classes = num_of_classes
         self.eye = device(torch.eye(self.num_of_classes))

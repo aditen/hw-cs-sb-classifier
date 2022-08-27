@@ -1,3 +1,4 @@
+import copy
 import math
 import os
 import shutil
@@ -6,7 +7,7 @@ from enum import Enum
 import pandas as pd
 import torch
 import torchvision.datasets
-from torch.utils.data import DataLoader, Subset
+from torch.utils.data import DataLoader, Subset, ConcatDataset
 from torchvision.datasets import ImageFolder
 
 from data_augmentation import DataAugmentationOptions, DataAugmentationUtils
@@ -36,11 +37,12 @@ class DataloaderKinderlabor:
 
     def __init__(self, augmentation_options: DataAugmentationOptions = DataAugmentationOptions(),
                  task_type: TaskType = None, data_split: DataSplit = None, filter_not_readable=True,
-                 force_reload_data=False, unknown_unknowns: Unknowns = None):
+                 force_reload_data=False, known_unknowns: Unknowns = None, unknown_unknowns: Unknowns = None):
         self.__augmentation_options = augmentation_options
         self.__task_type = task_type
         self.__data_split = data_split
         self.__force_reload_data = force_reload_data
+        self.__known_unknowns = known_unknowns
         self.__unknown_unknowns = unknown_unknowns
         self.__uu_loader = None
         self.__dataset_folder_name = f"{'all' if task_type is None else task_type.value}___" \
@@ -134,8 +136,36 @@ class DataloaderKinderlabor:
         self.__image_folder_train = ImageFolder(f'{base_path}{self.__dataset_folder_name}/train_set',
                                                 DataAugmentationUtils.get_augmentations(self.__augmentation_options,
                                                                                         include_affine=True))
-        self.__dataloader_train = DataLoader(self.__image_folder_train, batch_size=batch_size_train,
-                                             shuffle=True, num_workers=min(batch_size_train, 8))
+        train_ds = self.__image_folder_train
+        if self.__known_unknowns is not None:
+            ku_augmentation = copy.deepcopy(self.__augmentation_options)
+            ku_augmentation.grayscale = False
+            ku_augmentation.invert = False
+            # TODO: check if just a hardcoded 2'000 makes sense
+            n_ku = 2000
+            if self.__known_unknowns == Unknowns.EMNIST:
+                emnist_set = torchvision.datasets.EMNIST(root="./dataset_root_emnist", split="letters",
+                                                         download=True,
+                                                         transform=DataAugmentationUtils.get_augmentations(
+                                                             ku_augmentation, include_affine=False),
+                                                         target_transform=lambda _: -1)
+                indices = torch.randperm(len(emnist_set))[:n_ku]
+                ku_set = Subset(emnist_set, indices)
+                train_ds = ConcatDataset([train_ds, ku_set])
+            elif self.__known_unknowns == Unknowns.FASHION_MNIST:
+                fm_set = torchvision.datasets.FashionMNIST(root="./dataset_root_fashion_mnist", download=True,
+                                                           transform=DataAugmentationUtils.get_augmentations(
+                                                               ku_augmentation,
+                                                               include_affine=False),
+                                                           target_transform=lambda _: -1)
+                indices = torch.randperm(len(fm_set))[:n_ku]
+                ku_set = Subset(fm_set, indices)
+                train_ds = ConcatDataset([train_ds, ku_set])
+            else:
+                raise ValueError(f'Known Unknowns {self.__known_unknowns} not yet supported!')
+
+        self.__dataloader_train = DataLoader(train_ds, batch_size=batch_size_train,
+                                             shuffle=True, num_workers=0)
         self.__image_folder_valid = ImageFolder(f'{base_path}{self.__dataset_folder_name}/validation_set',
                                                 DataAugmentationUtils.get_augmentations(self.__augmentation_options,
                                                                                         include_affine=False))
@@ -152,28 +182,29 @@ class DataloaderKinderlabor:
                                             shuffle=True, num_workers=min(batch_size_test, 8))
 
         if self.__unknown_unknowns is not None:
+            uu_augmentation = copy.deepcopy(self.__augmentation_options)
+            uu_augmentation.grayscale = False
+            uu_augmentation.invert = False
             if self.__unknown_unknowns == Unknowns.EMNIST:
-                self.__augmentation_options.grayscale = False
-                self.__augmentation_options.invert = False
-                uu_set = torchvision.datasets.EMNIST(root="./dataset_root_emnist", split="letters",
-                                                     download=True,
-                                                     transform=DataAugmentationUtils.get_augmentations(
-                                                         self.__augmentation_options, include_affine=False),
-                                                     target_transform=lambda _: -1)
-                indices = torch.randperm(len(uu_set))[:500]
-                uu_set = Subset(uu_set, indices)
+                emnist_set = torchvision.datasets.EMNIST(root="./dataset_root_emnist", split="letters",
+                                                         download=True,
+                                                         transform=DataAugmentationUtils.get_augmentations(
+                                                             uu_augmentation, include_affine=False),
+                                                         target_transform=lambda _: -1)
+                indices = torch.randperm(len(emnist_set))[:500]
+                uu_set = Subset(emnist_set, indices)
                 self.__uu_loader = DataLoader(uu_set, batch_size=16)
             elif self.__unknown_unknowns == Unknowns.FASHION_MNIST:
-                self.__augmentation_options.grayscale = False
-                self.__augmentation_options.invert = False
                 fm_set = torchvision.datasets.FashionMNIST(root="./dataset_root_fashion_mnist", download=True,
                                                            transform=DataAugmentationUtils.get_augmentations(
-                                                               self.__augmentation_options,
+                                                               uu_augmentation,
                                                                include_affine=False),
                                                            target_transform=lambda _: -1)
                 indices = torch.randperm(len(fm_set))[:500]
                 fm_set = Subset(fm_set, indices)
                 self.__uu_loader = DataLoader(fm_set, batch_size=16)
+            else:
+                raise ValueError(f'Unknown Unknowns {self.__known_unknowns} not yet supported!')
 
     def get_num_samples(self):
         return len(self.__image_folder_train), len(self.__image_folder_valid), len(self.__image_folder_test)
