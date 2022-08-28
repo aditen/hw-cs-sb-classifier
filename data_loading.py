@@ -44,7 +44,6 @@ class DataloaderKinderlabor:
         self.__force_reload_data = force_reload_data
         self.__known_unknowns = known_unknowns
         self.__unknown_unknowns = unknown_unknowns
-        self.__uu_loader = None
         self.__dataset_folder_name = f"{'all' if task_type is None else task_type.value}___" \
                                      f"{'all' if data_split is None else data_split.value}"
         self.__df = pd.read_csv(
@@ -166,6 +165,7 @@ class DataloaderKinderlabor:
 
         self.__dataloader_train = DataLoader(train_ds, batch_size=batch_size_train,
                                              shuffle=True, num_workers=0)
+
         self.__image_folder_valid = ImageFolder(f'{base_path}{self.__dataset_folder_name}/validation_set',
                                                 DataAugmentationUtils.get_augmentations(self.__augmentation_options,
                                                                                         include_affine=False))
@@ -173,44 +173,48 @@ class DataloaderKinderlabor:
         self.__image_folder_valid.class_to_idx = self.__image_folder_train.class_to_idx
         self.__dataloader_valid = DataLoader(self.__image_folder_valid, batch_size=batch_size_valid,
                                              shuffle=True, num_workers=min(batch_size_valid, 8))
+
         self.__image_folder_test = ImageFolder(f'{base_path}{self.__dataset_folder_name}/test_set',
                                                DataAugmentationUtils.get_augmentations(self.__augmentation_options,
                                                                                        include_affine=False))
         self.__image_folder_test.classes = self.__image_folder_train.classes
         self.__image_folder_test.class_to_idx = self.__image_folder_train.class_to_idx
-        self.__dataloader_test = DataLoader(self.__image_folder_test, batch_size=batch_size_test,
-                                            shuffle=True, num_workers=min(batch_size_test, 8))
+        test_ds = self.__image_folder_test
 
         if self.__unknown_unknowns is not None:
             uu_augmentation = copy.deepcopy(self.__augmentation_options)
             uu_augmentation.grayscale = False
             uu_augmentation.invert = False
+            n_uu = 1000
             if self.__unknown_unknowns == Unknowns.EMNIST:
                 emnist_set = torchvision.datasets.EMNIST(root="./dataset_root_emnist", split="letters",
                                                          download=True,
                                                          transform=DataAugmentationUtils.get_augmentations(
                                                              uu_augmentation, include_affine=False),
                                                          target_transform=lambda _: -1)
-                indices = torch.randperm(len(emnist_set))[:500]
-                uu_set = Subset(emnist_set, indices)
-                self.__uu_loader = DataLoader(uu_set, batch_size=16)
+                indices = torch.randperm(len(emnist_set))[:n_uu]
+                emnist_set = Subset(emnist_set, indices)
+                test_ds = ConcatDataset([test_ds, emnist_set])
             elif self.__unknown_unknowns == Unknowns.FASHION_MNIST:
                 fm_set = torchvision.datasets.FashionMNIST(root="./dataset_root_fashion_mnist", download=True,
                                                            transform=DataAugmentationUtils.get_augmentations(
                                                                uu_augmentation,
                                                                include_affine=False),
                                                            target_transform=lambda _: -1)
-                indices = torch.randperm(len(fm_set))[:500]
+                indices = torch.randperm(len(fm_set))[:n_uu]
                 fm_set = Subset(fm_set, indices)
-                self.__uu_loader = DataLoader(fm_set, batch_size=16)
+                test_ds = ConcatDataset([test_ds, fm_set])
             else:
                 raise ValueError(f'Unknown Unknowns {self.__known_unknowns} not yet supported!')
+
+        self.__dataloader_test = DataLoader(test_ds, batch_size=batch_size_test,
+                                            shuffle=True, num_workers=0)
 
     def get_num_samples(self):
         return len(self.__image_folder_train), len(self.__image_folder_valid), len(self.__image_folder_test)
 
     def get_data_loaders(self):
-        return self.__dataloader_train, self.__dataloader_valid, self.__dataloader_test, self.__uu_loader
+        return self.__dataloader_train, self.__dataloader_valid, self.__dataloader_test
 
     def get_set_dfs(self):
         return self.__train_df, self.__valid_df, self.__test_df, self.__df

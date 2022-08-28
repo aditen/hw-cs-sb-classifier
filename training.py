@@ -23,7 +23,7 @@ class Optimizer(Enum):
 
 class TrainerKinderlabor:
     def __init__(self, loader: DataloaderKinderlabor, load_model_from_disk=True, run_id=None,
-                 model_version: ModelVersion = ModelVersion.LG):
+                 model_version: ModelVersion = ModelVersion.LG, optimizer: Optimizer = None):
         self.__model_dir = f'output_visualizations/{run_id if run_id is not None else loader.get_folder_name()}'
         if not os.path.isdir(self.__model_dir):
             os.mkdir(self.__model_dir)
@@ -31,15 +31,16 @@ class TrainerKinderlabor:
         self.__loader = loader
         self.__load_model_from_disk = load_model_from_disk
         self.__epochs, self.__train_loss, self.__valid_loss, self.__train_acc, self.__valid_acc = [], [], [], [], []
-        self.__test_actual, self.__test_predicted, self.__2d, self.__uu_coords, self.__err_samples, self.__f1 = [], [], [], [], [], math.nan
+        self.__test_actual, self.__test_predicted, self.__2d, self.__err_samples, self.__f1 = [], [], [], [], math.nan
+        self.__optimizer = optimizer
         self.__model_path = f"{self.__model_dir}/model.pt"
 
-    def train_model(self, n_epochs=20, lr=0.01, sched=(5, 0.1), optimizer: Optimizer = Optimizer.SOFTMAX):
+    def train_model(self, n_epochs=20, lr=0.01, sched=(5, 0.1)):
         if self.__load_model_from_disk and os.path.isfile(self.__model_path):
             print("Found model already on disk. Set load_model_from_disk=False on function call to force training!")
             return
 
-        train_loader, valid_loader, _, __ = self.__loader.get_data_loaders()
+        train_loader, valid_loader, _ = self.__loader.get_data_loaders()
         n_train, n_valid, __ = self.__loader.get_num_samples()
 
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -47,14 +48,14 @@ class TrainerKinderlabor:
         # initialize model as well as optimizer, scheduler
         model = get_model(num_classes=len(self.__loader.get_classes()), model_version=self.__model_version)
         model = model.to(device)
-        if optimizer == Optimizer.SOFTMAX or optimizer is None:
+        if self.__optimizer == Optimizer.SOFTMAX or self.__optimizer is None:
             criterion = nn.CrossEntropyLoss(reduction='mean')
-        elif optimizer == Optimizer.ENTROPIC:
+        elif self.__optimizer == Optimizer.ENTROPIC:
             criterion = EntropicOpenSetLoss(num_of_classes=len(self.__loader.get_classes()))
-        elif optimizer == Optimizer.OBJECTOSPHERE:
+        elif self.__optimizer == Optimizer.OBJECTOSPHERE:
             criterion = ObjectosphereLoss(num_of_classes=len(self.__loader.get_classes()))
         else:
-            raise ValueError(f"Unsupported optimizer option: {optimizer}")
+            raise ValueError(f"Unsupported optimizer option: {self.__optimizer}")
         # Observe that all parameters are being optimized
         optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
         # Decay LR by a factor of 0.1 every 7 epochs
@@ -148,7 +149,7 @@ class TrainerKinderlabor:
         return self.__epochs, self.__train_loss, self.__valid_loss, self.__train_acc, self.__valid_acc
 
     def predict_on_test_samples(self):
-        _, __, test_loader, uu_loader = self.__loader.get_data_loaders()
+        _, __, test_loader = self.__loader.get_data_loaders()
         _, __, n_test = self.__loader.get_num_samples()
 
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -157,7 +158,15 @@ class TrainerKinderlabor:
         model.eval()
 
         test_loss, test_corr = 0., torch.tensor(0).to(device)
-        criterion = nn.CrossEntropyLoss()
+
+        if self.__optimizer == Optimizer.SOFTMAX or self.__optimizer is None:
+            criterion = nn.CrossEntropyLoss(reduction='mean')
+        elif self.__optimizer == Optimizer.ENTROPIC:
+            criterion = EntropicOpenSetLoss(num_of_classes=len(self.__loader.get_classes()))
+        elif self.__optimizer == Optimizer.OBJECTOSPHERE:
+            criterion = ObjectosphereLoss(num_of_classes=len(self.__loader.get_classes()))
+        else:
+            raise ValueError(f"Unsupported optimizer option: {self.__optimizer}")
 
         actual, predicted = [], []
         with torch.no_grad():
@@ -166,7 +175,12 @@ class TrainerKinderlabor:
                 labels = labels.to(device)
                 outputs, outputs_2d = model(inputs)
                 _, preds = torch.max(outputs, 1)
-                loss = criterion(outputs, labels)
+                if isinstance(criterion, ObjectosphereLoss):
+                    loss = criterion(outputs, labels, outputs_2d, reduction='mean')
+                elif isinstance(criterion, EntropicOpenSetLoss):
+                    loss = criterion(outputs, labels, reduction='mean')
+                else:
+                    loss = criterion(outputs, labels)
                 test_loss += loss.item() * inputs.size(0)
                 test_corr += torch.sum(preds == labels.data)
                 actual_batch = labels.cpu().numpy().flatten().tolist()
@@ -175,26 +189,23 @@ class TrainerKinderlabor:
                 predicted += predicted_batch
                 for i in range(len(actual_batch)):
                     self.__2d.append(outputs_2d[i, :].cpu().numpy().flatten().tolist())
-                    if actual_batch[i] != predicted_batch[i]:
+                    if actual_batch[i] != predicted_batch[i] and actual_batch[i] != -1:
                         self.__err_samples.append((inputs[i, :, :].cpu().numpy(), actual_batch[i], predicted_batch[i]))
-            if uu_loader is not None:
-                for inputs, labels in tqdm(uu_loader, unit="unknowns batch"):
-                    inputs = inputs.to(device)
-                    outputs, outputs_2d = model(inputs)
-                    _, preds = torch.max(outputs, 1)
-                    for i in range(len(labels)):
-                        self.__uu_coords.append(outputs_2d[i, :].cpu().numpy().flatten().tolist())
+
         self.__test_actual = actual
         self.__test_predicted = predicted
         test_acc = test_corr.double() / n_test
         test_loss = test_loss / n_test
-        f1 = f1_score(actual, predicted, average='macro')
+
+        actual_without_uu, predicted_without_uu = zip(*((ac, pr) for ac, pr in zip(actual, predicted) if ac != -1))
+
+        f1 = f1_score(actual_without_uu, predicted_without_uu, average='macro')
         self.__f1 = f1
         print(
             f'Test Accuracy: {test_acc * 100:.2f}%, Test Loss: {test_loss:.4f}, Macro-average F1 Score: {f1 * 100:.2f}%')
 
     def get_predictions(self):
-        return self.__test_actual, self.__test_predicted, self.__err_samples, self.__2d, self.__uu_coords, self.__loader
+        return self.__test_actual, self.__test_predicted, self.__err_samples, self.__2d, self.__loader
 
     def script_model(self):
         model = get_model(num_classes=len(self.__loader.get_classes()), model_version=self.__model_version)

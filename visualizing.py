@@ -43,7 +43,7 @@ class VisualizerKinderlabor:
         self.__save_plots_to_disk = save_plots_to_disk
 
     def visualize_some_samples(self):
-        train_loader, valid_loader, test_loader, uu_loader = self.__data_loader.get_data_loaders()
+        train_loader, valid_loader, test_loader = self.__data_loader.get_data_loaders()
         mean, std = self.__data_loader.get_mean_std()
         # Get a batch of training data
         inputs, classes = next(iter(train_loader))
@@ -81,11 +81,12 @@ class VisualizerKinderlabor:
             print("No training done yet! Please call this function after training")
 
     def visualize_model_errors(self, trainer: TrainerKinderlabor):
-        actual, predicted, err_samples, _, __, loader = trainer.get_predictions()
+        actual, predicted, err_samples, _, loader = trainer.get_predictions()
         if loader != self.__data_loader:
             print("Loaders are different! Please check you provide the right instance to the visualizer!")
             return
         mean, std = self.__data_loader.get_mean_std()
+        actual_without_uu, predicted_without_uu = zip(*((ac, pr) for ac, pr in zip(actual, predicted) if ac != -1))
 
         if len(err_samples) > 0:
             num_errs_to_show = min(4 * 4, len(err_samples))
@@ -104,7 +105,7 @@ class VisualizerKinderlabor:
                     f'{self.__visualization_dir}/test_errors.pdf')
             plt.show()
 
-        ConfusionMatrixDisplay.from_predictions(actual, predicted,
+        ConfusionMatrixDisplay.from_predictions(actual_without_uu, predicted_without_uu,
                                                 display_labels=[class_name_dict[x] for x in loader.get_classes()],
                                                 normalize='true')
         if self.__save_plots_to_disk:
@@ -136,31 +137,26 @@ class VisualizerKinderlabor:
                 f'{self.__visualization_dir}/class_dist.pdf')
         plt.show()
 
-    # TODO: extend color array
     def plot_2d_space(self, trainer: TrainerKinderlabor):
-        actual, predicted, _, coords, uu_coords, loader = trainer.get_predictions()
+        actual, predicted, _, coords, loader = trainer.get_predictions()
         if loader != self.__data_loader:
             print("Loaders are different! Please check you provide the right instance to the visualizer!")
             return
         fig, ax = plt.subplots()
         xes = [coord[0] for coord in coords]
         ys = [coord[1] for coord in coords]
-        labels = [class_name_dict[loader.get_classes()[x]] for x in actual]
-        colors = ['red', 'green', 'blue', 'orange', 'yellow', 'gray', 'pink']
+        labels = [(class_name_dict[loader.get_classes()[x]] if x >= 0 else "unknown") for x in actual]
+        colors = ['red', 'green', 'blue', 'orange', 'yellow', 'gray', 'pink', 'darkred', 'gold', 'cyan', 'olive',
+                  'brown', 'purple', 'lime']
         already_plotted_legends = set()
-        for i in tqdm(range(min(len(labels), 1000)), unit="Coordinates Known"):
+        for i in tqdm(range(min(len(labels), 2000)), unit="Coordinates"):
+            # Plot unknowns as black color
+            color = colors[actual[i]] if actual[i] >= 0 else "black"
             if labels[i] not in already_plotted_legends:
-                ax.scatter(xes[i], ys[i], label=labels[i], color=colors[actual[i]])
+                ax.scatter(xes[i], ys[i], label=labels[i], color=color, alpha=0.25)
                 already_plotted_legends.add(labels[i])
             else:
-                ax.scatter(xes[i], ys[i], color=colors[actual[i]])
-
-        for i in tqdm(range(min(len(uu_coords), 1000)), unit="Coordinates Unknown"):
-            if "unknown" not in already_plotted_legends:
-                ax.scatter(uu_coords[i][0], uu_coords[i][1], label="unknown", color="black", alpha=0.1)
-                already_plotted_legends.add("unknown")
-            else:
-                ax.scatter(uu_coords[i][0], uu_coords[i][1], color="black", alpha=0.1)
+                ax.scatter(xes[i], ys[i], color=color, alpha=0.25)
 
         plt.legend()
         if self.__save_plots_to_disk:
