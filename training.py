@@ -1,6 +1,7 @@
 import copy
 import math
 import os
+from enum import Enum
 
 import torch
 from sklearn.metrics import f1_score
@@ -12,6 +13,12 @@ from data_augmentation import DataAugmentationUtils
 from data_loading import DataloaderKinderlabor
 from grayscale_model import ModelVersion, get_model
 from open_set_loss import EntropicOpenSetLoss, ObjectosphereLoss
+
+
+class Optimizer(Enum):
+    ENTROPIC = "ENTROPIC"
+    OBJECTOSPHERE = "OBJECTOSPHERE"
+    SOFTMAX = "SOFTMAX"
 
 
 class TrainerKinderlabor:
@@ -27,7 +34,7 @@ class TrainerKinderlabor:
         self.__test_actual, self.__test_predicted, self.__2d, self.__uu_coords, self.__err_samples, self.__f1 = [], [], [], [], [], math.nan
         self.__model_path = f"{self.__model_dir}/model.pt"
 
-    def train_model(self, n_epochs=20, lr=0.001, sched=(7, 0.1)):
+    def train_model(self, n_epochs=20, lr=0.01, sched=(5, 0.1), optimizer: Optimizer = Optimizer.SOFTMAX):
         if self.__load_model_from_disk and os.path.isfile(self.__model_path):
             print("Found model already on disk. Set load_model_from_disk=False on function call to force training!")
             return
@@ -40,9 +47,14 @@ class TrainerKinderlabor:
         # initialize model as well as optimizer, scheduler
         model = get_model(num_classes=len(self.__loader.get_classes()), model_version=self.__model_version)
         model = model.to(device)
-        # criterion = nn.CrossEntropyLoss()
-        criterion = EntropicOpenSetLoss(num_of_classes=len(self.__loader.get_classes()))
-        criterion = ObjectosphereLoss(num_of_classes=len(self.__loader.get_classes()))
+        if optimizer == Optimizer.SOFTMAX or optimizer is None:
+            criterion = nn.CrossEntropyLoss(reduction='mean')
+        elif optimizer == Optimizer.ENTROPIC:
+            criterion = EntropicOpenSetLoss(num_of_classes=len(self.__loader.get_classes()))
+        elif optimizer == Optimizer.OBJECTOSPHERE:
+            criterion = ObjectosphereLoss(num_of_classes=len(self.__loader.get_classes()))
+        else:
+            raise ValueError(f"Unsupported optimizer option: {optimizer}")
         # Observe that all parameters are being optimized
         optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
         # Decay LR by a factor of 0.1 every 7 epochs
@@ -77,8 +89,12 @@ class TrainerKinderlabor:
                 # track history if only in train
                 outputs, outputs_2d = model(inputs)
                 _, preds = torch.max(outputs, 1)
-                loss = criterion(outputs, labels, outputs_2d, reduction='mean')
-
+                if isinstance(criterion, ObjectosphereLoss):
+                    loss = criterion(outputs, labels, outputs_2d, reduction='mean')
+                elif isinstance(criterion, EntropicOpenSetLoss):
+                    loss = criterion(outputs, labels, reduction='mean')
+                else:
+                    loss = criterion(outputs, labels)
                 loss.backward()
                 optimizer.step()
 
@@ -101,7 +117,12 @@ class TrainerKinderlabor:
                     labels = labels.to(device)
                     outputs, outputs_2d = model(inputs)
                     _, preds = torch.max(outputs, 1)
-                    loss = criterion(outputs, labels, outputs_2d, reduction='mean')
+                    if isinstance(criterion, ObjectosphereLoss):
+                        loss = criterion(outputs, labels, outputs_2d, reduction='mean')
+                    elif isinstance(criterion, EntropicOpenSetLoss):
+                        loss = criterion(outputs, labels, reduction='mean')
+                    else:
+                        loss = criterion(outputs, labels)
                     eval_loss += loss.item() * inputs.size(0)
                     eval_corr += torch.sum(preds == labels.data)
 

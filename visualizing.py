@@ -42,7 +42,6 @@ class VisualizerKinderlabor:
         self.__data_loader = data_loader
         self.__save_plots_to_disk = save_plots_to_disk
 
-    # TODO: add a row of unknowns
     def visualize_some_samples(self):
         train_loader, valid_loader, test_loader, uu_loader = self.__data_loader.get_data_loaders()
         mean, std = self.__data_loader.get_mean_std()
@@ -52,10 +51,12 @@ class VisualizerKinderlabor:
         fig, axs = plt.subplots(ncols=4, nrows=math.ceil(len(classes) / 4))
         fig.suptitle('Batch of Training Samples', fontsize=16)
 
+        class_names = [class_name_dict[c] for c in self.__data_loader.get_classes()]
+        class_names.append("unknown")
+
         for img_idx in range(len(inputs)):
             show_on_axis(axs.flat[img_idx], inputs[img_idx, :, :].cpu().numpy(),
-                         class_name_dict[self.__data_loader.get_classes()[classes[img_idx]]], mean,
-                         std)
+                         class_names[classes[img_idx]], mean, std)
         fig.tight_layout()
         if self.__save_plots_to_disk:
             plt.savefig(f'{self.__visualization_dir}/train_samples.pdf')
