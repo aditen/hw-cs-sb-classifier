@@ -43,8 +43,7 @@ So far, the code has these main parts:
 - Implement further data splits with semantic meaning (keeping out students, respectively classes in test set)
   once more data is labelled, maybe include some real samples in training and see if it is better
 - Open Set Experiments
-    - track softmax probabilities and plot them
-    - Add background class possibility
+    - Add background class
 - Distinguish basic and extended command exercises and see whether model is better when having limited class space
 - Minor code adaptions
     - Fix herby not correcting known rotation

@@ -73,7 +73,7 @@ class DataloaderKinderlabor:
                 self.__train_df = self.__train_df.drop(self.__valid_df.index)
             elif self.__data_split == DataSplit.TRAIN_SHEETS_TEST_BOOKLETS:
                 # TODO: analyze different ways to deal with this issue (zero out before softmax)?
-                if self.__task_type == TaskType.COMMAND:
+                if False and self.__task_type == TaskType.COMMAND:
                     self.__df = self.__df[
                         (self.__df['label'] != 'LOOP_FOUR_TIMES') & (self.__df['label'] != 'LOOP_THREE_TIMES') & (
                                 self.__df['label'] != 'LOOP_TWICE') & (self.__df['label'] != 'LOOP_END')]

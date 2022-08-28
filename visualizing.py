@@ -81,7 +81,7 @@ class VisualizerKinderlabor:
             print("No training done yet! Please call this function after training")
 
     def visualize_model_errors(self, trainer: TrainerKinderlabor):
-        actual, predicted, err_samples, _, loader = trainer.get_predictions()
+        actual, predicted, best_probs, err_samples, _, loader = trainer.get_predictions()
         if loader != self.__data_loader:
             print("Loaders are different! Please check you provide the right instance to the visualizer!")
             return
@@ -138,7 +138,7 @@ class VisualizerKinderlabor:
         plt.show()
 
     def plot_2d_space(self, trainer: TrainerKinderlabor):
-        actual, predicted, _, coords, loader = trainer.get_predictions()
+        actual, predicted, best_probs, _, coords, loader = trainer.get_predictions()
         if loader != self.__data_loader:
             print("Loaders are different! Please check you provide the right instance to the visualizer!")
             return
@@ -162,4 +162,23 @@ class VisualizerKinderlabor:
         if self.__save_plots_to_disk:
             plt.savefig(
                 f'{self.__visualization_dir}/scatter.pdf')
+        plt.show()
+
+    def plot_prob_histogram(self, trainer: TrainerKinderlabor):
+        actual, predicted, best_probs, _, coords, loader = trainer.get_predictions()
+        if loader != self.__data_loader:
+            print("Loaders are different! Please check you provide the right instance to the visualizer!")
+            return
+
+        probs_known = [prob for (prob, act) in zip(best_probs, actual) if act != -1]
+        probs_unknown = [prob for (prob, act) in zip(best_probs, actual) if act == -1]
+
+        plt.hist(probs_known, bins=50, density=True, label="Known", histtype='step', color='green')
+        if len(probs_unknown) > 0:
+            plt.hist(probs_unknown, bins=50, density=True, label="Unknown", histtype='step', color='red')
+
+        plt.legend()
+        if self.__save_plots_to_disk:
+            plt.savefig(
+                f'{self.__visualization_dir}/probs.pdf')
         plt.show()
