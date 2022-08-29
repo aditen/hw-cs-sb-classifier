@@ -50,6 +50,7 @@ class VisualizerKinderlabor:
 
         fig, axs = plt.subplots(ncols=4, nrows=math.ceil(len(classes) / 4))
         fig.suptitle('Batch of Training Samples', fontsize=16)
+        fig.set_figheight(6.4 * len(classes) / 16)
 
         class_names = [class_name_dict[c] for c in self.__data_loader.get_classes()]
         class_names.append("unknown")
@@ -93,7 +94,7 @@ class VisualizerKinderlabor:
             print(f'Num errors to show: {num_errs_to_show}/{len(err_samples)}')
             fig, axs = plt.subplots(nrows=math.ceil(num_errs_to_show / 4), ncols=4)
             fig.suptitle('Test Error Examples', fontsize=16)
-
+            fig.set_figheight(6.4 * num_errs_to_show / 16)
             for img_idx in range(num_errs_to_show):
                 show_on_axis(axs.flat[img_idx], err_samples[img_idx][0],
                              class_name_dict[self.__data_loader.get_classes()[err_samples[img_idx][1]]], mean, std,

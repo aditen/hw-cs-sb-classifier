@@ -3,10 +3,12 @@ import math
 import os
 import shutil
 from enum import Enum
+from typing import Tuple
 
 import pandas as pd
 import torch
 import torchvision.datasets
+from pandas import DataFrame
 from torch.utils.data import DataLoader, Subset, ConcatDataset
 from torchvision.datasets import ImageFolder
 
@@ -24,6 +26,7 @@ class TaskType(Enum):
 
 class DataSplit(Enum):
     TRAIN_SHEETS_TEST_BOOKLETS = "TRAIN_SHEETS_TEST_BOOKLETS"
+    HOLD_OUT_CLASSES = "HOLD_OUT_CLASSES"
     HOLD_OUT_WITHIN_SHEETS = "HOLD_OUT_WITHIN_SHEETS"
 
 
@@ -37,7 +40,8 @@ class DataloaderKinderlabor:
 
     def __init__(self, augmentation_options: DataAugmentationOptions = DataAugmentationOptions(),
                  task_type: TaskType = None, data_split: DataSplit = None, filter_not_readable=True,
-                 force_reload_data=False, known_unknowns: Unknowns = None, unknown_unknowns: Unknowns = None):
+                 force_reload_data=False, known_unknowns: Unknowns = None, unknown_unknowns: Unknowns = None,
+                 batch_size_train=64, batch_size_valid_test=32):
         self.__augmentation_options = augmentation_options
         self.__task_type = task_type
         self.__data_split = data_split
@@ -72,7 +76,6 @@ class DataloaderKinderlabor:
                 self.__valid_df = self.__train_df.sample(frac=0.1, random_state=42)
                 self.__train_df = self.__train_df.drop(self.__valid_df.index)
             elif self.__data_split == DataSplit.TRAIN_SHEETS_TEST_BOOKLETS:
-                # TODO: analyze different ways to deal with this issue (zero out before softmax)?
                 if False and self.__task_type == TaskType.COMMAND:
                     self.__df = self.__df[
                         (self.__df['label'] != 'LOOP_FOUR_TIMES') & (self.__df['label'] != 'LOOP_THREE_TIMES') & (
@@ -87,6 +90,12 @@ class DataloaderKinderlabor:
                 # split train/valid randomly
                 self.__valid_df = self.__train_df.sample(frac=0.1, random_state=42)
                 self.__train_df = self.__train_df.drop(self.__valid_df.index)
+            elif data_split == DataSplit.HOLD_OUT_CLASSES:
+                train_df, test_df = self.__split_hold_out(self.__df)
+                # split train/valid randomly
+                self.__valid_df = train_df.sample(frac=0.1, random_state=42)
+                self.__train_df = train_df.drop(self.__valid_df.index)
+                self.__test_df = test_df
             else:
                 raise ValueError("Data split is not yet implemented for this value!")
         else:
@@ -129,9 +138,6 @@ class DataloaderKinderlabor:
             self.__augmentation_options.rotate = None
 
         # read image folders and create loaders
-        batch_size_train = 16
-        batch_size_valid = 8
-        batch_size_test = 8
         self.__image_folder_train = ImageFolder(f'{base_path}{self.__dataset_folder_name}/train_set',
                                                 DataAugmentationUtils.get_augmentations(self.__augmentation_options,
                                                                                         include_affine=True))
@@ -171,8 +177,8 @@ class DataloaderKinderlabor:
                                                                                         include_affine=False))
         self.__image_folder_valid.classes = self.__image_folder_train.classes
         self.__image_folder_valid.class_to_idx = self.__image_folder_train.class_to_idx
-        self.__dataloader_valid = DataLoader(self.__image_folder_valid, batch_size=batch_size_valid,
-                                             shuffle=True, num_workers=min(batch_size_valid, 8))
+        self.__dataloader_valid = DataLoader(self.__image_folder_valid, batch_size=batch_size_valid_test,
+                                             shuffle=True, num_workers=0)
 
         self.__image_folder_test = ImageFolder(f'{base_path}{self.__dataset_folder_name}/test_set',
                                                DataAugmentationUtils.get_augmentations(self.__augmentation_options,
@@ -207,7 +213,7 @@ class DataloaderKinderlabor:
             else:
                 raise ValueError(f'Unknown Unknowns {self.__known_unknowns} not yet supported!')
 
-        self.__dataloader_test = DataLoader(test_ds, batch_size=batch_size_test,
+        self.__dataloader_test = DataLoader(test_ds, batch_size=batch_size_valid_test,
                                             shuffle=True, num_workers=0)
 
     def get_num_samples(self):
@@ -233,3 +239,9 @@ class DataloaderKinderlabor:
 
     def get_folder_name(self):
         return self.__dataset_folder_name
+
+    def __split_hold_out(self, df: DataFrame) -> Tuple[DataFrame, DataFrame]:
+        # TODO: limit empty symbols
+        df_test = df[(df['class'] == 'Vishwas Labelling 1') | (df['class'] == 'Lauras Dad')]
+        df_train = df.drop(df_test.index)
+        return df_train, df_test
