@@ -5,6 +5,6 @@ venv/
 **.scripted
 output_visualizations/*
 !output_visualizations/.gitkeep
-playground.py
+playground*.py
 synset.txt
 dataset_root**

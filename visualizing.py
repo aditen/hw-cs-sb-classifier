@@ -173,10 +173,11 @@ class VisualizerKinderlabor:
         probs_known = [prob for (prob, act) in zip(best_probs, actual) if act != -1]
         probs_unknown = [prob for (prob, act) in zip(best_probs, actual) if act == -1]
 
-        plt.hist(probs_known, bins=50, density=True, label="Known", histtype='step', color='green')
+        plt.hist(probs_known, bins=50, label="Known", histtype='step', color='green')
         if len(probs_unknown) > 0:
-            plt.hist(probs_unknown, bins=50, density=True, label="Unknown", histtype='step', color='red')
+            plt.hist(probs_unknown, bins=50, label="Unknown", histtype='step', color='red')
 
+        plt.yscale('log')
         plt.legend()
         if self.__save_plots_to_disk:
             plt.savefig(
