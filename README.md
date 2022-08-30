@@ -46,5 +46,6 @@ So far, the code has these main parts:
 - Minor code adaptions
     - Fix herby not correcting known rotation
     - Actually visualization of dataset could be stored per split and not per run (class distribution and some samples)
+    - Larger axis name font and add option to not display titles in visualizer (as this is the caption in thesis)
     - Drop task (12e-f), where version problem was present and evtl 16c where bounding box was badly, alternatively make
       label bounding box error (shortcut b) in Herby
