@@ -27,7 +27,7 @@ class TaskType(Enum):
 class DataSplit(Enum):
     TRAIN_SHEETS_TEST_BOOKLETS = "TRAIN_SHEETS_TEST_BOOKLETS"
     HOLD_OUT_CLASSES = "HOLD_OUT_CLASSES"
-    HOLD_OUT_WITHIN_SHEETS = "HOLD_OUT_WITHIN_SHEETS"
+    RANDOM = "RANDOM"
 
 
 class Unknowns(Enum):
@@ -61,51 +61,18 @@ class DataloaderKinderlabor:
         if filter_not_readable:
             self.__df = self.__df.loc[(self.__df['label'] != "NOT_READABLE")]
 
-        if self.__data_split is not None:
-            if self.__data_split == DataSplit.HOLD_OUT_WITHIN_SHEETS:
-                # Test Set based on class 'Data Collection 2. Klasse'
-                # split train/test accordingly
-                self.__df = self.__df[self.__df['class'] != 'Vishwas Labelling 1']
-                self.__df = self.__df[self.__df['class'] != 'Vishwas Labeling 2']
-                self.__df = self.__df[self.__df['class'] != 'Adrian Labelling 1']
-
-                self.__train_df = self.__df[self.__df['class'] != 'Data Collection 2. Klasse']
-                self.__test_df = self.__df.drop(self.__train_df.index)
-
-                # split train/valid randomly
-                self.__valid_df = self.__train_df.sample(frac=0.1, random_state=42)
-                self.__train_df = self.__train_df.drop(self.__valid_df.index)
-            elif self.__data_split == DataSplit.TRAIN_SHEETS_TEST_BOOKLETS:
-                if False and self.__task_type == TaskType.COMMAND:
-                    self.__df = self.__df[
-                        (self.__df['label'] != 'LOOP_FOUR_TIMES') & (self.__df['label'] != 'LOOP_THREE_TIMES') & (
-                                self.__df['label'] != 'LOOP_TWICE') & (self.__df['label'] != 'LOOP_END')]
-                self.__train_df = self.__df[
-                    (self.__df['class'] != 'Vishwas Labelling 1')
-                    & (self.__df['class'] != 'Vishwas Labeling 2')
-                    & (self.__df['class'] != 'Adrian Labelling 1')
-                    & ((self.__df['student'] != 'Laura_Heft_komplett_Test') | (self.__df['label'] == 'EMPTY'))
-                    ]
-                self.__test_df = self.__df.drop(self.__train_df.index)
-                # split train/valid randomly
-                self.__valid_df = self.__train_df.sample(frac=0.1, random_state=42)
-                self.__train_df = self.__train_df.drop(self.__valid_df.index)
-            elif data_split == DataSplit.HOLD_OUT_CLASSES:
-                train_df, test_df = self.__split_hold_out(self.__df)
-                # split train/valid randomly
-                self.__valid_df = train_df.sample(frac=0.1, random_state=42)
-                self.__train_df = train_df.drop(self.__valid_df.index)
-                self.__test_df = test_df
-            else:
-                raise ValueError("Data split is not yet implemented for this value!")
+        if self.__data_split == DataSplit.TRAIN_SHEETS_TEST_BOOKLETS:
+            self.__train_df, self.__test_df = self.__split_sheets_booklets(self.__df)
+        elif data_split == DataSplit.HOLD_OUT_CLASSES:
+            self.__train_df, self.__test_df = self.__split_hold_out(self.__df)
+        elif data_split is None or data_split == DataSplit.RANDOM:
+            self.__train_df, self.__test_df = self.__split_random(self.__df)
         else:
-            # split train/test randomly
-            self.__train_df = self.__df.sample(frac=0.85, random_state=42)
-            self.__test_df = self.__df.drop(self.__train_df.index)
+            raise ValueError(f'Unsupported data split {data_split}')
 
-            # split train/valid randomly
-            self.__valid_df = self.__train_df.sample(frac=0.1, random_state=42)
-            self.__train_df = self.__train_df.drop(self.__valid_df.index)
+        # split train/valid randomly
+        self.__valid_df = self.__train_df.sample(frac=0.15)
+        self.__train_df = self.__train_df.drop(self.__valid_df.index)
 
         if self.__force_reload_data or not os.path.isdir(base_path + self.__dataset_folder_name):
             print(f'Creating dataset folder {self.__dataset_folder_name}')
@@ -240,8 +207,27 @@ class DataloaderKinderlabor:
     def get_folder_name(self):
         return self.__dataset_folder_name
 
+    def __split_random(self, df: DataFrame) -> Tuple[DataFrame, DataFrame]:
+        train_df = df.sample(frac=0.8)
+        test_df = df.drop(self.__train_df.index)
+        return train_df, test_df
+
     def __split_hold_out(self, df: DataFrame) -> Tuple[DataFrame, DataFrame]:
-        # TODO: limit empty symbols
-        df_test = df[(df['class'] == 'Vishwas Labelling 1') | (df['class'] == 'Lauras Dad')]
-        df_train = df.drop(df_test.index)
-        return df_train, df_test
+        test_df = df[(df['class'] == 'Vishwas Labelling 1') | (df['class'] == 'Adrian Labelling 1') | (
+                df['class'] == 'Data Collection 4. Klasse')]
+        train_df = df.drop(test_df.index)
+        return train_df, test_df
+
+    def __split_sheets_booklets(self, df: DataFrame) -> Tuple[DataFrame, DataFrame]:
+        if False and self.__task_type == TaskType.COMMAND:
+            df = df[
+                (df['label'] != 'LOOP_FOUR_TIMES') & (df['label'] != 'LOOP_THREE_TIMES') & (
+                        df['label'] != 'LOOP_TWICE') & (df['label'] != 'LOOP_END')]
+        train_df = df[
+            (df['class'] != 'Vishwas Labelling 1')
+            & (df['class'] != 'Vishwas Labeling 2')
+            & (df['class'] != 'Adrian Labelling 1')
+            & ((df['student'] != 'Laura_Heft_komplett_Test') | (df['label'] == 'EMPTY'))
+            ]
+        test_df = df.drop(train_df.index)
+        return train_df, test_df

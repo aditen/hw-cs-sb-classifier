@@ -90,7 +90,7 @@ class VisualizerKinderlabor:
         actual_without_uu, predicted_without_uu = zip(*((ac, pr) for ac, pr in zip(actual, predicted) if ac != -1))
 
         if len(err_samples) > 0:
-            num_errs_to_show = min(4 * 4, len(err_samples))
+            num_errs_to_show = min(64, len(err_samples))
             print(f'Num errors to show: {num_errs_to_show}/{len(err_samples)}')
             fig, axs = plt.subplots(nrows=math.ceil(num_errs_to_show / 4), ncols=4)
             fig.suptitle('Test Error Examples', fontsize=16)
@@ -114,7 +114,7 @@ class VisualizerKinderlabor:
                 f'{self.__visualization_dir}/conf_matrix.pdf')
         plt.show()
 
-    def plot_class_distributions(self):
+    def visualize_class_distributions(self):
         train_df, valid_df, test_df, all_df = self.__data_loader.get_set_dfs()
         labels = all_df['label'].unique()
         vals_train = [len(train_df[train_df['label'] == label]) for label in labels]
@@ -138,7 +138,7 @@ class VisualizerKinderlabor:
                 f'{self.__visualization_dir}/class_dist.pdf')
         plt.show()
 
-    def plot_2d_space(self, trainer: TrainerKinderlabor):
+    def visualize_2d_space(self, trainer: TrainerKinderlabor):
         actual, predicted, best_probs, _, coords, loader = trainer.get_predictions()
         if loader != self.__data_loader:
             print("Loaders are different! Please check you provide the right instance to the visualizer!")
@@ -165,7 +165,7 @@ class VisualizerKinderlabor:
                 f'{self.__visualization_dir}/scatter.pdf')
         plt.show()
 
-    def plot_prob_histogram(self, trainer: TrainerKinderlabor):
+    def visualize_prob_histogram(self, trainer: TrainerKinderlabor):
         actual, predicted, best_probs, _, coords, loader = trainer.get_predictions()
         if loader != self.__data_loader:
             print("Loaders are different! Please check you provide the right instance to the visualizer!")

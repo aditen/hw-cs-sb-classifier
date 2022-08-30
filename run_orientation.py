@@ -14,7 +14,7 @@ if __name__ == "__main__":
 
     # visualize class distribution and some (train) samples
     visualizer_orientation = VisualizerKinderlabor(loader_orientation, run_id=run_id)
-    visualizer_orientation.plot_class_distributions()
+    visualizer_orientation.visualize_class_distributions()
     visualizer_orientation.visualize_some_samples()
 
     # Train model and analyze training progress (mainly when it starts overfitting on validation set)

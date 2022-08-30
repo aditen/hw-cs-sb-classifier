@@ -14,7 +14,7 @@ if __name__ == "__main__":
 
     # visualize class distribution and some (train) samples
     visualizer_crosses = VisualizerKinderlabor(loader_crosses, run_id=run_id)
-    visualizer_crosses.plot_class_distributions()
+    visualizer_crosses.visualize_class_distributions()
     visualizer_crosses.visualize_some_samples()
 
     # Train model and analyze training progress (mainly when it starts overfitting on validation set)

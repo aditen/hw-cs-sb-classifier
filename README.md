@@ -40,8 +40,6 @@ So far, the code has these main parts:
     - rotate / shift / scale
     - center crop for pre-processing comparisons?
     - Sheer?
-- Implement further data splits with semantic meaning (keeping out students, respectively classes in test set)
-  once more data is labelled, maybe include some real samples in training and see if it is better
 - Open Set Experiments
     - Add background class
 - Distinguish basic and extended command exercises and see whether model is better when having limited class space
