@@ -32,9 +32,9 @@ if __name__ == "__main__":
         if type(task_type) == float and math.isnan(task_type):
             continue
         labels = df[df['type'] == task_type]['label'].unique()
-        vals_booklet = [len(booklet_df[booklet_df['label'] == label]) for label in labels]
-        vals_single_booklet = [len(booklet_df_single_full[booklet_df_single_full['label'] == label]) for label in labels]
-        vals_sheet = [len(sheet_df[sheet_df['label'] == label]) for label in labels]
+        vals_booklet = [len(booklet_df[(booklet_df['label'] == label) & (booklet_df['type'] == task_type)]) for label in labels]
+        vals_single_booklet = [len(booklet_df_single_full[(booklet_df_single_full['label'] == label) & (booklet_df_single_full['type'] == task_type)]) for label in labels]
+        vals_sheet = [len(sheet_df[(sheet_df['label'] == label) & (sheet_df['type'] == task_type)]) for label in labels]
 
         labels = [class_name_dict[x] for x in labels]
         fig, ax = plt.subplots()
