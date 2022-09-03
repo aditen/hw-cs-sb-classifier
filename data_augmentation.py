@@ -15,10 +15,10 @@ class DataAugmentationOptions:
     grayscale: bool = True
     auto_contrast: bool = True
     invert: bool = True
-    normalize: Tuple[float] | bool = True
-    rotate: int | Tuple[int] | bool = (-30, 30)
-    translate: float | Tuple[float] | bool = (0.15, 0.15)
-    scale: float | Tuple[float] | bool = (0.85, 1.15)
+    normalize: Tuple[float, float] | bool = True
+    rotate: int | Tuple[int, int] | bool = (-30, 30)
+    translate: float | Tuple[float, float] | bool = (0.15, 0.15)
+    scale: float | Tuple[float, float] | bool = (0.85, 1.15)
 
 
 class DataAugmentationUtils:

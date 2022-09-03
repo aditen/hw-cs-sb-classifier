@@ -3,6 +3,7 @@ import os.path
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.ticker import MaxNLocator
 from sklearn.metrics import ConfusionMatrixDisplay
 
 from data_loading import DataloaderKinderlabor
@@ -65,15 +66,18 @@ class VisualizerKinderlabor:
 
     def visualize_training_progress(self, trainer: TrainerKinderlabor):
         epochs, train_loss, valid_loss, train_acc, valid_acc = trainer.get_training_progress()
+        fig, ax = plt.subplots()
         if len(epochs) > 0:
-            plt.plot(epochs, train_loss, label="Train Loss")
-            plt.plot(epochs, valid_loss, label="Validation Loss")
-            plt.plot(epochs, train_acc, label="Training Accuracy")
-            plt.plot(epochs, valid_acc, label="Validation Accuracy")
+            ax.plot(epochs, train_loss, label="Train Loss")
+            ax.plot(epochs, valid_loss, label="Validation Loss")
+            ax.plot(epochs, train_acc, label="Training Accuracy")
+            ax.plot(epochs, valid_acc, label="Validation Accuracy")
+            ax.xaxis.set_major_locator(MaxNLocator(integer=True))
             plt.xlabel("Epoch")
             plt.ylabel("Model Performance")
             plt.title("Model Performance over Epochs")
             plt.legend()
+
             if self.__save_plots_to_disk:
                 plt.savefig(
                     f'{self.__visualization_dir}/learning_progress.pdf')

@@ -38,7 +38,7 @@ class TrainerKinderlabor:
         self.__optimizer = optimizer
         self.__model_path = f"{self.__model_dir}/model.pt"
 
-    def train_model(self, n_epochs=20, lr=0.01, sched=(5, 0.1)):
+    def train_model(self, n_epochs=30, lr=0.01, sched=(10, 0.5), n_epochs_wait_early_stop=5):
         if self.__load_model_from_disk and os.path.isfile(self.__model_path):
             print("Found model already on disk. Set load_model_from_disk=False on function call to force training!")
             return
@@ -72,10 +72,14 @@ class TrainerKinderlabor:
         best_loss = math.inf
         best_acc = 0.
 
-        epochs = [i + 1 for i in range(n_epochs)]
+        epochs = []
         losses_train, acc_train, losses_valid, acc_valid = [], [], [], []
+        n_epochs_no_improvement = 0
 
-        for _ in tqdm(range(n_epochs), unit="epoch"):
+        for epoch_i in tqdm(range(n_epochs), unit="epoch"):
+            if n_epochs_no_improvement > n_epochs_wait_early_stop:
+                break
+            epochs.append(epoch_i + 1)
             running_loss = 0.0
             running_corrects = torch.tensor(0).to(device)
 
@@ -138,6 +142,12 @@ class TrainerKinderlabor:
                 best_loss = eval_loss
                 best_acc = eval_acc.item()
                 best_model = copy.deepcopy(model.state_dict())
+                n_epochs_no_improvement = 0
+            else:
+                n_epochs_no_improvement += 1
+
+        if len(epochs) < n_epochs:
+            print(f'Early stopping criterion reached in epoch {len(epochs)}')
 
         print(f"Best model accuracy: {(best_acc * 100):.2f}%")
         torch.save(best_model, self.__model_path)

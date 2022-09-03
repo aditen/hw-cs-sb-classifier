@@ -32,8 +32,10 @@ if __name__ == "__main__":
         if type(task_type) == float and math.isnan(task_type):
             continue
         labels = df[df['type'] == task_type]['label'].unique()
-        vals_booklet = [len(booklet_df[(booklet_df['label'] == label) & (booklet_df['type'] == task_type)]) for label in labels]
-        vals_single_booklet = [len(booklet_df_single_full[(booklet_df_single_full['label'] == label) & (booklet_df_single_full['type'] == task_type)]) for label in labels]
+        vals_booklet = [len(booklet_df[(booklet_df['label'] == label) & (booklet_df['type'] == task_type)]) for label in
+                        labels]
+        vals_single_booklet = [len(booklet_df_single_full[(booklet_df_single_full['label'] == label) & (
+                    booklet_df_single_full['type'] == task_type)]) for label in labels]
         vals_sheet = [len(sheet_df[(sheet_df['label'] == label) & (sheet_df['type'] == task_type)]) for label in labels]
 
         labels = [class_name_dict[x] for x in labels]
@@ -48,7 +50,8 @@ if __name__ == "__main__":
 
         ax.set_ylabel('Number of Samples')
         ax.set_xlabel('Symbol')
-        ax.set_title(f'Number of Samples per Methodology for type {task_type}')
+        # no title because caption is title in thesis
+        # ax.set_title(f'Number of Samples per Methodology for type {task_type}')
         ax.set_xticks(x, labels)
         ax.set_yscale('log')
         ax.legend()
