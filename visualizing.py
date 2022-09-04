@@ -86,7 +86,7 @@ class VisualizerKinderlabor:
             print("No training done yet! Please call this function after training")
 
     def visualize_model_errors(self, trainer: TrainerKinderlabor):
-        actual, predicted, best_probs, err_samples, _, loader = trainer.get_predictions()
+        actual, predicted, best_probs, err_samples, _, loader, __ = trainer.get_predictions()
         if loader != self.__data_loader:
             print("Loaders are different! Please check you provide the right instance to the visualizer!")
             return
@@ -143,7 +143,7 @@ class VisualizerKinderlabor:
         plt.show()
 
     def visualize_2d_space(self, trainer: TrainerKinderlabor):
-        actual, predicted, best_probs, _, coords, loader = trainer.get_predictions()
+        actual, predicted, best_probs, _, coords, loader, __ = trainer.get_predictions()
         if loader != self.__data_loader:
             print("Loaders are different! Please check you provide the right instance to the visualizer!")
             return
@@ -170,7 +170,7 @@ class VisualizerKinderlabor:
         plt.show()
 
     def visualize_prob_histogram(self, trainer: TrainerKinderlabor):
-        actual, predicted, best_probs, _, coords, loader = trainer.get_predictions()
+        actual, predicted, best_probs, _, coords, loader, __ = trainer.get_predictions()
         if loader != self.__data_loader:
             print("Loaders are different! Please check you provide the right instance to the visualizer!")
             return

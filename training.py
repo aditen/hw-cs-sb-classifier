@@ -4,7 +4,7 @@ import os
 from enum import Enum
 
 import torch
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, balanced_accuracy_score
 from torch import nn, optim
 from torch.optim import lr_scheduler
 from tqdm import tqdm
@@ -33,7 +33,7 @@ class TrainerKinderlabor:
         self.__loader = loader
         self.__load_model_from_disk = load_model_from_disk
         self.__epochs, self.__train_loss, self.__valid_loss, self.__train_acc, self.__valid_acc = [], [], [], [], []
-        self.__test_actual, self.__test_predicted, self.__2d, self.__best_probs, self.__err_samples, self.__f1 = \
+        self.__test_actual, self.__test_predicted, self.__2d, self.__best_probs, self.__err_samples, self.__performance = \
             [], [], [], [], [], math.nan
         self.__optimizer = optimizer
         self.__model_path = f"{self.__model_dir}/model.pt"
@@ -216,12 +216,13 @@ class TrainerKinderlabor:
         actual_without_uu, predicted_without_uu = zip(*((ac, pr) for ac, pr in zip(actual, predicted) if ac != -1))
 
         f1 = f1_score(actual_without_uu, predicted_without_uu, average='macro')
-        self.__f1 = f1
+        weighted_acc = balanced_accuracy_score(actual_without_uu, predicted_without_uu)
+        self.__performance = weighted_acc
         print(
-            f'Test Accuracy: {test_acc * 100:.2f}%, Test Loss: {test_loss:.4f}, Macro-average F1 Score: {f1 * 100:.2f}%')
+            f'Test Accuracy: {test_acc * 100:.2f}%, Test Loss: {test_loss:.4f}, Macro-average F1 Score: {f1 * 100:.2f}%, Weighted Accuracy Score: {weighted_acc * 100:.2f}%')
 
     def get_predictions(self):
-        return self.__test_actual, self.__test_predicted, self.__best_probs, self.__err_samples, self.__2d, self.__loader
+        return self.__test_actual, self.__test_predicted, self.__best_probs, self.__err_samples, self.__2d, self.__loader, self.__performance
 
     def script_model(self):
         model = get_model(num_classes=len(self.__loader.get_classes()), model_version=self.__model_version)
