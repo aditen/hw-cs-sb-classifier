@@ -66,8 +66,8 @@ class VisualizerKinderlabor:
 
     def visualize_training_progress(self, trainer: TrainerKinderlabor):
         epochs, train_loss, valid_loss, train_acc, valid_acc = trainer.get_training_progress()
-        fig, ax = plt.subplots()
         if len(epochs) > 0:
+            fig, ax = plt.subplots()
             ax.plot(epochs, train_loss, label="Train Loss")
             ax.plot(epochs, valid_loss, label="Validation Loss")
             ax.plot(epochs, train_acc, label="Training Accuracy")
