@@ -5,11 +5,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.ticker import MaxNLocator
 from sklearn.metrics import ConfusionMatrixDisplay
-
-from data_loading import DataloaderKinderlabor
-from training import TrainerKinderlabor
-
 from tqdm import tqdm
+
+from data_loading import DataloaderKinderlabor, DataSplit
+from training import TrainerKinderlabor
 
 class_name_dict = {"TURN_RIGHT": "↷", "TURN_LEFT": "↶",
                    "LOOP_THREE_TIMES": "3x", "LOOP_END": "end",
@@ -17,6 +16,8 @@ class_name_dict = {"TURN_RIGHT": "↷", "TURN_LEFT": "↶",
                    "PLUS_ONE": "+1", "MINUS_ONE": "-1", "EMPTY": "empty",
                    "ARROW_RIGHT": "→", "ARROW_LEFT": "←", "ARROW_UP": "↑", "ARROW_DOWN": "↓",
                    "CHECKED": "X", "NOT_READABLE": "?"}
+
+data_split_dict = {DataSplit.TRAIN_SHEETS_TEST_BOOKLETS: "S1", DataSplit.HOLD_OUT_CLASSES: "S2", DataSplit.RANDOM: "S3"}
 
 
 def show_on_axis(ax, img_np, class_name, mean, std, class_name_predicted=None):

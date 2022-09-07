@@ -15,7 +15,7 @@ from torchvision.datasets import ImageFolder
 from data_augmentation import DataAugmentationOptions, DataAugmentationUtils
 
 base_path = "C:/Users/41789/Documents/uni/ma/kinderlabor_unterlagen/train_data/"
-dataset_sub_path = "20220812_more_data/"
+dataset_sub_path = "20220907_rotation_correction/"
 
 
 class TaskType(Enum):

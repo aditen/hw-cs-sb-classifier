@@ -33,19 +33,10 @@ So far, the code has these main parts:
 
 # :ledger: TODOs
 
-- Update experiments that compare different data augmentations from following options. Limit combinations from those:
-    - scaling (std vs only min-max in range [[0, 1]])
-    - inverting
-    - contrast
-    - rotate / shift / scale
-    - center crop for pre-processing comparisons?
-    - Sheer?
+- Add center crop option
 - Open Set Experiments
     - Add background class
 - Distinguish basic and extended command exercises and see whether model is better when having limited class space
 - Minor code adaptions
-    - Fix herby not correcting known rotation
     - Actually visualization of dataset could be stored per split and not per run (class distribution and some samples)
     - Larger axis name font and add option to not display titles in visualizer (as this is the caption in thesis)
-    - Drop task (12e-f), where version problem was present and evtl 16c where bounding box was badly, alternatively make
-      label bounding box error (shortcut b) in Herby

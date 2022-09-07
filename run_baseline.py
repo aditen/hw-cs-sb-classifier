@@ -6,7 +6,7 @@ from data_loading import DataloaderKinderlabor, TaskType, DataSplit
 from grayscale_model import ModelVersion
 from run_utils import RunUtilsKinderlabor
 from training import TrainerKinderlabor
-from visualizing import VisualizerKinderlabor
+from visualizing import VisualizerKinderlabor, data_split_dict
 
 run_configs = [
     ("none",
@@ -26,13 +26,12 @@ run_configs = [
 # TODO: field type dim. r/n only SimpleNet and LeNet++ for command
 # TODO: better hyperparams for LeNet++
 if __name__ == "__main__":
-    trainers = []
     data_arr = []
     for run_config in run_configs:
         for data_split in DataSplit:
             # NOTE: only SimpleNetV1 and LeNet++ are considered
             for model in [ModelVersion.LG, ModelVersion.LE_NET_PP]:
-                run_id = f"aug_{data_split.value}_{run_config[0]}{'_lenetpp' if model == ModelVersion.LE_NET_PP else ''}_cmd"
+                run_id = f"aug_{data_split.value}_{run_config[0]}{'_lenet' if model == ModelVersion.LE_NET_PP else ''}_cmd"
                 print(
                     f'Running for configuration {run_config[0]} and data split {data_split.value} using model {model.name}')
 
@@ -56,10 +55,10 @@ if __name__ == "__main__":
                 visualizer_orientation.visualize_model_errors(trainer_orientation)
                 trainer_orientation.script_model()
 
-                trainers.append((trainer_orientation, data_split))
-                data_arr.append([run_config[0], data_split.value, trainer_orientation.get_predictions()[6], model.name])
-    print(tabulate([[x[3], x[0], f'{(x[2] * 100):.2f}%', x[1]] for x in data_arr],
-                   headers=['Model', 'Augmentations', 'Performance', 'Data Split']))
+                data_arr.append(
+                    [run_config[0], data_split_dict[data_split], trainer_orientation.get_predictions()[6], model.name])
+    print(tabulate([[x[1], x[3], x[0], f'{(x[2] * 100):.2f}%'] for x in data_arr],
+                   headers=['Data Split', 'Model', 'Augmentations', 'Performance']))
     df = pd.DataFrame.from_dict({'augmentation': [row[0] for row in data_arr],
                                  'split': [row[1] for row in data_arr],
                                  'performance': [row[2] for row in data_arr],
