@@ -3,18 +3,15 @@ import os.path
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 
-from data_loading import base_path, dataset_sub_path
+from data_loading import DataloaderKinderlabor
 from visualizing import class_name_dict
 
 if __name__ == "__main__":
     if not os.path.isdir('output_visualizations/data_availability'):
         os.mkdir('output_visualizations/data_availability')
 
-    df = pd.read_csv(
-        f'{base_path}{dataset_sub_path}dataset.csv',
-        sep=";", index_col="id")
+    df = DataloaderKinderlabor.raw_df()
     classes = df['class'].unique()
     print(f'classes currently in df: {classes}')
 
@@ -35,7 +32,7 @@ if __name__ == "__main__":
         vals_booklet = [len(booklet_df[(booklet_df['label'] == label) & (booklet_df['type'] == task_type)]) for label in
                         labels]
         vals_single_booklet = [len(booklet_df_single_full[(booklet_df_single_full['label'] == label) & (
-                    booklet_df_single_full['type'] == task_type)]) for label in labels]
+                booklet_df_single_full['type'] == task_type)]) for label in labels]
         vals_sheet = [len(sheet_df[(sheet_df['label'] == label) & (sheet_df['type'] == task_type)]) for label in labels]
 
         labels = [class_name_dict[x] for x in labels]

@@ -16,10 +16,10 @@ run_configs = [
      DataAugmentationOptions(auto_contrast=True, invert=True, normalize=True, rotate=False, translate=False,
                              scale=False)),
     ("weak_augmentation",
-     DataAugmentationOptions(auto_contrast=True, invert=True, normalize=True, rotate=(-30, 30), translate=(0.15, 0.15),
+     DataAugmentationOptions(auto_contrast=True, invert=True, normalize=True, rotate=(-20, 20), translate=(0.15, 0.15),
                              scale=(0.85, 1.15))),
     ("heavy_augmentation",
-     DataAugmentationOptions(auto_contrast=True, invert=True, normalize=True, rotate=(-60, 60), translate=(0.3, 0.3),
+     DataAugmentationOptions(auto_contrast=True, invert=True, normalize=True, rotate=(-45, 45), translate=(0.3, 0.3),
                              scale=(0.7, 1.3))),
 ]
 

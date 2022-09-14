@@ -14,9 +14,6 @@ from torchvision.datasets import ImageFolder
 
 from data_augmentation import DataAugmentationOptions, DataAugmentationUtils
 
-base_path = "C:/Users/41789/Documents/uni/ma/kinderlabor_unterlagen/train_data/"
-dataset_sub_path = "20220907_rotation_correction/"
-
 
 class TaskType(Enum):
     ORIENTATION = "ORIENTATION"
@@ -37,6 +34,9 @@ class Unknowns(Enum):
 
 
 class DataloaderKinderlabor:
+    BASE_FOLDER = "C:/Users/41789/Documents/uni/ma/kinderlabor_unterlagen/train_data/"
+    SUB_FOLDER = "20220913_field/"
+    IMG_CSV_FOLDER = BASE_FOLDER + SUB_FOLDER
 
     def __init__(self, augmentation_options: DataAugmentationOptions = DataAugmentationOptions(),
                  task_type: TaskType = None, data_split: DataSplit = None, filter_not_readable=True,
@@ -50,8 +50,7 @@ class DataloaderKinderlabor:
         self.__unknown_unknowns = unknown_unknowns
         self.__dataset_folder_name = f"{'all' if task_type is None else task_type.value}___" \
                                      f"{DataSplit.RANDOM.value if data_split is None else data_split.value}"
-        self.__df = pd.read_csv(
-            f'{base_path}{dataset_sub_path}dataset.csv', sep=";", index_col="id")
+        self.__df = DataloaderKinderlabor.raw_df()
         self.__full_df = self.__df
 
         self.__mean, self.__std = math.nan, math.nan
@@ -78,33 +77,37 @@ class DataloaderKinderlabor:
 
         if isinstance(self.__augmentation_options.normalize, bool) and self.__augmentation_options.normalize is True:
             self.__mean, self.__std = DataAugmentationUtils.determine_mean_std_for_augmentation(
-                self.__augmentation_options, f'{base_path}{self.__dataset_folder_name}/train_set')
+                self.__augmentation_options,
+                f'{DataloaderKinderlabor.BASE_FOLDER}{self.__dataset_folder_name}/train_set')
             self.__augmentation_options.normalize = (self.__mean, self.__std)
 
         if self.__task_type == TaskType.ORIENTATION:
             self.__augmentation_options.rotate = None
 
         # read image folders and create loaders
-        self.__image_folder_train = ImageFolder(f'{base_path}{self.__dataset_folder_name}/train_set',
-                                                DataAugmentationUtils.get_augmentations(self.__augmentation_options,
-                                                                                        include_affine=True))
+        self.__image_folder_train = ImageFolder(
+            f'{DataloaderKinderlabor.BASE_FOLDER}{self.__dataset_folder_name}/train_set',
+            DataAugmentationUtils.get_augmentations(self.__augmentation_options,
+                                                    include_affine=True))
         train_ds = self.__image_folder_train
         if self.__known_unknowns is not None:
             train_ds = self.__add_unknowns_to_df(train_ds, self.__known_unknowns, 2000, -1)
         self.__dataloader_train = DataLoader(train_ds, batch_size=batch_size_train,
                                              shuffle=True, num_workers=0)
 
-        self.__image_folder_valid = ImageFolder(f'{base_path}{self.__dataset_folder_name}/validation_set',
-                                                DataAugmentationUtils.get_augmentations(self.__augmentation_options,
-                                                                                        include_affine=False))
+        self.__image_folder_valid = ImageFolder(
+            f'{DataloaderKinderlabor.BASE_FOLDER}{self.__dataset_folder_name}/validation_set',
+            DataAugmentationUtils.get_augmentations(self.__augmentation_options,
+                                                    include_affine=False))
         self.__image_folder_valid.classes = self.__image_folder_train.classes
         self.__image_folder_valid.class_to_idx = self.__image_folder_train.class_to_idx
         self.__dataloader_valid = DataLoader(self.__image_folder_valid, batch_size=batch_size_valid_test,
                                              shuffle=True, num_workers=0)
 
-        self.__image_folder_test = ImageFolder(f'{base_path}{self.__dataset_folder_name}/test_set',
-                                               DataAugmentationUtils.get_augmentations(self.__augmentation_options,
-                                                                                       include_affine=False))
+        self.__image_folder_test = ImageFolder(
+            f'{DataloaderKinderlabor.BASE_FOLDER}{self.__dataset_folder_name}/test_set',
+            DataAugmentationUtils.get_augmentations(self.__augmentation_options,
+                                                    include_affine=False))
         self.__image_folder_test.classes = self.__image_folder_train.classes
         self.__image_folder_test.class_to_idx = self.__image_folder_train.class_to_idx
         test_ds = self.__image_folder_test
@@ -171,24 +174,29 @@ class DataloaderKinderlabor:
         return train_df, test_df
 
     def __initialize_dataset_folder(self):
-        if self.__force_reload_data or not os.path.isdir(base_path + self.__dataset_folder_name):
+        if self.__force_reload_data or not os.path.isdir(
+                DataloaderKinderlabor.BASE_FOLDER + self.__dataset_folder_name):
             print(f'Creating dataset folder {self.__dataset_folder_name}')
             # create/drop folders and then move samples
             for set_name in ["train_set", "validation_set", "test_set"]:
-                if os.path.exists(base_path + self.__dataset_folder_name + "/" + set_name):
-                    shutil.rmtree(base_path + self.__dataset_folder_name + "/" + set_name)
-                if not os.path.exists(base_path + self.__dataset_folder_name):
-                    os.mkdir(base_path + self.__dataset_folder_name)
-                os.mkdir(base_path + self.__dataset_folder_name + "/" + set_name)
+                if os.path.exists(DataloaderKinderlabor.BASE_FOLDER + self.__dataset_folder_name + "/" + set_name):
+                    shutil.rmtree(DataloaderKinderlabor.BASE_FOLDER + self.__dataset_folder_name + "/" + set_name)
+                if not os.path.exists(DataloaderKinderlabor.BASE_FOLDER + self.__dataset_folder_name):
+                    os.mkdir(DataloaderKinderlabor.BASE_FOLDER + self.__dataset_folder_name)
+                os.mkdir(DataloaderKinderlabor.BASE_FOLDER + self.__dataset_folder_name + "/" + set_name)
 
             for set_name, set_df in [("train_set", self.__train_df),
                                      ("validation_set", self.__valid_df),
                                      ("test_set", self.__test_df)]:
                 for idx, row in set_df.iterrows():
-                    if not os.path.isdir(base_path + self.__dataset_folder_name + "/" + set_name + "/" + row['label']):
-                        os.mkdir(base_path + self.__dataset_folder_name + "/" + set_name + "/" + row['label'])
-                    shutil.copy(f'{base_path}{dataset_sub_path}{str(idx)}.jpeg',
-                                f'{base_path}{self.__dataset_folder_name}/{set_name}/{row["label"]}/{str(idx)}.jpeg')
+                    if not os.path.isdir(
+                            DataloaderKinderlabor.BASE_FOLDER + self.__dataset_folder_name + "/" + set_name + "/" + row[
+                                'label']):
+                        os.mkdir(
+                            DataloaderKinderlabor.BASE_FOLDER + self.__dataset_folder_name + "/" + set_name + "/" + row[
+                                'label'])
+                    shutil.copy(f'{DataloaderKinderlabor.IMG_CSV_FOLDER}{str(idx)}.jpeg',
+                                f'{DataloaderKinderlabor.BASE_FOLDER}{self.__dataset_folder_name}/{set_name}/{row["label"]}/{str(idx)}.jpeg')
         else:
             print(f"Skipping dataset folder generation, loading from folder {self.__dataset_folder_name}")
 
@@ -216,3 +224,8 @@ class DataloaderKinderlabor:
             return ConcatDataset([dataset, fm_set])
         else:
             raise ValueError(f'Unknowns {self.__known_unknowns} not yet supported!')
+
+    @staticmethod
+    def raw_df():
+        return pd.read_csv(
+            f'{DataloaderKinderlabor.IMG_CSV_FOLDER}dataset.csv', sep=";", index_col="id")

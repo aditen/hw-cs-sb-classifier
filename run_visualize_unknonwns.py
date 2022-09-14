@@ -1,16 +1,13 @@
 import math
 
-import pandas as pd
 from PIL import Image
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import ImageGrid
 
-from data_loading import base_path, dataset_sub_path
+from data_loading import DataloaderKinderlabor
 
 if __name__ == "__main__":
-    df = pd.read_csv(
-        f'{base_path}{dataset_sub_path}dataset.csv',
-        sep=";", index_col="id")
+    df = DataloaderKinderlabor.raw_df()
     classes = df['class'].unique()
     print(f'classes currently in df: {classes}')
 
@@ -25,7 +22,7 @@ if __name__ == "__main__":
 
         ims = []
         for i, _ in uk_df.iterrows():
-            ims.append(Image.open(f'{base_path}{dataset_sub_path}{i}.jpeg'))
+            ims.append(Image.open(f'{DataloaderKinderlabor.IMG_CSV_FOLDER}{i}.jpeg'))
 
         n_imgs_to_display = int(math.floor(len(ims) / 4) * 4)
         print(f'Displaying {n_imgs_to_display} out of {len(ims)} images')
