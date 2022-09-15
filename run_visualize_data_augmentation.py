@@ -12,6 +12,7 @@ all_to_visualize = [transforms.RandomAffine(degrees=0), transforms.RandomEqualiz
                     transforms.RandomAffine(degrees=(-90, 90)),
                     transforms.RandomAffine(degrees=0, translate=(0.5, 0.5)),
                     transforms.RandomAffine(degrees=0, scale=(0.5, 1.5))]
+titles = ["Original", "Grayscale", "Contrast", "Equalize", "Rotate", "Translate", "Scale"]
 
 all_ids_to_show = [312, 1089, 31382, 34428, 43024, 1299]
 
@@ -26,8 +27,8 @@ if __name__ == "__main__":
 
     n_cols = len(all_to_visualize) + 2
     n_rows = len(all_ids_to_show)
-    fig = plt.figure(figsize=(n_cols, n_rows))
-    grid = ImageGrid(fig, 111, nrows_ncols=(n_rows, n_cols), axes_pad=0.1,
+    fig = plt.figure(figsize=(n_cols, n_rows + 1))
+    grid = ImageGrid(fig, 111, nrows_ncols=(n_rows, n_cols), axes_pad=0.05,
                      share_all=True)
 
     for i, ax in enumerate(grid):
@@ -38,8 +39,8 @@ if __name__ == "__main__":
         if aug_idx > -1:
             all_tfs = transforms.Compose([
                 transforms.Grayscale(),
-                transforms.RandomInvert(p=1.),
                 transforms.RandomAutocontrast(p=1.),
+                transforms.RandomInvert(p=1.),
                 all_to_visualize[aug_idx]
             ])
             raw_img = all_tfs(raw_img)
@@ -48,7 +49,9 @@ if __name__ == "__main__":
                 transforms.RandomInvert(p=1.),
                 transforms.Grayscale(),
             ])(raw_img)
-        ax.imshow(raw_img, cmap="gray" if aug_idx > -2 else None)
+        ax.imshow(raw_img, cmap="gray" if aug_idx > -2 else None, vmin=0, vmax=255)
         ax.get_xaxis().set_ticks([])
         ax.get_yaxis().set_ticks([])
+        if i < len(titles):
+            ax.set_title(titles[i], rotation=90, y=1.1)
     plt.show()
