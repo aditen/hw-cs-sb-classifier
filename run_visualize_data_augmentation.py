@@ -8,11 +8,13 @@ from mpl_toolkits.axes_grid1 import ImageGrid
 
 from data_loading import DataloaderKinderlabor
 
-all_to_visualize = [transforms.RandomAffine(degrees=0), transforms.RandomEqualize(p=1.),
+all_to_visualize = [transforms.RandomAutocontrast(p=1.),
+                    transforms.RandomEqualize(p=1.),
                     transforms.RandomAffine(degrees=(-90, 90)),
                     transforms.RandomAffine(degrees=0, translate=(0.5, 0.5)),
-                    transforms.RandomAffine(degrees=0, scale=(0.5, 1.5))]
-titles = ["Original", "Grayscale", "Contrast", "Equalize", "Rotate", "Translate", "Scale"]
+                    transforms.RandomAffine(degrees=0, scale=(0.5, 1.5)),
+                    transforms.CenterCrop((22, 22))]
+titles = ["Original", "Grayscale", "Contrast", "Equalize", "Rotate", "Translate", "Scale", "Crop"]
 
 all_ids_to_show = [312, 1089, 31382, 34428, 43024, 1299]
 
@@ -39,9 +41,10 @@ if __name__ == "__main__":
         if aug_idx > -1:
             all_tfs = transforms.Compose([
                 transforms.Grayscale(),
-                transforms.RandomAutocontrast(p=1.),
+                # transforms.RandomAutocontrast(p=1.),
                 transforms.RandomInvert(p=1.),
-                all_to_visualize[aug_idx]
+                all_to_visualize[aug_idx],
+                transforms.Resize(32)
             ])
             raw_img = all_tfs(raw_img)
         elif aug_idx == -1:
@@ -54,4 +57,6 @@ if __name__ == "__main__":
         ax.get_yaxis().set_ticks([])
         if i < len(titles):
             ax.set_title(titles[i], rotation=90, y=1.1)
+
+    fig.savefig("./output_visualizations/augmentations.pdf")
     plt.show()
