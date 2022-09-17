@@ -12,34 +12,79 @@ from torch.utils.data import DataLoader
 
 @dataclass
 class DataAugmentationOptions:
+    to_tensor: bool = True
     grayscale: bool = True
-    auto_contrast: bool = True
+    auto_contrast: bool = False
     invert: bool = True
-    normalize: Tuple[float, float] | bool = True
-    rotate: int | Tuple[int, int] | bool = (-30, 30)
-    translate: float | Tuple[float, float] | bool = (0.15, 0.15)
-    scale: float | Tuple[float, float] | bool = (0.85, 1.15)
+    equalize: bool = False
+    normalize: Tuple[float, float] | bool = False
+    rotate: int | Tuple[int, int] | bool = False
+    translate: float | Tuple[float, float] | bool = False
+    scale: float | Tuple[float, float] | bool = False
+    crop_center: bool = False
+
+    @staticmethod
+    def none_aug():
+        return DataAugmentationOptions()
+
+    @staticmethod
+    def auto_ctr_aug():
+        return DataAugmentationOptions(auto_contrast=True)
+
+    @staticmethod
+    def eq_aug():
+        return DataAugmentationOptions(equalize=True)
+
+    @staticmethod
+    def geo_aug():
+        return DataAugmentationOptions(scale=(0.85, 1.15), translate=(0.2, 0.2))
+
+    @staticmethod
+    def geo_ac_aug():
+        return DataAugmentationOptions(auto_contrast=True, scale=(0.85, 1.15), translate=(0.2, 0.2))
+
+    @staticmethod
+    def crop_aug():
+        return DataAugmentationOptions(crop_center=True)
+
+    @staticmethod
+    def crop_plus_aug():
+        return DataAugmentationOptions(crop_center=True, auto_contrast=True, scale=(0.85, 1.15), translate=(0.2, 0.2),
+                                       rotate=(-20, 20))
 
 
 class DataAugmentationUtils:
 
     @staticmethod
     def __get_transforms(options: DataAugmentationOptions):
-        transforms_list = [transforms.ToTensor()]
+        transforms_list = []
+        # covert to tensor (but not if visualizing pil image)
+        if options.to_tensor:
+            transforms_list.append(transforms.ToTensor())
 
         # because it is not necessary for all the unknown data sets, some are already gray scaled
         if options.grayscale:
             transforms_list.append(transforms.Grayscale())
 
+        # Inverting is yes or no
+        if options.invert:
+            transforms_list.append(transforms.RandomInvert(p=1.))
+
+        # we always operate on a 32x32 grayscale image
         transforms_list.append(transforms.Resize((32, 32)))
+
+        # Crop center of symbol
+        if options.crop_center:
+            transforms_list.append(transforms.CenterCrop((22, 22)))
+            transforms_list.append(transforms.Resize((32, 32)))
 
         # Auto Contrast is yes or no
         if options.auto_contrast:
             transforms_list.append(transforms.RandomAutocontrast(p=1.))
 
-        # Inverting is yes or no
-        if options.invert:
-            transforms_list.append(transforms.RandomInvert(p=1.))
+        # Equalize is yes or no
+        if options.equalize:
+            transforms_list.append(transforms.RandomEqualize(p=1.))
 
         # Rotation, translation or scaling can be
         if options.rotate or options.translate or options.scale:

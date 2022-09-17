@@ -33,9 +33,7 @@ CROSS_INDICES = EMPTIES_CRS + CROSSES
 
 
 def plot_samples(full_df, indices, n_cols, n_rows):
-    filtered_df = pd.DataFrame(columns=full_df.columns)
-    for idx in indices:
-        filtered_df = pd.concat([filtered_df, df[idx:(idx + 1)]])
+    filtered_df = full_df.iloc[indices]
     ims = []
     for i, _ in filtered_df.iterrows():
         ims.append(Image.open(f'{DataloaderKinderlabor.IMG_CSV_FOLDER}{i}.jpeg'))

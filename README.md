@@ -33,7 +33,6 @@ So far, the code has these main parts:
 
 # :ledger: TODOs
 
-- Add center crop option and equalize option: Crop to 22x22 and then rescale to 32x32 again
 - Update augmentation experiment
 - Open Set Experiments
     - Add background class

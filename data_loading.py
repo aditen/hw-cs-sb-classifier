@@ -102,7 +102,7 @@ class DataloaderKinderlabor:
         self.__image_folder_valid.classes = self.__image_folder_train.classes
         self.__image_folder_valid.class_to_idx = self.__image_folder_train.class_to_idx
         self.__dataloader_valid = DataLoader(self.__image_folder_valid, batch_size=batch_size_valid_test,
-                                             shuffle=True, num_workers=0)
+                                             shuffle=False, num_workers=0)
 
         self.__image_folder_test = ImageFolder(
             f'{DataloaderKinderlabor.BASE_FOLDER}{self.__dataset_folder_name}/test_set',
@@ -115,7 +115,7 @@ class DataloaderKinderlabor:
         if self.__unknown_unknowns is not None:
             test_ds = self.__add_unknowns_to_df(test_ds, self.__unknown_unknowns, 1000, -1)
         self.__dataloader_test = DataLoader(test_ds, batch_size=batch_size_valid_test,
-                                            shuffle=True, num_workers=0)
+                                            shuffle=False, num_workers=0)
 
     def get_num_samples(self):
         return len(self.__image_folder_train), len(self.__image_folder_valid), len(self.__image_folder_test)
