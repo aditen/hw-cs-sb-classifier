@@ -203,7 +203,8 @@ class TrainerKinderlabor:
                 predicted_batch = preds.flatten().cpu().numpy().tolist()
                 predicted += predicted_batch
                 for i in range(len(actual_batch)):
-                    self.__2d.append(outputs_2d[i, :].cpu().numpy().flatten().tolist())
+                    if outputs_2d is not None:
+                        self.__2d.append(outputs_2d[i, :].cpu().numpy().flatten().tolist())
                     self.__best_probs.append(probs[i])
                     if actual_batch[i] != predicted_batch[i] and actual_batch[i] != -1:
                         self.__err_samples.append((inputs[i, :, :].cpu().numpy(), actual_batch[i], predicted_batch[i]))

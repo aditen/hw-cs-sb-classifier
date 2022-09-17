@@ -5,9 +5,9 @@ from dataclasses import dataclass
 from typing import Tuple
 
 from torch import nn
+from torch.utils.data import DataLoader
 from torchvision.datasets import ImageFolder
 from torchvision.transforms import transforms
-from torch.utils.data import DataLoader
 
 
 @dataclass
@@ -58,9 +58,6 @@ class DataAugmentationUtils:
     @staticmethod
     def __get_transforms(options: DataAugmentationOptions):
         transforms_list = []
-        # covert to tensor (but not if visualizing pil image)
-        if options.to_tensor:
-            transforms_list.append(transforms.ToTensor())
 
         # because it is not necessary for all the unknown data sets, some are already gray scaled
         if options.grayscale:
@@ -117,6 +114,10 @@ class DataAugmentationUtils:
 
         if isinstance(options.normalize, tuple):
             transforms_list.append(transforms.Normalize(mean=[options.normalize[0]], std=[options.normalize[1]]))
+
+        # covert to tensor (but not if visualizing pil image)
+        if options.to_tensor:
+            transforms_list.append(transforms.ToTensor())
 
         return transforms_list
 

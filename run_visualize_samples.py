@@ -1,4 +1,3 @@
-import pandas as pd
 from PIL import Image
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import ImageGrid

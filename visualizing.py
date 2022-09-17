@@ -8,6 +8,7 @@ from sklearn.metrics import ConfusionMatrixDisplay
 from tqdm import tqdm
 
 from data_loading import DataloaderKinderlabor, DataSplit
+from grayscale_model import ModelVersion
 from training import TrainerKinderlabor
 
 class_name_dict = {"TURN_RIGHT": "↷", "TURN_LEFT": "↶",
@@ -19,6 +20,11 @@ class_name_dict = {"TURN_RIGHT": "↷", "TURN_LEFT": "↶",
 
 data_split_dict = {DataSplit.TRAIN_SHEETS_TEST_BOOKLETS: "S1", DataSplit.HOLD_OUT_CLASSES: "S2", DataSplit.RANDOM: "S3"}
 
+short_names_models = {
+    ModelVersion.LG: "simpnet",
+    ModelVersion.LE_NET: "lenet",
+    ModelVersion.SM: "slim_simpnet"
+}
 
 def show_on_axis(ax, img_np, class_name, mean, std, class_name_predicted=None):
     inp = img_np.transpose((1, 2, 0))

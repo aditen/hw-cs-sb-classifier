@@ -6,32 +6,26 @@ from data_loading import DataloaderKinderlabor, TaskType, DataSplit
 from grayscale_model import ModelVersion
 from run_utils import RunUtilsKinderlabor
 from training import TrainerKinderlabor
-from visualizing import VisualizerKinderlabor, data_split_dict
+from visualizing import VisualizerKinderlabor, data_split_dict, short_names_models
 
 run_configs = [
-    ("none",
-     DataAugmentationOptions(auto_contrast=False, invert=False, normalize=False, rotate=False, translate=False,
-                             scale=False)),
-    ("until_normalize",
-     DataAugmentationOptions(auto_contrast=True, invert=True, normalize=True, rotate=False, translate=False,
-                             scale=False)),
-    ("weak_augmentation",
-     DataAugmentationOptions(auto_contrast=True, invert=True, normalize=True, rotate=(-20, 20), translate=(0.15, 0.15),
-                             scale=(0.85, 1.15))),
-    ("heavy_augmentation",
-     DataAugmentationOptions(auto_contrast=True, invert=True, normalize=True, rotate=(-45, 45), translate=(0.3, 0.3),
-                             scale=(0.7, 1.3))),
+    ("none", DataAugmentationOptions.none_aug()),
+    ("ac", DataAugmentationOptions.auto_ctr_aug()),
+    ("eq", DataAugmentationOptions.eq_aug()),
+    ("geo", DataAugmentationOptions.geo_aug()),
+    ("geo_ac", DataAugmentationOptions.geo_ac_aug()),
+    ("crop", DataAugmentationOptions.crop_aug()),
+    ("crop_plus", DataAugmentationOptions.crop_plus_aug()),
 ]
 
-# TODO: field type dim. r/n only SimpleNet and LeNet++ for command
-# TODO: better hyperparams for LeNet++
 if __name__ == "__main__":
     data_arr = []
     for run_config in run_configs:
         for data_split in DataSplit:
-            # NOTE: only SimpleNetV1 and LeNet++ are considered
-            for model in [ModelVersion.LG, ModelVersion.LE_NET_PP]:
-                run_id = f"aug_{data_split.value}_{run_config[0]}{'_lenet' if model == ModelVersion.LE_NET_PP else ''}_cmd"
+        #for data_split in [DataSplit.HOLD_OUT_CLASSES]:
+            for model in [ModelVersion.SM, ModelVersion.LE_NET]:
+                run_id = f"baseline_aug[{run_config[0]}]_split[{data_split_dict[data_split]}]_" \
+                         f"model[{short_names_models[model]}]"
                 print(
                     f'Running for configuration {run_config[0]} and data split {data_split.value} using model {model.name}')
 

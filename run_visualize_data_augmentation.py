@@ -1,7 +1,5 @@
 import math
 
-import pandas as pd
-import torchvision.transforms as transforms
 from PIL import Image
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import ImageGrid
