@@ -7,7 +7,7 @@ from matplotlib.ticker import MaxNLocator
 from sklearn.metrics import ConfusionMatrixDisplay
 from tqdm import tqdm
 
-from data_loading import DataloaderKinderlabor, DataSplit
+from data_loading import DataloaderKinderlabor, DataSplit, TaskType
 from grayscale_model import ModelVersion
 from training import TrainerKinderlabor
 
@@ -25,6 +25,13 @@ short_names_models = {
     ModelVersion.LE_NET: "lenet",
     ModelVersion.SM: "slim_simpnet"
 }
+
+short_names_tasks = {
+    TaskType.COMMAND: "+1",
+    TaskType.ORIENTATION: "^",
+    TaskType.CROSS: "x"
+}
+
 
 def show_on_axis(ax, img_np, class_name, mean, std, class_name_predicted=None):
     inp = img_np.transpose((1, 2, 0))

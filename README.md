@@ -33,7 +33,6 @@ So far, the code has these main parts:
 
 # :ledger: TODOs
 
-- Update augmentation experiment
 - Open Set Experiments
     - Add background class
 - Distinguish basic and extended command exercises and see whether model is better when having limited class space
