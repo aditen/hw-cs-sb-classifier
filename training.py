@@ -15,6 +15,7 @@ from data_augmentation import DataAugmentationUtils
 from data_loading import DataloaderKinderlabor
 from grayscale_model import ModelVersion, get_model
 from open_set_loss import EntropicOpenSetLoss, ObjectosphereLoss
+from run_utils import RunUtilsKinderlabor
 
 
 class Optimizer(Enum):
@@ -26,6 +27,7 @@ class Optimizer(Enum):
 class TrainerKinderlabor:
     def __init__(self, loader: DataloaderKinderlabor, load_model_from_disk=True, run_id=None,
                  model_version: ModelVersion = ModelVersion.LG, optimizer: Optimizer = None):
+        RunUtilsKinderlabor.random_seed()
         self.__model_dir = f'output_visualizations/{run_id if run_id is not None else loader.get_folder_name()}'
         if not os.path.isdir(self.__model_dir):
             os.mkdir(self.__model_dir)
