@@ -36,7 +36,7 @@ class Unknowns(Enum):
 
 class DataloaderKinderlabor:
     BASE_FOLDER = "C:/Users/41789/Documents/uni/ma/kinderlabor_unterlagen/train_data/"
-    SUB_FOLDER = "20220913_field/"
+    SUB_FOLDER = "20220922_corrected_test/"
     IMG_CSV_FOLDER = BASE_FOLDER + SUB_FOLDER
 
     def __init__(self, augmentation_options: DataAugmentationOptions = DataAugmentationOptions(),
@@ -223,5 +223,8 @@ class DataloaderKinderlabor:
 
     @staticmethod
     def raw_df():
-        return pd.read_csv(
+        # NOTE: remove once this sheet is re-added to Herby in correct version
+        df = pd.read_csv(
             f'{DataloaderKinderlabor.IMG_CSV_FOLDER}dataset.csv', sep=";", index_col="id")
+        df = df[(df['exercise'] != '12e') & (df['exercise'] != '12f')]
+        return df
