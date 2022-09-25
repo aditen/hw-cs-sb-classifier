@@ -24,13 +24,12 @@ if __name__ == "__main__":
         for run_config in run_configs:
             for data_split in DataSplit:
                 for model in [ModelVersion.SM, ModelVersion.LE_NET]:
-                    run_id = f"baseline_task[{short_names_tasks[task_type]}]_aug[{run_config[0]}]_split[{data_split_dict[data_split]}]_" \
+                    run_id = f"base_task[{short_names_tasks[task_type]}]_aug[{run_config[0]}]_split[{data_split_dict[data_split]}]_" \
                              f"model[{short_names_models[model]}]"
                     print(
                         f'Running for configuration {run_config[0]} and data split {data_split.value} '
                         f'using model {model.name}')
 
-                    RunUtilsKinderlabor.random_seed()
                     # Initialize data loader: data splits and loading from images from disk
                     loader_orientation = DataloaderKinderlabor(task_type=task_type,
                                                                data_split=data_split,
@@ -60,4 +59,4 @@ if __name__ == "__main__":
                                      'split': [row[1] for row in data_arr],
                                      'performance': [row[2] for row in data_arr],
                                      'model': [row[3] for row in data_arr]})
-        df.to_csv(f'./output_visualizations/runs_aug[{short_names_tasks[task_type]}].csv', sep=';')
+        df.to_csv(f'./output_visualizations/runs_base_aug[{short_names_tasks[task_type]}].csv', sep=';')

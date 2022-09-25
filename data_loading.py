@@ -36,7 +36,7 @@ class Unknowns(Enum):
 
 class DataloaderKinderlabor:
     BASE_FOLDER = "C:/Users/41789/Documents/uni/ma/kinderlabor_unterlagen/train_data/"
-    SUB_FOLDER = "20220922_corrected_test/"
+    SUB_FOLDER = "20220925_corr_v2/"
     IMG_CSV_FOLDER = BASE_FOLDER + SUB_FOLDER
 
     def __init__(self, augmentation_options: DataAugmentationOptions = DataAugmentationOptions(),
@@ -222,9 +222,14 @@ class DataloaderKinderlabor:
             raise ValueError(f'Unknowns {self.__known_unknowns} not yet supported!')
 
     @staticmethod
-    def raw_df():
-        # NOTE: remove once this sheet is re-added to Herby in correct version
+    def raw_df(include_inspects=False):
         df = pd.read_csv(
             f'{DataloaderKinderlabor.IMG_CSV_FOLDER}dataset.csv', sep=";", index_col="id")
+        # filter exercise that was different in print than in Herby version
         df = df[(df['exercise'] != '12e') & (df['exercise'] != '12f')]
+        # filter class that was experimentally "self-labelling" (but leave data to observe this different aspect)
+        df = df[df['class'] != 'Trimmis 3 / 4']
+        # filter inspect class
+        if include_inspects is not True:
+            df = df[df['label'] != 'INSPECT']
         return df
