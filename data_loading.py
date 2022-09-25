@@ -156,21 +156,19 @@ class DataloaderKinderlabor:
         return train_df, test_df
 
     def __split_hold_out(self, df: DataFrame) -> Tuple[DataFrame, DataFrame]:
-        test_df = df[(df['class'] == 'Vishwas Labelling 1') | (df['class'] == 'Adrian Labelling 1') | (
-                df['class'] == 'Data Collection 4. Klasse')]
+        test_df = df[(df['class'] == 'Vishwas Labelling 1') |
+                     (df['class'] == 'Adrian Labelling 1') |
+                     (df['class'] == 'Data Collection 4. Klasse') |
+                     (df['class'] == 'Türligarten 6') |
+                     (df['class'] == 'Domleschg 3 / 4')]
         train_df = df.drop(test_df.index)
         return train_df, test_df
 
     def __split_sheets_booklets(self, df: DataFrame) -> Tuple[DataFrame, DataFrame]:
-        if False and self.__task_type == TaskType.COMMAND:
-            df = df[
-                (df['label'] != 'LOOP_FOUR_TIMES') & (df['label'] != 'LOOP_THREE_TIMES') & (
-                        df['label'] != 'LOOP_TWICE') & (df['label'] != 'LOOP_END')]
         train_df = df[
-            (df['class'] != 'Vishwas Labelling 1')
-            & (df['class'] != 'Vishwas Labeling 2')
-            & (df['class'] != 'Adrian Labelling 1')
-            & ((df['student'] != 'Laura_Heft_komplett_Test') | (df['label'] == 'EMPTY'))
+            (df['sheet'] == 'Datensammelblatt Kinderlabor') |
+            (df['sheet'] == 'Data Collection 1. Klasse') |
+            ((df['student'] == 'Laura_Heft_komplett_Test') & (df['label'] == 'EMPTY'))
             ]
         test_df = df.drop(train_df.index)
         return train_df, test_df
