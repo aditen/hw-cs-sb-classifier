@@ -34,7 +34,10 @@ So far, the code has these main parts:
 # :ledger: TODOs
 
 - Open Set Experiments
-    - Add background class
+    - Add background/garbage class
+    - Add unknowns from students, allow split of training/test set as in S1, S2 and S3
+    - Make visualization of baseline as in MAP: https://github.com/Leitou/map-experiment/blob/master/data_plotter.py
+    - Simplify data splitting and loading: Make one folder with (minimized) CSV from Herby and split information
 - Distinguish basic and extended command exercises and see whether model is better when having limited class space
 - Minor code adaptions
     - Actually visualization of dataset could be stored per split and not per run (class distribution and some samples)
