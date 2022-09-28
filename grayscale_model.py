@@ -102,7 +102,7 @@ https://github.com/Coderx7/SimpleNet_Pytorch
 
 # Note: LG = default
 class SimpleNet(nn.Module):
-    def __init__(self, classes=10, in_channels=1, version: ModelVersion = ModelVersion.LG):
+    def __init__(self, classes=10, in_channels=1, version: ModelVersion = ModelVersion.SM):
         super(SimpleNet, self).__init__()
         self.features = self._make_layers(in_channels=in_channels, channel_divisor=version.value)
         self.classifier = nn.Linear(2, classes)

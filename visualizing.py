@@ -1,36 +1,16 @@
 import math
 import os.path
 
+import matplotlib.colors
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.ticker import MaxNLocator
 from sklearn.metrics import ConfusionMatrixDisplay
 from tqdm import tqdm
 
-from data_loading import DataloaderKinderlabor, DataSplit, TaskType
-from grayscale_model import ModelVersion
+from data_loading import DataloaderKinderlabor
+from run_utils import class_name_dict
 from training import TrainerKinderlabor
-
-class_name_dict = {"TURN_RIGHT": "↷", "TURN_LEFT": "↶",
-                   "LOOP_THREE_TIMES": "3x", "LOOP_END": "end",
-                   "LOOP_TWICE": "2x", "LOOP_FOUR_TIMES": "4x",
-                   "PLUS_ONE": "+1", "MINUS_ONE": "-1", "EMPTY": "empty",
-                   "ARROW_RIGHT": "→", "ARROW_LEFT": "←", "ARROW_UP": "↑", "ARROW_DOWN": "↓",
-                   "CHECKED": "X", "NOT_READABLE": "?"}
-
-data_split_dict = {DataSplit.TRAIN_SHEETS_TEST_BOOKLETS: "S1", DataSplit.HOLD_OUT_CLASSES: "S2", DataSplit.RANDOM: "S3"}
-
-short_names_models = {
-    ModelVersion.LG: "simpnet",
-    ModelVersion.LE_NET: "lenet",
-    ModelVersion.SM: "slim_simpnet"
-}
-
-short_names_tasks = {
-    TaskType.COMMAND: "+1",
-    TaskType.ORIENTATION: "^",
-    TaskType.CROSS: "x"
-}
 
 
 def show_on_axis(ax, img_np, class_name, mean, std, class_name_predicted=None):
@@ -124,9 +104,10 @@ class VisualizerKinderlabor:
                     f'{self.__visualization_dir}/test_errors.pdf')
             plt.show()
 
+        # TODO: color normalization: https://matplotlib.org/stable/tutorials/colors/colormapnorms.html
         ConfusionMatrixDisplay.from_predictions(actual_without_uu, predicted_without_uu,
                                                 display_labels=[class_name_dict[x] for x in loader.get_classes()],
-                                                normalize='true')
+                                                im_kw={"norm": matplotlib.colors.SymLogNorm(linthresh=1)})
         if self.__save_plots_to_disk:
             plt.savefig(
                 f'{self.__visualization_dir}/conf_matrix.pdf')
@@ -168,7 +149,8 @@ class VisualizerKinderlabor:
         colors = ['red', 'green', 'blue', 'orange', 'yellow', 'gray', 'pink', 'darkred', 'gold', 'cyan', 'olive',
                   'brown', 'purple', 'lime']
         already_plotted_legends = set()
-        for i in tqdm(range(min(len(labels), 2000)), unit="Coordinates"):
+        vis_indices = np.random.choice(len(labels), min(len(labels), 1000))
+        for i in tqdm(vis_indices, unit="Coordinates"):
             # Plot unknowns as black color
             color = colors[actual[i]] if actual[i] >= 0 else "black"
             if labels[i] not in already_plotted_legends:

@@ -20,7 +20,7 @@ titles = ["Original", "Grayscale", "Contrast", "Equalize", "Rotate", "Translate"
 all_ids_to_show = [312, 1089, 31382, 34428, 43024, 1299]
 
 if __name__ == "__main__":
-    full_df = DataloaderKinderlabor.raw_df()
+    full_df = DataloaderKinderlabor.full_anonymized_df()
     filtered_df = full_df.iloc[all_ids_to_show]
     raw_imgs = []
     for i, _ in filtered_df.iterrows():
