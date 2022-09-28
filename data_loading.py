@@ -156,6 +156,22 @@ class DataloaderKinderlabor:
             indices = torch.randperm(len(fm_set))[:n_to_add]
             fm_set = Subset(fm_set, indices)
             return ConcatDataset([dataset, fm_set])
+        elif unknowns == Unknowns.ALL_OF_TYPE:
+            if self.__task_type is None:
+                raise ValueError("Unknowns of type needs a task type defined")
+            uk_df = self.__full_df[
+                (self.__full_df['label'] == 'NOT_READABLE') & (self.__full_df['type'] == self.__task_type.value)]
+            uk_dir = f'./kinderlabor_dataset/unknowns_{self.__task_type.value}/'
+            if not os.path.isdir(uk_dir):
+                os.makedirs(uk_dir)
+                RunUtilsKinderlabor.copy_to_label_folders(base_origin_folder=DataloaderKinderlabor.IMG_CSV_FOLDER,
+                                                          base_target_folder=uk_dir, df=uk_df)
+            img_folder = ImageFolder(
+                uk_dir, DataAugmentationUtils.get_augmentations(self.__augmentation_options,
+                                                                include_affine=False),
+                target_transform=lambda _: unknown_cls_index)
+            return ConcatDataset([dataset, img_folder])
+
         else:
             raise ValueError(f'Unknowns {self.__known_unknowns} not yet supported!')
 

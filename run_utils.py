@@ -70,3 +70,4 @@ class Unknowns(Enum):
     DEVANAGARI = "DEVANAGARI"
     EMNIST = "EMNIST"
     FASHION_MNIST = "FASHION_MNIST"
+    ALL_OF_TYPE = "ALL_OF_TYPE"
