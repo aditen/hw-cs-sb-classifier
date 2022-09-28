@@ -1,6 +1,7 @@
 import math
 import os.path
 
+import matplotlib.colors
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.ticker import MaxNLocator
@@ -103,9 +104,10 @@ class VisualizerKinderlabor:
                     f'{self.__visualization_dir}/test_errors.pdf')
             plt.show()
 
+        # TODO: color normalization: https://matplotlib.org/stable/tutorials/colors/colormapnorms.html
         ConfusionMatrixDisplay.from_predictions(actual_without_uu, predicted_without_uu,
                                                 display_labels=[class_name_dict[x] for x in loader.get_classes()],
-                                                normalize='true')
+                                                im_kw={"norm": matplotlib.colors.SymLogNorm(linthresh=1)})
         if self.__save_plots_to_disk:
             plt.savefig(
                 f'{self.__visualization_dir}/conf_matrix.pdf')
@@ -147,7 +149,8 @@ class VisualizerKinderlabor:
         colors = ['red', 'green', 'blue', 'orange', 'yellow', 'gray', 'pink', 'darkred', 'gold', 'cyan', 'olive',
                   'brown', 'purple', 'lime']
         already_plotted_legends = set()
-        for i in tqdm(range(min(len(labels), 2000)), unit="Coordinates"):
+        vis_indices = np.random.choice(len(labels), min(len(labels), 1000))
+        for i in tqdm(vis_indices, unit="Coordinates"):
             # Plot unknowns as black color
             color = colors[actual[i]] if actual[i] >= 0 else "black"
             if labels[i] not in already_plotted_legends:
