@@ -19,12 +19,16 @@ class RunUtilsKinderlabor:
 
     @staticmethod
     def copy_to_label_folders(base_origin_folder, base_target_folder, df: pd.DataFrame):
-        for idx, row in df.iterrows():
-            label_folder = f'{base_target_folder}{row["label"]}/'
+        if not os.path.isdir(base_origin_folder) or not os.path.isdir(base_target_folder):
+            raise ValueError('One of the directories is not existing on disk')
+        all_labels = df['label'].unique().tolist()
+        for label in all_labels:
+            label_folder = f'{base_target_folder}{label}/'
             if not os.path.isdir(label_folder):
                 os.mkdir(label_folder)
+        for idx, row in df.iterrows():
             shutil.copy(f'{base_origin_folder}{str(idx)}.jpeg',
-                        f'{label_folder}{str(idx)}.jpeg')
+                        f'{base_target_folder}{row["label"]}/{str(idx)}.jpeg')
 
 
 class_name_dict = {"TURN_RIGHT": "↷", "TURN_LEFT": "↶",

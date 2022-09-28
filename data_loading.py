@@ -14,9 +14,8 @@ from run_utils import RunUtilsKinderlabor, data_split_dict, TaskType, DataSplit,
 
 
 class DataloaderKinderlabor:
-    BASE_FOLDER = "C:/Users/41789/Documents/uni/ma/kinderlabor_unterlagen/train_data/"
-    SUB_FOLDER = "20220925_corr_v2/"
-    IMG_CSV_FOLDER = BASE_FOLDER + SUB_FOLDER
+    BASE_FOLDER = "./kinderlabor_dataset/"
+    IMG_CSV_FOLDER = BASE_FOLDER
 
     def __init__(self, augmentation_options: DataAugmentationOptions = DataAugmentationOptions(),
                  task_type: TaskType = None, data_split: DataSplit = None, filter_not_readable=True,
@@ -121,11 +120,10 @@ class DataloaderKinderlabor:
             print(f'Creating dataset folder {self.__dataset_folder_name}')
             # create/drop folders and then move samples
             for set_name in ["train_set", "validation_set", "test_set"]:
-                if os.path.exists(DataloaderKinderlabor.BASE_FOLDER + self.__dataset_folder_name + "/" + set_name):
-                    shutil.rmtree(DataloaderKinderlabor.BASE_FOLDER + self.__dataset_folder_name + "/" + set_name)
-                if not os.path.exists(DataloaderKinderlabor.BASE_FOLDER + self.__dataset_folder_name):
-                    os.mkdir(DataloaderKinderlabor.BASE_FOLDER + self.__dataset_folder_name)
-                os.mkdir(DataloaderKinderlabor.BASE_FOLDER + self.__dataset_folder_name + "/" + set_name)
+                set_folder = f'{DataloaderKinderlabor.BASE_FOLDER}{self.__dataset_folder_name}/{set_name}'
+                if os.path.exists(set_folder):
+                    shutil.rmtree(set_folder)
+                os.makedirs(set_folder)
 
             for set_name, set_df in [("train_set", self.__train_df),
                                      ("validation_set", self.__valid_df),
