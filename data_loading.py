@@ -2,36 +2,15 @@ import copy
 import math
 import os
 import shutil
-from enum import Enum
-from typing import Tuple
 
 import pandas as pd
 import torch
 import torchvision.datasets
-from pandas import DataFrame
 from torch.utils.data import DataLoader, Dataset, Subset, ConcatDataset
 from torchvision.datasets import ImageFolder
 
 from data_augmentation import DataAugmentationOptions, DataAugmentationUtils
-from run_utils import RunUtilsKinderlabor
-
-
-class TaskType(Enum):
-    ORIENTATION = "ORIENTATION"
-    COMMAND = "COMMAND"
-    CROSS = "CROSS"
-
-
-class DataSplit(Enum):
-    TRAIN_SHEETS_TEST_BOOKLETS = "TRAIN_SHEETS_TEST_BOOKLETS"
-    HOLD_OUT_CLASSES = "HOLD_OUT_CLASSES"
-    RANDOM = "RANDOM"
-
-
-class Unknowns(Enum):
-    DEVANAGARI = "DEVANAGARI"
-    EMNIST = "EMNIST"
-    FASHION_MNIST = "FASHION_MNIST"
+from run_utils import RunUtilsKinderlabor, data_split_dict, TaskType, DataSplit, Unknowns
 
 
 class DataloaderKinderlabor:
@@ -52,7 +31,7 @@ class DataloaderKinderlabor:
         self.__unknown_unknowns = unknown_unknowns
         self.__dataset_folder_name = f"{'all' if task_type is None else task_type.value}___" \
                                      f"{DataSplit.RANDOM.value if data_split is None else data_split.value}"
-        self.__df = DataloaderKinderlabor.raw_df()
+        self.__df = DataloaderKinderlabor.full_anonymized_df()
         self.__full_df = self.__df
 
         self.__mean, self.__std = math.nan, math.nan
@@ -62,18 +41,11 @@ class DataloaderKinderlabor:
         if filter_not_readable:
             self.__df = self.__df.loc[(self.__df['label'] != "NOT_READABLE")]
 
-        if self.__data_split == DataSplit.TRAIN_SHEETS_TEST_BOOKLETS:
-            self.__train_df, self.__test_df = self.__split_sheets_booklets(self.__df)
-        elif data_split == DataSplit.HOLD_OUT_CLASSES:
-            self.__train_df, self.__test_df = self.__split_hold_out(self.__df)
-        elif data_split is None or data_split == DataSplit.RANDOM:
-            self.__train_df, self.__test_df = self.__split_random(self.__df)
-        else:
+        if data_split_dict[data_split] not in self.__df.columns:
             raise ValueError(f'Unsupported data split {data_split}')
-
-        # split train/valid randomly
-        self.__valid_df = self.__train_df.sample(frac=0.15)
-        self.__train_df = self.__train_df.drop(self.__valid_df.index)
+        self.__train_df = self.__df[self.__df[data_split_dict[data_split]] == "train"]
+        self.__valid_df = self.__df[self.__df[data_split_dict[data_split]] == "valid"]
+        self.__test_df = self.__df[self.__df[data_split_dict[data_split]] == "test"]
 
         self.__initialize_dataset_folder()
 
@@ -143,36 +115,6 @@ class DataloaderKinderlabor:
     def get_folder_name(self):
         return self.__dataset_folder_name
 
-    def __split_random(self, df: DataFrame) -> Tuple[DataFrame, DataFrame]:
-        train_df = df.sample(frac=0.8)
-        max_samples_per_class = 1500
-        for label in train_df['label'].unique():
-            label_df = train_df.loc[train_df['label'] == label]
-            if len(label_df) > max_samples_per_class:
-                keep_df = label_df.sample(n=max_samples_per_class)
-                drop_df = label_df.drop(keep_df.index)
-                train_df = train_df.drop(drop_df.index)
-        test_df = df.drop(train_df.index)
-        return train_df, test_df
-
-    def __split_hold_out(self, df: DataFrame) -> Tuple[DataFrame, DataFrame]:
-        test_df = df[(df['class'] == 'Vishwas Labelling 1') |
-                     (df['class'] == 'Adrian Labelling 1') |
-                     (df['class'] == 'Data Collection 4. Klasse') |
-                     (df['class'] == 'Türligarten 6') |
-                     (df['class'] == 'Domleschg 3 / 4')]
-        train_df = df.drop(test_df.index)
-        return train_df, test_df
-
-    def __split_sheets_booklets(self, df: DataFrame) -> Tuple[DataFrame, DataFrame]:
-        train_df = df[
-            (df['sheet'] == 'Datensammelblatt Kinderlabor') |
-            (df['sheet'] == 'Data Collection 1. Klasse') |
-            ((df['student'] == 'Laura_Heft_komplett_Test') & (df['label'] == 'EMPTY'))
-            ]
-        test_df = df.drop(train_df.index)
-        return train_df, test_df
-
     def __initialize_dataset_folder(self):
         if self.__force_reload_data or not os.path.isdir(
                 DataloaderKinderlabor.BASE_FOLDER + self.__dataset_folder_name):
@@ -220,14 +162,23 @@ class DataloaderKinderlabor:
             raise ValueError(f'Unknowns {self.__known_unknowns} not yet supported!')
 
     @staticmethod
-    def raw_df(include_inspects=False):
+    def full_anonymized_df(include_inspects=False):
+        df = pd.read_csv(
+            f'./kinderlabor_dataset/dataset_anonymized.csv', sep=";", index_col="id")
+        if include_inspects is not True:
+            df = df[df['label'] != 'INSPECT']
+        return df
+
+    @staticmethod
+    def raw_herby_df():
         df = pd.read_csv(
             f'{DataloaderKinderlabor.IMG_CSV_FOLDER}dataset.csv', sep=";", index_col="id")
         # filter exercise that was different in print than in Herby version
         df = df[(df['exercise'] != '12e') & (df['exercise'] != '12f')]
+        # filter Kinderlabor 4 because drawing fields there are no type, just some random unknowns basically
+        df = df[df['sheet'] != 'Kinderlabor 4']
         # filter class that was experimentally "self-labelling" (but leave data to observe this different aspect)
         df = df[df['class'] != 'Trimmis 3 / 4']
-        # filter inspect class
-        if include_inspects is not True:
-            df = df[df['label'] != 'INSPECT']
+        # filter exercises with no type (path drawing, unknowns in other context)
+        df = df[df['type'].notnull()]
         return df

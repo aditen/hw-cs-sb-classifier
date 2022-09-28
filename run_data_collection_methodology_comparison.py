@@ -5,13 +5,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from data_loading import DataloaderKinderlabor
-from visualizing import class_name_dict
+from run_utils import class_name_dict
 
 if __name__ == "__main__":
     if not os.path.isdir('output_visualizations/data_availability'):
         os.mkdir('output_visualizations/data_availability')
 
-    df = DataloaderKinderlabor.raw_df()
+    df = DataloaderKinderlabor.full_anonymized_df()
     classes = df['class'].unique()
     print(f'classes currently in df: {classes}')
 

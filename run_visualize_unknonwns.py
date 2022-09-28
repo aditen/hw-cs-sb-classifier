@@ -7,7 +7,7 @@ from mpl_toolkits.axes_grid1 import ImageGrid
 from data_loading import DataloaderKinderlabor
 
 if __name__ == "__main__":
-    df = DataloaderKinderlabor.raw_df()
+    df = DataloaderKinderlabor.full_anonymized_df()
     classes = df['class'].unique()
     print(f'classes currently in df: {classes}')
 

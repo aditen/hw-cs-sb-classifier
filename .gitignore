@@ -5,6 +5,8 @@ venv/
 **.scripted
 output_visualizations/*
 !output_visualizations/.gitkeep
+kinderlabor_dataset/*
+!kinderlabor_dataset/.gitkeep
 playground*.py
 synset.txt
 dataset_root**

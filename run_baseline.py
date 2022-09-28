@@ -6,10 +6,11 @@ from tabulate import tabulate
 import seaborn as sns
 
 from data_augmentation import DataAugmentationOptions
-from data_loading import DataloaderKinderlabor, TaskType, DataSplit
+from data_loading import DataloaderKinderlabor
 from grayscale_model import ModelVersion
 from training import TrainerKinderlabor
-from visualizing import VisualizerKinderlabor, data_split_dict, short_names_models, short_names_tasks
+from visualizing import VisualizerKinderlabor
+from run_utils import data_split_dict, short_names_models, short_names_tasks, TaskType, DataSplit
 
 run_configs = [
     ("none", DataAugmentationOptions.none_aug()),

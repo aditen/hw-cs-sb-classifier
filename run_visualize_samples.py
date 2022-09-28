@@ -51,7 +51,7 @@ def plot_samples(full_df, indices, n_cols, n_rows):
 
 
 if __name__ == "__main__":
-    df = DataloaderKinderlabor.raw_df()
+    df = DataloaderKinderlabor.full_anonymized_df()
     fig1 = plot_samples(df, BASIC_INSTRUCTION_INDICES, 5, 5)
     fig1.savefig('./output_visualizations/observations_in_basic_instructions.pdf')
     plt.show()
