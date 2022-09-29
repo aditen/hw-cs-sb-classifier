@@ -1,11 +1,12 @@
 import math
 import os.path
+import warnings
 
 import matplotlib.colors
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.ticker import MaxNLocator
-from sklearn.metrics import ConfusionMatrixDisplay
+from sklearn.metrics import ConfusionMatrixDisplay, balanced_accuracy_score
 from tqdm import tqdm
 
 from data_loading import DataloaderKinderlabor
@@ -190,7 +191,7 @@ class VisualizerKinderlabor:
             print("Loaders are different! Please check you provide the right instance to the visualizer!")
             return
         thresh_vals = np.arange(0, 1, 1. / 1000).tolist()
-        fps, ccrs = [], []
+        fps, ccrs, balanced_accs = [], [], []
 
         for thresh in tqdm(thresh_vals, unit="thresh"):
             prob_vals_uk = [prob for (label, prob) in zip(actual, best_probs) if label < 0]
@@ -204,9 +205,18 @@ class VisualizerKinderlabor:
                      (label == pred and prob >= thresh)]
             ccrs.append(len(n_ccr) / len(prob_vals_k))
 
-        plt.plot(fps, ccrs, label="Demo")
+            for i in range(len(pred_k)):
+                if prob_vals_k[i] < thresh:
+                    pred_k[i] = -1
+            warnings.filterwarnings('ignore', category=UserWarning)
+            balanced_acc = balanced_accuracy_score(labels_k, pred_k)
+            balanced_accs.append(balanced_acc)
+
+        plt.plot(fps, ccrs, label="Traditional OCR")
+        plt.plot(fps, balanced_accs, label="Balanced OCR")
         plt.xlabel("False Positive Rate")
         plt.ylabel("Correct Classification Rate")
         plt.title("Open Set Classification Curve")
         plt.xscale('log')
+        plt.legend()
         plt.show()
