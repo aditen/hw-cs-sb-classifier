@@ -186,7 +186,8 @@ class DataloaderKinderlabor:
     @staticmethod
     def raw_herby_df():
         df = pd.read_csv(
-            f'{DataloaderKinderlabor.IMG_CSV_FOLDER}dataset.csv', sep=";", index_col="id")
+            'C:/Users/41789/Documents/uni/ma/kinderlabor_unterlagen/train_data/20220925_corr_v2/dataset.csv',
+            sep=";", index_col="id")
         # filter exercise that was different in print than in Herby version
         df = df[(df['exercise'] != '12e') & (df['exercise'] != '12f')]
         # filter Kinderlabor 4 because drawing fields there are no type, just some random unknowns basically

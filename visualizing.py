@@ -104,7 +104,6 @@ class VisualizerKinderlabor:
                     f'{self.__visualization_dir}/test_errors.pdf')
             plt.show()
 
-        # TODO: color normalization: https://matplotlib.org/stable/tutorials/colors/colormapnorms.html
         ConfusionMatrixDisplay.from_predictions(actual_without_uu, predicted_without_uu,
                                                 display_labels=[class_name_dict[x] for x in loader.get_classes()],
                                                 im_kw={"norm": matplotlib.colors.SymLogNorm(linthresh=1)})
@@ -183,4 +182,31 @@ class VisualizerKinderlabor:
         if self.__save_plots_to_disk:
             plt.savefig(
                 f'{self.__visualization_dir}/probs.pdf')
+        plt.show()
+
+    def visualize_open_set_classification_rate(self, trainer: TrainerKinderlabor):
+        actual, predicted, best_probs, _, coords, loader, __ = trainer.get_predictions()
+        if loader != self.__data_loader:
+            print("Loaders are different! Please check you provide the right instance to the visualizer!")
+            return
+        thresh_vals = np.arange(0, 1, 1. / 1000).tolist()
+        fps, ccrs = [], []
+
+        for thresh in tqdm(thresh_vals, unit="thresh"):
+            prob_vals_uk = [prob for (label, prob) in zip(actual, best_probs) if label < 0]
+            n_fp = len([prob for prob in prob_vals_uk if prob > thresh])
+            fps.append(n_fp / len(prob_vals_uk))
+
+            prob_vals_k = [prob for (label, prob) in zip(actual, best_probs) if label >= 0]
+            labels_k = [label for (label, prob) in zip(actual, best_probs) if label >= 0]
+            pred_k = [pred for (label, pred) in zip(actual, predicted) if label >= 0]
+            n_ccr = [1 for (label, pred, prob) in zip(labels_k, pred_k, prob_vals_k) if
+                     (label == pred and prob >= thresh)]
+            ccrs.append(len(n_ccr) / len(prob_vals_k))
+
+        plt.plot(fps, ccrs, label="Demo")
+        plt.xlabel("False Positive Rate")
+        plt.ylabel("Correct Classification Rate")
+        plt.title("Open Set Classification Curve")
+        plt.xscale('log')
         plt.show()
