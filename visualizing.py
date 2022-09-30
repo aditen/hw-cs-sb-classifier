@@ -212,11 +212,14 @@ class VisualizerKinderlabor:
             balanced_acc = balanced_accuracy_score(labels_k, pred_k)
             balanced_accs.append(balanced_acc)
 
-        plt.plot(fps, ccrs, label="Traditional OCR")
-        plt.plot(fps, balanced_accs, label="Balanced OCR")
+        plt.plot(fps, ccrs, label="Traditional OSCR")
+        plt.plot(fps, balanced_accs, label="Balanced OSCR")
         plt.xlabel("False Positive Rate")
         plt.ylabel("Correct Classification Rate")
         plt.title("Open Set Classification Curve")
         plt.xscale('log')
         plt.legend()
+        if self.__save_plots_to_disk:
+            plt.savefig(
+                f'{self.__visualization_dir}/oscr.pdf')
         plt.show()
