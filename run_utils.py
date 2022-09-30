@@ -52,6 +52,12 @@ short_names_models = {
     ModelVersion.SM: "slim_simpnet"
 }
 
+long_names_models = {
+    ModelVersion.LG: "SimpleNet",
+    ModelVersion.LE_NET: "LeNet-5",
+    ModelVersion.SM: "Slimmed SimpleNet"
+}
+
 
 class TaskType(Enum):
     ORIENTATION = "ORIENTATION"
@@ -63,6 +69,12 @@ short_names_tasks = {
     TaskType.COMMAND: "+1",
     TaskType.ORIENTATION: "^",
     TaskType.CROSS: "x"
+}
+
+long_names_tasks = {
+    TaskType.COMMAND: "Instruction",
+    TaskType.ORIENTATION: "Orientation",
+    TaskType.CROSS: "Cross"
 }
 
 

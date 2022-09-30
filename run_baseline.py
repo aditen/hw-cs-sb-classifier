@@ -11,7 +11,8 @@ from data_loading import DataloaderKinderlabor
 from grayscale_model import ModelVersion
 from training import TrainerKinderlabor
 from visualizing import VisualizerKinderlabor
-from run_utils import data_split_dict, short_names_models, short_names_tasks, TaskType, DataSplit
+from run_utils import data_split_dict, short_names_models, short_names_tasks, TaskType, DataSplit, long_names_tasks, \
+    long_names_models
 
 run_configs = [
     ("none", DataAugmentationOptions.none_aug()),
@@ -26,6 +27,7 @@ run_configs = [
 csv_path = './output_visualizations/runs_base.csv'
 if __name__ == "__main__":
     if os.path.isfile(csv_path):
+        # see https://stackoverflow.com/questions/20625582/how-to-deal-with-settingwithcopywarning-in-pandas
         pd.options.mode.chained_assignment = None
         full_df = pd.read_csv(csv_path, sep=";")
         sns.set_theme(font_scale=1.75, style='whitegrid')
@@ -37,7 +39,7 @@ if __name__ == "__main__":
         for task_type in all_tasks:
             fake = fig.add_subplot(grid[all_tasks.index(task_type)])
             # '\n' remains important
-            fake.set_title(f'{short_names_tasks[task_type]}\n', fontweight='semibold', size=28)
+            fake.set_title(f'{long_names_tasks[task_type]}\n', fontweight='semibold', size=28)
             fake.set_axis_off()
 
             gs = GridSpecFromSubplotSpec(1, len(all_models),
@@ -59,7 +61,7 @@ if __name__ == "__main__":
                         pass
                         # tick.set_visible(False)
                 ax.set_ylim(0, 100)
-                ax.set_title(f'{model.name}', size=25)
+                ax.set_title(f'{long_names_models[model]}', size=25)
                 ax.get_legend().remove()
 
                 ax.set_xlabel('Data Split')

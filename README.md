@@ -34,11 +34,10 @@ So far, the code has these main parts:
 # :ledger: TODOs
 
 - Open Set Experiments
-    - Add background/garbage class
+    - Compare Entropic to SoftMax only with different splits
     - Allow split of training/test set as in S1, S2 and S3
 - Minor code adaptions
     - Discuss with profs whether SimpleNet should have two versions: one with 2D bottleneck and other? -> Adapt code
-    - Make visualization of baseline as in MAP: https://github.com/Leitou/map-experiment/blob/675e9332feddffb7453a2f800e0ceaa2d2c9ade0/utils.py#L87
     - Visualization of dataset could be stored per split and not per run (class distribution and some samples for 1
       baseline run per type and split)
     - Larger axis name font and add option to not display titles in visualizer (as this is the caption in thesis)
