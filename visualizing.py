@@ -45,7 +45,6 @@ class VisualizerKinderlabor:
         inputs, classes = next(iter(train_loader))
 
         fig, axs = plt.subplots(ncols=4, nrows=math.ceil(len(classes) / 4))
-        fig.suptitle('Batch of Training Samples', fontsize=16)
         fig.set_figheight(6.4 * len(classes) / 16)
 
         class_names = [class_name_dict[c] for c in self.__data_loader.get_classes()]
@@ -81,31 +80,52 @@ class VisualizerKinderlabor:
             print("No training done yet! Please call this function after training")
 
     def visualize_model_errors(self, trainer: TrainerKinderlabor):
+        # reminder: err_samples is tuple of form (img, actual, pred)
         actual, predicted, best_probs, err_samples, _, loader, __ = trainer.get_predictions()
         if loader != self.__data_loader:
             print("Loaders are different! Please check you provide the right instance to the visualizer!")
             return
         mean, std = self.__data_loader.get_mean_std()
-        actual_without_uu, predicted_without_uu = zip(*((ac, pr) for ac, pr in zip(actual, predicted) if ac != -1))
+        actual_kn, predicted_kn = zip(*((ac, pr) for ac, pr in zip(actual, predicted) if ac != -1))
 
-        if len(err_samples) > 0:
-            num_errs_to_show = min(64, len(err_samples))
-            print(f'Num errors to show: {num_errs_to_show}/{len(err_samples)}')
+        if -1 in [err[1] for err in err_samples]:
+            imgs_uu, actual_uu, pred_uu, probs_uu = zip(
+                *((err, ac, pr, prob) for err, ac, pr, prob in err_samples if ac == -1))
+            num_errs_to_show = min(64, len(imgs_uu))
             fig, axs = plt.subplots(nrows=math.ceil(num_errs_to_show / 4), ncols=4)
-            fig.suptitle('Test Error Examples', fontsize=16)
             fig.set_figheight(6.4 * num_errs_to_show / 16)
             for img_idx in range(num_errs_to_show):
-                show_on_axis(axs.flat[img_idx], err_samples[img_idx][0],
-                             class_name_dict[self.__data_loader.get_classes()[err_samples[img_idx][1]]], mean, std,
-                             class_name_predicted=class_name_dict[
-                                 self.__data_loader.get_classes()[err_samples[img_idx][2]]])
+                show_on_axis(ax=axs.flat[img_idx], img_np=imgs_uu[img_idx],
+                             class_name=f'{probs_uu[img_idx] * 100:.2f}%',
+                             mean=mean, std=std, class_name_predicted=class_name_dict[
+                        self.__data_loader.get_classes()[pred_uu[img_idx]]])
             fig.tight_layout()
             if self.__save_plots_to_disk:
                 plt.savefig(
-                    f'{self.__visualization_dir}/test_errors.pdf')
+                    f'{self.__visualization_dir}/test_errors_unknown.pdf')
             plt.show()
 
-        ConfusionMatrixDisplay.from_predictions(actual_without_uu, predicted_without_uu,
+        if len([1 for x in err_samples if x[1] != -1]) > 0:
+            imgs_err_kn, actual_err_kn, pred_err_kn = zip(
+                *((err, ac, pr) for err, ac, pr, prob in err_samples if ac != -1))
+            num_errs_to_show = min(64, len(imgs_err_kn))
+            print(f'Num errors to show: {num_errs_to_show}/{len(imgs_err_kn)}')
+            fig, axs = plt.subplots(nrows=math.ceil(num_errs_to_show / 4), ncols=4)
+            fig.set_figheight(6.4 * num_errs_to_show / 16)
+            for img_idx in range(num_errs_to_show):
+                show_on_axis(axs.flat[img_idx], imgs_err_kn[img_idx],
+                             class_name_dict[self.__data_loader.get_classes()[actual_err_kn[img_idx]]],
+                             mean, std, class_name_predicted=class_name_dict[
+                        self.__data_loader.get_classes()[pred_err_kn[img_idx]]])
+            fig.tight_layout()
+            if self.__save_plots_to_disk:
+                plt.savefig(
+                    f'{self.__visualization_dir}/test_errors_known.pdf')
+            plt.show()
+        else:
+            print("Theoretically perfect model for knowns, no error on known classes to plot!")
+
+        ConfusionMatrixDisplay.from_predictions(actual_kn, predicted_kn,
                                                 display_labels=[class_name_dict[x] for x in loader.get_classes()],
                                                 im_kw={"norm": matplotlib.colors.SymLogNorm(linthresh=1)})
         if self.__save_plots_to_disk:
@@ -185,7 +205,7 @@ class VisualizerKinderlabor:
                 f'{self.__visualization_dir}/probs.pdf')
         plt.show()
 
-    def visualize_open_set_classification_rate(self, trainer: TrainerKinderlabor):
+    def visualize_open_set_recognition_curve(self, trainer: TrainerKinderlabor):
         actual, predicted, best_probs, _, coords, loader, __ = trainer.get_predictions()
         if loader != self.__data_loader:
             print("Loaders are different! Please check you provide the right instance to the visualizer!")
@@ -216,10 +236,10 @@ class VisualizerKinderlabor:
         plt.plot(fps, balanced_accs, label="Balanced OSCR")
         plt.xlabel("False Positive Rate")
         plt.ylabel("Correct Classification Rate")
-        plt.title("Open Set Classification Curve")
+        plt.title("Open Set Recognition Curve")
         plt.xscale('log')
         plt.legend()
         if self.__save_plots_to_disk:
             plt.savefig(
-                f'{self.__visualization_dir}/oscr.pdf')
+                f'{self.__visualization_dir}/osrc.pdf')
         plt.show()

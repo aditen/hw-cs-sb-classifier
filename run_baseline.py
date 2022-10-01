@@ -24,8 +24,15 @@ run_configs = [
     ("crop_plus", DataAugmentationOptions.crop_plus_aug()),
 ]
 
+
+def get_run_id(task_type: TaskType, aug_name: str, data_split: DataSplit, model: ModelVersion):
+    return f"base_task[{short_names_tasks[task_type]}]_aug[{aug_name}]" \
+           f"_split[{data_split_dict[data_split]}]_model[{short_names_models[model]}]"
+
+
 csv_path = './output_visualizations/runs_base.csv'
 if __name__ == "__main__":
+    # TODO: move to run utils or visualizing
     if os.path.isfile(csv_path):
         # see https://stackoverflow.com/questions/20625582/how-to-deal-with-settingwithcopywarning-in-pandas
         pd.options.mode.chained_assignment = None
@@ -83,35 +90,34 @@ if __name__ == "__main__":
             for run_config in run_configs:
                 for data_split in DataSplit:
                     for model in [ModelVersion.SM, ModelVersion.LE_NET]:
-                        run_id = f"base_task[{short_names_tasks[task_type]}]_aug[{run_config[0]}]" \
-                                 f"_split[{data_split_dict[data_split]}]_model[{short_names_models[model]}]"
+                        run_id = get_run_id(task_type, run_config[0], data_split, model)
                         print(
-                            f'Running for configuration {run_config[0]} and data split {data_split.value} '
+                            f'Running for augmentation {run_config[0]} and data split {data_split.value} '
                             f'and task {task_type.name} using model {model.name}')
 
                         # Initialize data loader: data splits and loading from images from disk
-                        loader_orientation = DataloaderKinderlabor(task_type=task_type,
-                                                                   data_split=data_split,
-                                                                   augmentation_options=run_config[1])
+                        loader = DataloaderKinderlabor(task_type=task_type,
+                                                       data_split=data_split,
+                                                       augmentation_options=run_config[1])
 
                         # visualize class distribution and some (train) samples
-                        visualizer_orientation = VisualizerKinderlabor(loader_orientation, run_id=run_id)
+                        visualizer = VisualizerKinderlabor(loader, run_id=run_id)
 
                         # Train model and analyze training progress (mainly when it starts overfitting on validation set)
-                        trainer_orientation = TrainerKinderlabor(loader_orientation, load_model_from_disk=True,
-                                                                 run_id=run_id,
-                                                                 model_version=model)
-                        trainer_orientation.train_model(n_epochs=75)
-                        visualizer_orientation.visualize_training_progress(trainer_orientation)
+                        trainer = TrainerKinderlabor(loader, load_model_from_disk=True,
+                                                     run_id=run_id,
+                                                     model_version=model)
+                        trainer.train_model(n_epochs=75)
+                        visualizer.visualize_training_progress(trainer)
 
                         # Predict on test samples
-                        trainer_orientation.predict_on_test_samples()
-                        visualizer_orientation.visualize_model_errors(trainer_orientation)
-                        trainer_orientation.script_model()
+                        trainer.predict_on_test_samples()
+                        visualizer.visualize_model_errors(trainer)
+                        trainer.script_model()
 
                         data_arr.append(
                             [run_config[0], data_split_dict[data_split], short_names_tasks[task_type],
-                             trainer_orientation.get_predictions()[6], model.name])
+                             trainer.get_predictions()[6], model.name])
         print(tabulate([[x[1], x[2], x[4], x[0], f'{(x[3] * 100):.2f}%'] for x in data_arr],
                        headers=['Data Split', 'Task', 'Model', 'Augmentation', 'Performance']))
         df = pd.DataFrame.from_dict({'augmentation': [row[0] for row in data_arr],

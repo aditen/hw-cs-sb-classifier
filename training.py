@@ -6,6 +6,7 @@ from enum import Enum
 import torch
 from sklearn.metrics import f1_score, balanced_accuracy_score
 from torch import nn, optim
+from torch.nn import CrossEntropyLoss
 from torch.optim import lr_scheduler
 from tqdm import tqdm
 
@@ -192,7 +193,10 @@ class TrainerKinderlabor:
                 probs, _ = torch.max(F.softmax(outputs, dim=1), dim=1)
                 probs = probs.tolist()
                 _, preds = torch.max(outputs, 1)
-                if isinstance(criterion, ObjectosphereLoss):
+                # NOTE: hack for predicting on unknowns with a model that was only trained with CE loss
+                if -1 in labels.tolist() and isinstance(criterion, CrossEntropyLoss):
+                    loss = torch.tensor(0)
+                elif isinstance(criterion, ObjectosphereLoss):
                     loss = criterion(outputs, labels, outputs_2d, reduction='mean')
                 elif isinstance(criterion, EntropicOpenSetLoss):
                     loss = criterion(outputs, labels, reduction='mean')
@@ -208,8 +212,9 @@ class TrainerKinderlabor:
                     if outputs_2d is not None:
                         self.__2d.append(outputs_2d[i, :].cpu().numpy().flatten().tolist())
                     self.__best_probs.append(probs[i])
-                    if actual_batch[i] != predicted_batch[i] and actual_batch[i] != -1:
-                        self.__err_samples.append((inputs[i, :, :].cpu().numpy(), actual_batch[i], predicted_batch[i]))
+                    if actual_batch[i] != predicted_batch[i]:
+                        self.__err_samples.append((inputs[i, :, :].cpu().numpy(), actual_batch[i], predicted_batch[i],
+                                                   probs[i]))
 
         self.__test_actual = actual
         self.__test_predicted = predicted
