@@ -1,5 +1,6 @@
 import math
 
+import torchvision.transforms
 from PIL import Image
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import ImageGrid
@@ -14,8 +15,11 @@ vis_augs = [DataAugmentationOptions(to_tensor=False, grayscale=False, invert=Fal
             DataAugmentationOptions(to_tensor=False, rotate=(-90, 90)),
             DataAugmentationOptions(to_tensor=False, translate=(0.5, 0.5)),
             DataAugmentationOptions(to_tensor=False, scale=(0.5, 1.5)),
-            DataAugmentationOptions(to_tensor=False, crop_center=True)]
-titles = ["Original", "Grayscale", "Contrast", "Equalize", "Rotate", "Translate", "Scale", "Crop"]
+            DataAugmentationOptions(to_tensor=False, crop_center=True),
+            DataAugmentationOptions(to_tensor=True, gaussian_noise_sigma=0.15),
+            DataAugmentationOptions(to_tensor=True, auto_contrast=True, gaussian_noise_sigma=0.15)]
+titles = ["Original", "Grayscale", "Contrast", "Equalize", "Rotate", "Translate", "Scale", "Crop", "Noise",
+          "Noise+AC"]
 
 all_ids_to_show = [312, 1089, 31382, 34428, 43024, 1299]
 
@@ -37,6 +41,9 @@ if __name__ == "__main__":
         aug_idx = i % n_cols
         raw_img = raw_imgs[raw_img_idx]
         tf_img = DataAugmentationUtils.get_augmentations(vis_augs[aug_idx])(raw_img)
+        title = titles[aug_idx]
+        if title.startswith("Noise"):
+            tf_img = torchvision.transforms.ToPILImage()(tf_img)
         ax.imshow(tf_img, cmap="gray" if aug_idx > 0 else None, vmin=0, vmax=255)
         ax.get_xaxis().set_ticks([])
         ax.get_yaxis().set_ticks([])

@@ -10,6 +10,7 @@ from torch.utils.data import DataLoader
 from torchvision.datasets import ImageFolder
 from torchvision.transforms import transforms
 
+
 # see https://github.com/pytorch/vision/issues/6192
 class GaussianNoise(torch.nn.Module):
     def __init__(self, sigma=0.5):
@@ -43,7 +44,7 @@ class DataAugmentationOptions:
     translate: float | Tuple[float, float] | bool = False
     scale: float | Tuple[float, float] | bool = False
     crop_center: bool = False
-    gaussian_noise_sigma = None
+    gaussian_noise_sigma: float = None
 
     @staticmethod
     def none_aug():
