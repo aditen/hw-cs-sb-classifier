@@ -79,7 +79,8 @@ long_names_tasks = {
 
 
 class Unknowns(Enum):
-    DEVANAGARI = "DEVANAGARI"
-    EMNIST = "EMNIST"
+    # DEVANAGARI = "DEVANAGARI"
+    EMNIST_LETTERS = "EMNIST_LETTERS"
+    MNIST = "MNIST"
     FASHION_MNIST = "FASHION_MNIST"
     ALL_OF_TYPE = "ALL_OF_TYPE"

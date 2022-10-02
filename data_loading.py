@@ -64,7 +64,7 @@ class DataloaderKinderlabor:
                                                     include_affine=True))
         train_ds = self.__image_folder_train
         if self.__known_unknowns is not None:
-            train_ds = self.__add_unknowns_to_df(train_ds, self.__known_unknowns, 2000, -1)
+            train_ds = self.__add_unknowns_to_df(train_ds, self.__known_unknowns, 1700, -1)
         self.__dataloader_train = DataLoader(train_ds, batch_size=batch_size_train,
                                              shuffle=True, num_workers=0)
 
@@ -74,7 +74,10 @@ class DataloaderKinderlabor:
                                                     include_affine=False))
         self.__image_folder_valid.classes = self.__image_folder_train.classes
         self.__image_folder_valid.class_to_idx = self.__image_folder_train.class_to_idx
-        self.__dataloader_valid = DataLoader(self.__image_folder_valid, batch_size=batch_size_valid_test,
+        valid_ds = self.__image_folder_valid
+        if self.__known_unknowns is not None:
+            valid_ds = self.__add_unknowns_to_df(valid_ds, self.__known_unknowns, 300, -1)
+        self.__dataloader_valid = DataLoader(valid_ds, batch_size=batch_size_valid_test,
                                              shuffle=False, num_workers=0)
 
         self.__image_folder_test = ImageFolder(
@@ -138,7 +141,7 @@ class DataloaderKinderlabor:
         uu_augmentation = copy.deepcopy(self.__augmentation_options)
         uu_augmentation.grayscale = False
         uu_augmentation.invert = False
-        if unknowns == Unknowns.EMNIST:
+        if unknowns == Unknowns.EMNIST_LETTERS:
             emnist_set = torchvision.datasets.EMNIST(root="./dataset_root_emnist", split="letters",
                                                      download=True,
                                                      transform=DataAugmentationUtils.get_augmentations(
@@ -153,6 +156,15 @@ class DataloaderKinderlabor:
                                                            uu_augmentation,
                                                            include_affine=False),
                                                        target_transform=lambda _: unknown_cls_index)
+            indices = torch.randperm(len(fm_set))[:n_to_add]
+            fm_set = Subset(fm_set, indices)
+            return ConcatDataset([dataset, fm_set])
+        elif unknowns == Unknowns.MNIST:
+            fm_set = torchvision.datasets.MNIST(root="./dataset_root_mnist", download=True,
+                                                transform=DataAugmentationUtils.get_augmentations(
+                                                    uu_augmentation,
+                                                    include_affine=False),
+                                                target_transform=lambda _: unknown_cls_index)
             indices = torch.randperm(len(fm_set))[:n_to_add]
             fm_set = Subset(fm_set, indices)
             return ConcatDataset([dataset, fm_set])
