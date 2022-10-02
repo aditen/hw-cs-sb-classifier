@@ -4,10 +4,31 @@ import math
 from dataclasses import dataclass
 from typing import Tuple
 
+import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from torchvision.datasets import ImageFolder
 from torchvision.transforms import transforms
+
+# see https://github.com/pytorch/vision/issues/6192
+class GaussianNoise(torch.nn.Module):
+    def __init__(self, sigma=0.5):
+        super().__init__()
+        self.sigma = sigma
+
+    def forward(self, img):
+        assert isinstance(img, torch.Tensor)
+        dtype = img.dtype
+        if not img.is_floating_point():
+            img = img.to(torch.float32)
+
+        out = img + self.sigma * torch.randn_like(img)
+        out = torch.clamp(out, min=0., max=1.)
+
+        if out.dtype != dtype:
+            out = out.to(dtype)
+
+        return out
 
 
 @dataclass
@@ -22,6 +43,7 @@ class DataAugmentationOptions:
     translate: float | Tuple[float, float] | bool = False
     scale: float | Tuple[float, float] | bool = False
     crop_center: bool = False
+    gaussian_noise_sigma = None
 
     @staticmethod
     def none_aug():
@@ -118,6 +140,9 @@ class DataAugmentationUtils:
         # covert to tensor (but not if visualizing pil image)
         if options.to_tensor:
             transforms_list.append(transforms.ToTensor())
+
+        if options.gaussian_noise_sigma is not None and options.gaussian_noise_sigma != 0.:
+            transforms_list.append(GaussianNoise(options.gaussian_noise_sigma))
 
         return transforms_list
 

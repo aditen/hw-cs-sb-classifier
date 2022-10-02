@@ -74,7 +74,7 @@ short_names_tasks = {
 long_names_tasks = {
     TaskType.COMMAND: "Instruction",
     TaskType.ORIENTATION: "Orientation",
-    TaskType.CROSS: "Cross"
+    TaskType.CROSS: "Checkbox"
 }
 
 
