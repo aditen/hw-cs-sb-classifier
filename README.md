@@ -34,7 +34,7 @@ So far, the code has these main parts:
 # :ledger: TODOs
 
 - Open Set Experiments
-    - Compare Entropic to SoftMax for with different splits
+    - Compare Entropic to SoftMax for with different splits (for known as well as unknowns)
     - Allow split of training/test set as in S2 (S1 and S3 does not really make sense)
     - Use Gaussian Noise -> determine if it is better to be placed ahead of autocontrast
 - Minor code adaptions

@@ -168,6 +168,14 @@ class DataloaderKinderlabor:
             indices = torch.randperm(len(fm_set))[:n_to_add]
             fm_set = Subset(fm_set, indices)
             return ConcatDataset([dataset, fm_set])
+        elif unknowns == Unknowns.FAKE_DATA:
+            RunUtilsKinderlabor.random_seed()
+            fd_set = torchvision.datasets.FakeData(size=n_to_add, image_size=(1, 32, 32),
+                                                   transform=DataAugmentationUtils.get_augmentations(
+                                                       uu_augmentation,
+                                                       include_affine=False),
+                                                   target_transform=lambda _: unknown_cls_index)
+            return ConcatDataset([dataset, fd_set])
         elif unknowns == Unknowns.ALL_OF_TYPE:
             if self.__task_type is None:
                 raise ValueError("Unknowns of type needs a task type defined")

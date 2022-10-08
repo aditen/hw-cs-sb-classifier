@@ -84,3 +84,4 @@ class Unknowns(Enum):
     MNIST = "MNIST"
     FASHION_MNIST = "FASHION_MNIST"
     ALL_OF_TYPE = "ALL_OF_TYPE"
+    FAKE_DATA = "FAKE_DATA"
