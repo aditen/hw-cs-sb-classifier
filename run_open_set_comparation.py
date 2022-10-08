@@ -32,3 +32,4 @@ if __name__ == "__main__":
             visualizer.visualize_prob_histogram(trainer)
             visualizer.visualize_model_errors(trainer)
             visualizer.visualize_open_set_recognition_curve(trainer)
+            visualizer.visualize_2d_space(trainer)

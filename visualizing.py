@@ -166,7 +166,7 @@ class VisualizerKinderlabor:
         xes = [coord[0] for coord in coords]
         ys = [coord[1] for coord in coords]
         labels = [(class_name_dict[loader.get_classes()[x]] if x >= 0 else "unknown") for x in actual]
-        colors = ['red', 'green', 'blue', 'orange', 'yellow', 'gray', 'pink', 'darkred', 'gold', 'cyan', 'olive',
+        colors = ['red', 'green', 'blue', 'orange', 'yellow', 'pink', 'darkred', 'gold', 'cyan', 'olive',
                   'brown', 'purple', 'lime']
         already_plotted_legends = set()
         vis_indices = np.random.choice(len(labels), min(len(labels), 1000))
