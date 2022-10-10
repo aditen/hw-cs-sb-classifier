@@ -191,7 +191,18 @@ class DataloaderKinderlabor:
                                                                 include_affine=False),
                 target_transform=lambda _: unknown_cls_index)
             return ConcatDataset([dataset, img_folder])
-
+        elif unknowns == Unknowns.GAUSSIAN_NOISE_03 or unknowns == Unknowns.GAUSSIAN_NOISE_015:
+            if not isinstance(dataset, ImageFolder):
+                raise ValueError("Cannot use original data set for gaussian noise as it is no image folder!")
+            aug_uk = DataAugmentationOptions(
+                gaussian_noise_sigma=0.15 if unknowns == Unknowns.GAUSSIAN_NOISE_015 else 0.3,
+                auto_contrast=self.__augmentation_options.auto_contrast)
+            img_folder_uk = ImageFolder(dataset.root,
+                                        transform=DataAugmentationUtils.get_augmentations(aug_uk, include_affine=False),
+                                        target_transform=lambda y: unknown_cls_index)
+            indices = torch.randperm(len(img_folder_uk))[:n_to_add]
+            img_folder_uk = Subset(img_folder_uk, indices)
+            return ConcatDataset([dataset, img_folder_uk])
         else:
             raise ValueError(f'Unknowns {self.__known_unknowns} not yet supported!')
 
