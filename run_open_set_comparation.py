@@ -31,5 +31,5 @@ if __name__ == "__main__":
             trainer.predict_on_test_samples()
             visualizer.visualize_prob_histogram(trainer)
             visualizer.visualize_model_errors(trainer)
-            visualizer.visualize_open_set_recognition_curve(trainer)
+            visualizer.visualize_open_set_recognition_curve([("OSRC", trainer)])
             visualizer.visualize_2d_space(trainer)

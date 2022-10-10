@@ -1,6 +1,7 @@
 import math
 import os.path
 import warnings
+from typing import List, Tuple
 
 import matplotlib.colors
 import matplotlib.pyplot as plt
@@ -205,38 +206,38 @@ class VisualizerKinderlabor:
                 f'{self.__visualization_dir}/probs.pdf')
         plt.show()
 
-    def visualize_open_set_recognition_curve(self, trainer: TrainerKinderlabor):
-        actual, predicted, best_probs, _, coords, loader, __ = trainer.get_predictions()
-        if loader != self.__data_loader:
-            print("Loaders are different! Please check you provide the right instance to the visualizer!")
-            return
-        thresh_vals = np.arange(0, 1, 1. / 1000).tolist()
-        fps, ccrs, balanced_accs = [], [], []
+    def visualize_open_set_recognition_curve(self, trainers: List[Tuple[str, TrainerKinderlabor]], balanced=True):
+        for label, trainer in trainers:
+            actual, predicted, best_probs, _, coords, loader, __ = trainer.get_predictions()
+            thresh_vals = np.arange(0, 1, 1. / 1000).tolist()
+            fps, ccrs, balanced_accs = [], [], []
 
-        for thresh in tqdm(thresh_vals, unit="thresh"):
-            prob_vals_uk = [prob for (label, prob) in zip(actual, best_probs) if label < 0]
-            n_fp = len([prob for prob in prob_vals_uk if prob > thresh])
-            fps.append(n_fp / len(prob_vals_uk))
+            for thresh in tqdm(thresh_vals, unit="thresh"):
+                prob_vals_uk = [prob for (label, prob) in zip(actual, best_probs) if label < 0]
+                n_fp = len([prob for prob in prob_vals_uk if prob > thresh])
+                fps.append(n_fp / len(prob_vals_uk))
 
-            prob_vals_k = [prob for (label, prob) in zip(actual, best_probs) if label >= 0]
-            labels_k = [label for (label, prob) in zip(actual, best_probs) if label >= 0]
-            pred_k = [pred for (label, pred) in zip(actual, predicted) if label >= 0]
-            n_ccr = [1 for (label, pred, prob) in zip(labels_k, pred_k, prob_vals_k) if
-                     (label == pred and prob >= thresh)]
-            ccrs.append(len(n_ccr) / len(prob_vals_k))
+                prob_vals_k = [prob for (label, prob) in zip(actual, best_probs) if label >= 0]
+                labels_k = [label for (label, prob) in zip(actual, best_probs) if label >= 0]
+                pred_k = [pred for (label, pred) in zip(actual, predicted) if label >= 0]
+                n_ccr = [1 for (label, pred, prob) in zip(labels_k, pred_k, prob_vals_k) if
+                         (label == pred and prob >= thresh)]
+                ccrs.append(len(n_ccr) / len(prob_vals_k))
 
-            for i in range(len(pred_k)):
-                if prob_vals_k[i] < thresh:
-                    pred_k[i] = -1
-            warnings.filterwarnings('ignore', category=UserWarning)
-            balanced_acc = balanced_accuracy_score(labels_k, pred_k)
-            balanced_accs.append(balanced_acc)
+                for i in range(len(pred_k)):
+                    if prob_vals_k[i] < thresh:
+                        pred_k[i] = -1
+                warnings.filterwarnings('ignore', category=UserWarning)
+                balanced_acc = balanced_accuracy_score(labels_k, pred_k)
+                balanced_accs.append(balanced_acc)
 
-        plt.plot(fps, ccrs, label="Traditional OSCR")
-        plt.plot(fps, balanced_accs, label="Balanced OSCR")
+            if balanced:
+                plt.plot(fps, balanced_accs, label=label)
+            else:
+                plt.plot(fps, ccrs, label=label)
         plt.xlabel("False Positive Rate")
-        plt.ylabel("Correct Classification Rate")
-        plt.title("Open Set Recognition Curve")
+        plt.ylabel("Balanced Accuracy" if balanced else "Correct Classification Rate")
+        # plt.title(("Balanced " if balanced else "") + "Open Set Recognition Curve")
         plt.xscale('log')
         plt.legend()
         if self.__save_plots_to_disk:

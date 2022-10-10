@@ -2,11 +2,13 @@ from data_augmentation import DataAugmentationOptions
 from data_loading import DataloaderKinderlabor
 from grayscale_model import ModelVersion
 from run_baseline import get_run_id
-from run_utils import TaskType, DataSplit, Unknowns
+from run_utils import TaskType, DataSplit, Unknowns, long_names_tasks
 from training import TrainerKinderlabor
 from visualizing import VisualizerKinderlabor
 
 if __name__ == "__main__":
+    plot_tuples_all = []
+    loader = None
     for task_type in TaskType:
         run_id = get_run_id(task_type, "geo_ac", DataSplit.HOLD_OUT_CLASSES, ModelVersion.SM)
 
@@ -28,5 +30,7 @@ if __name__ == "__main__":
         trainer.predict_on_test_samples()
         visualizer.visualize_prob_histogram(trainer)
         visualizer.visualize_model_errors(trainer)
-        visualizer.visualize_open_set_recognition_curve(trainer)
         visualizer.visualize_2d_space(trainer)
+        plot_tuples_all.append((long_names_tasks[task_type], trainer))
+    visualizer = VisualizerKinderlabor(loader, run_id="closed_set_on_unknown")
+    visualizer.visualize_open_set_recognition_curve(plot_tuples_all)

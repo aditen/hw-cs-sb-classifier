@@ -36,7 +36,7 @@ class_name_dict = {"TURN_RIGHT": "↷", "TURN_LEFT": "↶",
                    "LOOP_TWICE": "2x", "LOOP_FOUR_TIMES": "4x",
                    "PLUS_ONE": "+1", "MINUS_ONE": "-1", "EMPTY": "empty",
                    "ARROW_RIGHT": "→", "ARROW_LEFT": "←", "ARROW_UP": "↑", "ARROW_DOWN": "↓",
-                   "CHECKED": "X", "NOT_READABLE": "?"}
+                   "CHECKED": "X", "NOT_READABLE": "?", "INSPECT": "*"}
 
 
 class DataSplit(Enum):
