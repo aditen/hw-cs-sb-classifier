@@ -10,7 +10,7 @@ import torch
 from grayscale_model import ModelVersion
 
 
-class RunUtilsKinderlabor:
+class UtilsKinderlabor:
     @staticmethod
     def random_seed():
         random.seed(42)

@@ -5,7 +5,7 @@ from typing import Tuple, List
 from pandas import DataFrame
 
 from data_loading import DataloaderKinderlabor
-from run_utils import RunUtilsKinderlabor, data_split_dict, TaskType, DataSplit
+from utils import UtilsKinderlabor, data_split_dict, TaskType, DataSplit
 
 
 def __split_random(df: DataFrame) -> Tuple[DataFrame, DataFrame]:
@@ -39,7 +39,7 @@ def __split_sheets_booklets(df: DataFrame) -> Tuple[DataFrame, DataFrame]:
 
 # creates anonymous dataset from (pseudonymous) herby output (pseudonymous to still have class/student association)
 if __name__ == "__main__":
-    RunUtilsKinderlabor.random_seed()
+    UtilsKinderlabor.random_seed()
     full_df = DataloaderKinderlabor.raw_herby_df()
     hold_out_classes = os.getenv('HOLDOUTCLASSES', default=None)
     if hold_out_classes is None:

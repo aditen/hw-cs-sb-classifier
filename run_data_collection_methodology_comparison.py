@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from data_loading import DataloaderKinderlabor
-from run_utils import class_name_dict
+from utils import class_name_dict
 
 if __name__ == "__main__":
     if not os.path.isdir('output_visualizations/data_availability'):

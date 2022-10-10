@@ -11,7 +11,7 @@ from sklearn.metrics import ConfusionMatrixDisplay, balanced_accuracy_score
 from tqdm import tqdm
 
 from data_loading import DataloaderKinderlabor
-from run_utils import class_name_dict
+from utils import class_name_dict
 from training import TrainerKinderlabor
 
 

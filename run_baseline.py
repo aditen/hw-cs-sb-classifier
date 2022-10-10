@@ -11,7 +11,7 @@ from data_loading import DataloaderKinderlabor
 from grayscale_model import ModelVersion
 from training import TrainerKinderlabor, Optimizer
 from visualizing import VisualizerKinderlabor
-from run_utils import data_split_dict, short_names_models, short_names_tasks, TaskType, DataSplit, long_names_tasks, \
+from utils import data_split_dict, short_names_models, short_names_tasks, TaskType, DataSplit, long_names_tasks, \
     long_names_models
 
 run_configs = [

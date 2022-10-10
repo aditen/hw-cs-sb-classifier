@@ -2,8 +2,8 @@ from data_augmentation import DataAugmentationOptions
 from data_loading import DataloaderKinderlabor
 from grayscale_model import ModelVersion
 from run_baseline import get_run_id
-from run_utils import TaskType, DataSplit, Unknowns, long_names_tasks
-from training import TrainerKinderlabor
+from utils import TaskType, DataSplit, Unknowns, long_names_tasks
+from training import TrainerKinderlabor, Optimizer
 from visualizing import VisualizerKinderlabor
 
 if __name__ == "__main__":
@@ -24,6 +24,7 @@ if __name__ == "__main__":
         # Train model and analyze training progress (mainly when it starts overfitting on validation set)
         trainer = TrainerKinderlabor(loader, load_model_from_disk=True,
                                      run_id=run_id,
+                                     optimizer=Optimizer.SOFTMAX if task_type != TaskType.CROSS else Optimizer.BCE,
                                      model_version=ModelVersion.SM)
         trainer.train_model(n_epochs=75)
         visualizer.visualize_training_progress(trainer)

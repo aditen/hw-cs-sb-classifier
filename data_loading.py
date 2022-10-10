@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader, Dataset, Subset, ConcatDataset
 from torchvision.datasets import ImageFolder
 
 from data_augmentation import DataAugmentationOptions, DataAugmentationUtils
-from run_utils import RunUtilsKinderlabor, data_split_dict, TaskType, DataSplit, Unknowns
+from utils import UtilsKinderlabor, data_split_dict, TaskType, DataSplit, Unknowns
 
 
 class DataloaderKinderlabor:
@@ -21,7 +21,7 @@ class DataloaderKinderlabor:
                  task_type: TaskType = None, data_split: DataSplit = None, filter_not_readable=True,
                  force_reload_data=False, known_unknowns: Unknowns = None, unknown_unknowns: Unknowns = None,
                  batch_size_train=64, batch_size_valid_test=32):
-        RunUtilsKinderlabor.random_seed()
+        UtilsKinderlabor.random_seed()
         self.__augmentation_options = augmentation_options
         self.__task_type = task_type
         self.__data_split = data_split
@@ -131,9 +131,9 @@ class DataloaderKinderlabor:
             for set_name, set_df in [("train_set", self.__train_df),
                                      ("validation_set", self.__valid_df),
                                      ("test_set", self.__test_df)]:
-                RunUtilsKinderlabor.copy_to_label_folders(base_origin_folder=DataloaderKinderlabor.IMG_CSV_FOLDER,
-                                                          base_target_folder=f'{DataloaderKinderlabor.BASE_FOLDER}{self.__dataset_folder_name}/{set_name}/',
-                                                          df=set_df)
+                UtilsKinderlabor.copy_to_label_folders(base_origin_folder=DataloaderKinderlabor.IMG_CSV_FOLDER,
+                                                       base_target_folder=f'{DataloaderKinderlabor.BASE_FOLDER}{self.__dataset_folder_name}/{set_name}/',
+                                                       df=set_df)
         else:
             print(f"Skipping dataset folder generation, loading from folder {self.__dataset_folder_name}")
 
@@ -169,7 +169,7 @@ class DataloaderKinderlabor:
             fm_set = Subset(fm_set, indices)
             return ConcatDataset([dataset, fm_set])
         elif unknowns == Unknowns.FAKE_DATA:
-            RunUtilsKinderlabor.random_seed()
+            UtilsKinderlabor.random_seed()
             fd_set = torchvision.datasets.FakeData(size=n_to_add, image_size=(1, 32, 32),
                                                    transform=DataAugmentationUtils.get_augmentations(
                                                        uu_augmentation,
@@ -184,8 +184,8 @@ class DataloaderKinderlabor:
             uk_dir = f'./kinderlabor_dataset/unknowns_{self.__task_type.value}/'
             if not os.path.isdir(uk_dir):
                 os.makedirs(uk_dir)
-                RunUtilsKinderlabor.copy_to_label_folders(base_origin_folder=DataloaderKinderlabor.IMG_CSV_FOLDER,
-                                                          base_target_folder=uk_dir, df=uk_df)
+                UtilsKinderlabor.copy_to_label_folders(base_origin_folder=DataloaderKinderlabor.IMG_CSV_FOLDER,
+                                                       base_target_folder=uk_dir, df=uk_df)
             img_folder = ImageFolder(
                 uk_dir, DataAugmentationUtils.get_augmentations(self.__augmentation_options,
                                                                 include_affine=False),

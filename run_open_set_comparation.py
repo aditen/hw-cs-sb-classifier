@@ -1,10 +1,11 @@
 from data_augmentation import DataAugmentationOptions
 from data_loading import DataloaderKinderlabor
 from grayscale_model import ModelVersion
-from run_utils import Unknowns, TaskType, DataSplit
+from utils import Unknowns, TaskType, DataSplit
 from training import TrainerKinderlabor, Optimizer
 from visualizing import VisualizerKinderlabor
 
+# TODO: update!
 if __name__ == "__main__":
     task_type = TaskType.COMMAND
     for uk_type in [Unknowns.MNIST, Unknowns.EMNIST_LETTERS, Unknowns.FASHION_MNIST]:
