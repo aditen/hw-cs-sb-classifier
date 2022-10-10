@@ -6,7 +6,7 @@ from enum import Enum
 import torch
 from sklearn.metrics import f1_score, balanced_accuracy_score
 from torch import nn, optim
-from torch.nn import CrossEntropyLoss
+from torch.nn import CrossEntropyLoss, BCEWithLogitsLoss
 from torch.optim import lr_scheduler
 from tqdm import tqdm
 
@@ -23,6 +23,7 @@ class Optimizer(Enum):
     ENTROPIC = "ENTROPIC"
     OBJECTOSPHERE = "OBJECTOSPHERE"
     SOFTMAX = "SOFTMAX"
+    BCE = "BCE"
 
 
 class TrainerKinderlabor:
@@ -54,14 +55,7 @@ class TrainerKinderlabor:
         # initialize model as well as optimizer, scheduler
         model = get_model(num_classes=len(self.__loader.get_classes()), model_version=self.__model_version)
         model = model.to(device)
-        if self.__optimizer == Optimizer.SOFTMAX or self.__optimizer is None:
-            criterion = nn.CrossEntropyLoss(reduction='mean')
-        elif self.__optimizer == Optimizer.ENTROPIC:
-            criterion = EntropicOpenSetLoss(num_of_classes=len(self.__loader.get_classes()))
-        elif self.__optimizer == Optimizer.OBJECTOSPHERE:
-            criterion = ObjectosphereLoss(num_of_classes=len(self.__loader.get_classes()))
-        else:
-            raise ValueError(f"Unsupported optimizer option: {self.__optimizer}")
+        criterion = self.__get_loss()
         # Observe that all parameters are being optimized
         optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
         # Decay LR by a factor of 0.1 every 7 epochs
@@ -99,7 +93,12 @@ class TrainerKinderlabor:
                 # forward
                 # track history if only in train
                 outputs, outputs_2d = model(inputs)
-                _, preds = torch.max(outputs, 1)
+                if self.__optimizer == Optimizer.BCE:
+                    preds = torch.round(torch.sigmoid(outputs)).flatten()
+                    outputs = outputs.flatten()
+                    labels = labels.float()
+                else:
+                    _, preds = torch.max(outputs, 1)
                 if isinstance(criterion, ObjectosphereLoss):
                     loss = criterion(outputs, labels, outputs_2d, reduction='mean')
                 elif isinstance(criterion, EntropicOpenSetLoss):
@@ -127,7 +126,12 @@ class TrainerKinderlabor:
                     inputs = inputs.to(device)
                     labels = labels.to(device)
                     outputs, outputs_2d = model(inputs)
-                    _, preds = torch.max(outputs, 1)
+                    if self.__optimizer == Optimizer.BCE:
+                        preds = torch.round(torch.sigmoid(outputs)).flatten()
+                        outputs = outputs.flatten()
+                        labels = labels.float()
+                    else:
+                        _, preds = torch.max(outputs, 1)
                     if isinstance(criterion, ObjectosphereLoss):
                         loss = criterion(outputs, labels, outputs_2d, reduction='mean')
                     elif isinstance(criterion, EntropicOpenSetLoss):
@@ -175,14 +179,7 @@ class TrainerKinderlabor:
 
         test_loss, test_corr = 0., torch.tensor(0).to(device)
 
-        if self.__optimizer == Optimizer.SOFTMAX or self.__optimizer is None:
-            criterion = nn.CrossEntropyLoss(reduction='mean')
-        elif self.__optimizer == Optimizer.ENTROPIC:
-            criterion = EntropicOpenSetLoss(num_of_classes=len(self.__loader.get_classes()))
-        elif self.__optimizer == Optimizer.OBJECTOSPHERE:
-            criterion = ObjectosphereLoss(num_of_classes=len(self.__loader.get_classes()))
-        else:
-            raise ValueError(f"Unsupported optimizer option: {self.__optimizer}")
+        criterion = self.__get_loss()
 
         actual, predicted = [], []
         with torch.no_grad():
@@ -190,11 +187,18 @@ class TrainerKinderlabor:
                 inputs = inputs.to(device)
                 labels = labels.to(device)
                 outputs, outputs_2d = model(inputs)
-                probs, _ = torch.max(F.softmax(outputs, dim=1), dim=1)
-                probs = probs.tolist()
-                _, preds = torch.max(outputs, 1)
-                # NOTE: hack for predicting on unknowns with a model that was only trained with CE loss
-                if -1 in labels.tolist() and isinstance(criterion, CrossEntropyLoss):
+                if self.__optimizer == Optimizer.BCE:
+                    probs = torch.sigmoid(outputs)
+                    preds = torch.round(probs).flatten()
+                    probs = torch.max(torch.ones(probs.shape).to(device) - probs, probs).flatten().tolist()
+                    outputs = outputs.flatten()
+                    labels = labels.float()
+                else:
+                    probs, _ = torch.max(F.softmax(outputs, dim=1), dim=1)
+                    probs = probs.tolist()
+                    _, preds = torch.max(outputs, 1)
+                # NOTE: hack for predicting on unknowns with a model that was only trained with (B)CE loss or
+                if -1 in labels.tolist() and isinstance(criterion, (CrossEntropyLoss, BCEWithLogitsLoss)):
                     loss = torch.tensor(0)
                 elif isinstance(criterion, ObjectosphereLoss):
                     loss = criterion(outputs, labels, outputs_2d, reduction='mean')
@@ -202,11 +206,13 @@ class TrainerKinderlabor:
                     loss = criterion(outputs, labels, reduction='mean')
                 else:
                     loss = criterion(outputs, labels)
+
+                labels = labels.long()
                 test_loss += loss.item() * inputs.size(0)
                 test_corr += torch.sum(preds == labels.data)
                 actual_batch = labels.cpu().numpy().flatten().tolist()
                 actual += actual_batch
-                predicted_batch = preds.flatten().cpu().numpy().tolist()
+                predicted_batch = preds.flatten().long().cpu().numpy().tolist()
                 predicted += predicted_batch
                 for i in range(len(actual_batch)):
                     if outputs_2d is not None:
@@ -247,3 +253,15 @@ class TrainerKinderlabor:
         with open(f'{self.__model_dir}/synset.txt', 'w', encoding="utf-8") as f:
             f.writelines("\n".join(self.__loader.get_classes()))
         print(f'Scripted model and written synset')
+
+    def __get_loss(self):
+        if self.__optimizer == Optimizer.SOFTMAX or self.__optimizer is None:
+            return nn.CrossEntropyLoss(reduction='mean')
+        elif self.__optimizer == Optimizer.BCE:
+            return nn.BCEWithLogitsLoss(reduction='mean')
+        elif self.__optimizer == Optimizer.ENTROPIC:
+            return EntropicOpenSetLoss(num_of_classes=len(self.__loader.get_classes()))
+        elif self.__optimizer == Optimizer.OBJECTOSPHERE:
+            return ObjectosphereLoss(num_of_classes=len(self.__loader.get_classes()))
+        else:
+            raise ValueError(f"Unsupported optimizer option: {self.__optimizer}")

@@ -12,6 +12,7 @@ class ModelVersion(Enum):
 
 
 def get_model(model_version: ModelVersion, num_classes):
+    num_classes = 1 if num_classes == 2 else num_classes
     if model_version == ModelVersion.LE_NET:
         return LeNet(n_classes=num_classes)
     return SimpleNet(version=model_version, classes=num_classes)
