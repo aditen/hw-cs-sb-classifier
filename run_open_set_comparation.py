@@ -5,13 +5,12 @@ from utils import Unknowns, TaskType, DataSplit
 from training import TrainerKinderlabor, Optimizer
 from visualizing import VisualizerKinderlabor
 
-# TODO: add fake data in case it can be enabled
 if __name__ == "__main__":
     task_type = TaskType.COMMAND
     all_trainers = []
-    for uk_type in [Unknowns.MNIST, Unknowns.EMNIST_LETTERS, Unknowns.GAUSSIAN_NOISE_015, Unknowns.GAUSSIAN_NOISE_03]:
-        loss_fc = Optimizer.ENTROPIC
-        run_id = f'os_task[{task_type.name}]_uk[{uk_type.name}]_loss[{loss_fc.name}]'
+    for uk_type in [None, Unknowns.FAKE_DATA, Unknowns.MNIST, Unknowns.EMNIST_LETTERS, Unknowns.GAUSSIAN_NOISE_015, Unknowns.GAUSSIAN_NOISE_03]:
+        loss_fc = Optimizer.ENTROPIC if uk_type is not None else Optimizer.SOFTMAX
+        run_id = f'os_task[{task_type.name}]_uk[{"None" if uk_type is None else uk_type.name}]_loss[{loss_fc.name}]'
 
         # Initialize data loader: data splits and loading from images from disk
         loader = DataloaderKinderlabor(task_type=task_type,
@@ -33,7 +32,7 @@ if __name__ == "__main__":
         trainer.predict_on_test_samples()
         visualizer.visualize_prob_histogram(trainer)
         visualizer.visualize_model_errors(trainer)
-        all_trainers.append((uk_type.value, trainer))
+        all_trainers.append((uk_type.value if uk_type is not None else "Softmax", trainer))
         visualizer.visualize_2d_space(trainer)
     visualizer = VisualizerKinderlabor(loader, run_id="os_approaches_osrc")
     visualizer.visualize_open_set_recognition_curve(all_trainers)

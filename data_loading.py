@@ -174,7 +174,7 @@ class DataloaderKinderlabor:
                                                    transform=DataAugmentationUtils.get_augmentations(
                                                        uu_augmentation,
                                                        include_affine=False),
-                                                   target_transform=lambda _: unknown_cls_index)
+                                                   target_transform=lambda _: torch.tensor(unknown_cls_index))
             return ConcatDataset([dataset, fd_set])
         elif unknowns == Unknowns.ALL_OF_TYPE:
             if self.__task_type is None:
