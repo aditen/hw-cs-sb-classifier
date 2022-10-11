@@ -9,7 +9,7 @@ import seaborn as sns
 from data_augmentation import DataAugmentationOptions
 from data_loading import DataloaderKinderlabor
 from grayscale_model import ModelVersion
-from training import TrainerKinderlabor, Optimizer
+from training import TrainerKinderlabor, LossFunction
 from visualizing import VisualizerKinderlabor
 from utils import data_split_dict, short_names_models, short_names_tasks, TaskType, DataSplit, long_names_tasks, \
     long_names_models
@@ -106,7 +106,7 @@ if __name__ == "__main__":
                         # Train model and analyze training progress (mainly when it starts overfitting on validation set)
                         trainer = TrainerKinderlabor(loader, load_model_from_disk=True,
                                                      run_id=run_id,
-                                                     optimizer=Optimizer.SOFTMAX if task_type != TaskType.CROSS else Optimizer.BCE,
+                                                     loss_function=LossFunction.SOFTMAX if task_type != TaskType.CROSS else LossFunction.BCE,
                                                      model_version=model)
                         trainer.train_model(n_epochs=75)
                         visualizer.visualize_training_progress(trainer)

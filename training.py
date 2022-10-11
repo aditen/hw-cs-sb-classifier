@@ -19,7 +19,7 @@ from open_set_loss import EntropicOpenSetLoss, ObjectosphereLoss
 from utils import UtilsKinderlabor
 
 
-class Optimizer(Enum):
+class LossFunction(Enum):
     ENTROPIC = "ENTROPIC"
     OBJECTOSPHERE = "OBJECTOSPHERE"
     SOFTMAX = "SOFTMAX"
@@ -28,7 +28,7 @@ class Optimizer(Enum):
 
 class TrainerKinderlabor:
     def __init__(self, loader: DataloaderKinderlabor, load_model_from_disk=True, run_id=None,
-                 model_version: ModelVersion = ModelVersion.SM, optimizer: Optimizer = None):
+                 model_version: ModelVersion = ModelVersion.SM, loss_function: LossFunction = None):
         UtilsKinderlabor.random_seed()
         self.__model_dir = f'output_visualizations/{run_id if run_id is not None else loader.get_folder_name()}'
         if not os.path.isdir(self.__model_dir):
@@ -39,7 +39,7 @@ class TrainerKinderlabor:
         self.__epochs, self.__train_loss, self.__valid_loss, self.__train_acc, self.__valid_acc = [], [], [], [], []
         self.__test_actual, self.__test_predicted, self.__2d, self.__best_probs, self.__err_samples, self.__performance = \
             [], [], [], [], [], math.nan
-        self.__optimizer = optimizer
+        self.__loss_fc = loss_function
         self.__model_path = f"{self.__model_dir}/model.pt"
 
     def train_model(self, n_epochs=30, lr=0.01, sched=(10, 0.5), n_epochs_wait_early_stop=5):
@@ -56,9 +56,8 @@ class TrainerKinderlabor:
         model = get_model(num_classes=len(self.__loader.get_classes()), model_version=self.__model_version)
         model = model.to(device)
         criterion = self.__get_loss()
-        # Observe that all parameters are being optimized
         optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
-        # Decay LR by a factor of 0.1 every 7 epochs
+        # Decay LR every nth epoch by factor x
         scheduler = lr_scheduler.StepLR(optimizer, step_size=sched[0], gamma=sched[1])
 
         # enable training mode (allow batch norm to be adjusted etc.)
@@ -93,7 +92,7 @@ class TrainerKinderlabor:
                 # forward
                 # track history if only in train
                 outputs, outputs_2d = model(inputs)
-                if self.__optimizer == Optimizer.BCE:
+                if self.__loss_fc == LossFunction.BCE:
                     preds = torch.round(torch.sigmoid(outputs)).flatten()
                     outputs = outputs.flatten()
                     labels = labels.float()
@@ -126,7 +125,7 @@ class TrainerKinderlabor:
                     inputs = inputs.to(device)
                     labels = labels.to(device)
                     outputs, outputs_2d = model(inputs)
-                    if self.__optimizer == Optimizer.BCE:
+                    if self.__loss_fc == LossFunction.BCE:
                         preds = torch.round(torch.sigmoid(outputs)).flatten()
                         outputs = outputs.flatten()
                         labels = labels.float()
@@ -187,7 +186,7 @@ class TrainerKinderlabor:
                 inputs = inputs.to(device)
                 labels = labels.to(device)
                 outputs, outputs_2d = model(inputs)
-                if self.__optimizer == Optimizer.BCE:
+                if self.__loss_fc == LossFunction.BCE:
                     probs = torch.sigmoid(outputs)
                     preds = torch.round(probs).flatten()
                     probs = torch.max(torch.ones(probs.shape).to(device) - probs, probs).flatten().tolist()
@@ -255,13 +254,13 @@ class TrainerKinderlabor:
         print(f'Scripted model and written synset')
 
     def __get_loss(self):
-        if self.__optimizer == Optimizer.SOFTMAX or self.__optimizer is None:
+        if self.__loss_fc == LossFunction.SOFTMAX or self.__loss_fc is None:
             return nn.CrossEntropyLoss(reduction='mean')
-        elif self.__optimizer == Optimizer.BCE:
+        elif self.__loss_fc == LossFunction.BCE:
             return nn.BCEWithLogitsLoss(reduction='mean')
-        elif self.__optimizer == Optimizer.ENTROPIC:
+        elif self.__loss_fc == LossFunction.ENTROPIC:
             return EntropicOpenSetLoss(num_of_classes=len(self.__loader.get_classes()))
-        elif self.__optimizer == Optimizer.OBJECTOSPHERE:
+        elif self.__loss_fc == LossFunction.OBJECTOSPHERE:
             return ObjectosphereLoss(num_of_classes=len(self.__loader.get_classes()))
         else:
-            raise ValueError(f"Unsupported optimizer option: {self.__optimizer}")
+            raise ValueError(f"Unsupported optimizer option: {self.__loss_fc}")

@@ -6,6 +6,7 @@ from mpl_toolkits.axes_grid1 import ImageGrid
 
 from data_loading import DataloaderKinderlabor
 
+# TODO: move to run_visualize_samples as an own row
 if __name__ == "__main__":
     df = DataloaderKinderlabor.full_anonymized_df()
     classes = df['class'].unique()
