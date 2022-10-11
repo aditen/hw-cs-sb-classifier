@@ -12,7 +12,7 @@ from torchvision.datasets import ImageFolder
 from data_augmentation import DataAugmentationOptions, DataAugmentationUtils
 from utils import UtilsKinderlabor, data_split_dict, TaskType, DataSplit, Unknowns
 
-
+# TODO: finish S2 unknown strategy! only allow if both unknowns are S2 and bypass in other cases
 class DataloaderKinderlabor:
     BASE_FOLDER = "./kinderlabor_dataset/"
     IMG_CSV_FOLDER = BASE_FOLDER
@@ -35,8 +35,10 @@ class DataloaderKinderlabor:
 
         self.__mean, self.__std = math.nan, math.nan
 
+        self.__df_with_uk = self.__df
         if self.__task_type is not None:
             self.__df = self.__df.loc[(self.__df['type'] == self.__task_type.value)]
+            self.__df_with_uk = self.__df
         if filter_not_readable:
             self.__df = self.__df.loc[(self.__df['label'] != "NOT_READABLE")]
 
@@ -118,8 +120,31 @@ class DataloaderKinderlabor:
         return self.__dataset_folder_name
 
     def __initialize_dataset_folder(self):
+        need_to_check_uk_folders = self.__known_unknowns == Unknowns.HOLD_OUT_CLASSES and self.__unknown_unknowns == Unknowns.HOLD_OUT_CLASSES
+        uk_dir = f'{DataloaderKinderlabor.BASE_FOLDER}unknowns_hold_out'
+        if need_to_check_uk_folders and (self.__force_reload_data or not os.path.isdir(uk_dir)):
+            if self.__task_type is None:
+                raise ValueError('Combination not possible! Unknowns are task specific!')
+            train_df = self.__df_with_uk.loc[
+                (self.__df_with_uk['label'] == "NOT_READABLE") & (self.__df_with_uk['S2'] == 'train')]
+            valid_df = self.__df_with_uk.loc[
+                (self.__df_with_uk['label'] == "NOT_READABLE") & (self.__df_with_uk['S2'] == 'valid')]
+            test_df = self.__df_with_uk.loc[
+                (self.__df_with_uk['label'] == "NOT_READABLE") & (self.__df_with_uk['S2'] == 'test')]
+            for set_name in ["train_set", "validation_set", "test_set"]:
+                set_folder = f'{uk_dir}/{set_name}'
+                if os.path.exists(set_folder):
+                    shutil.rmtree(set_folder)
+                os.makedirs(set_folder)
+
+            for set_name, set_df in [("train_set", train_df),
+                                     ("validation_set", valid_df),
+                                     ("test_set", test_df)]:
+                UtilsKinderlabor.copy_to_label_folders(base_origin_folder=DataloaderKinderlabor.IMG_CSV_FOLDER,
+                                                       base_target_folder=f'{uk_dir}/{set_name}/',
+                                                       df=set_df)
         if self.__force_reload_data or not os.path.isdir(
-                DataloaderKinderlabor.BASE_FOLDER + self.__dataset_folder_name):
+                f'{DataloaderKinderlabor.BASE_FOLDER}{self.__dataset_folder_name}'):
             print(f'Creating dataset folder {self.__dataset_folder_name}')
             # create/drop folders and then move samples
             for set_name in ["train_set", "validation_set", "test_set"]:
