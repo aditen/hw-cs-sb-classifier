@@ -13,7 +13,6 @@ from data_augmentation import DataAugmentationOptions, DataAugmentationUtils
 from utils import UtilsKinderlabor, data_split_dict, TaskType, DataSplit, Unknowns
 
 
-# TODO: finish S2 unknown strategy! only allow if both unknowns are S2 and bypass in other cases
 class DataloaderKinderlabor:
     BASE_FOLDER = "./kinderlabor_dataset/"
     IMG_CSV_FOLDER = BASE_FOLDER
@@ -229,6 +228,18 @@ class DataloaderKinderlabor:
             indices = torch.randperm(len(img_folder_uk))[:n_to_add]
             img_folder_uk = Subset(img_folder_uk, indices)
             return ConcatDataset([dataset, img_folder_uk])
+        elif unknowns == Unknowns.HOLD_OUT_CLASSES:
+            if not isinstance(dataset, ImageFolder):
+                raise ValueError("Illegal combination! Need to check original dataset for instance (train/test/valid)")
+            root_orig = dataset.root.split("/")
+            set_folder = root_orig[len(root_orig) - 1]
+            img_folder_uk = ImageFolder(
+                f"{DataloaderKinderlabor.BASE_FOLDER}unknowns_hold_out/{set_folder}",
+                DataAugmentationUtils.get_augmentations(self.__augmentation_options,
+                                                        include_affine=set_folder == 'train_set'),
+                target_transform=lambda _: unknown_cls_index)
+            return ConcatDataset([dataset, img_folder_uk])
+
         else:
             raise ValueError(f'Unknowns {self.__known_unknowns} not yet supported!')
 

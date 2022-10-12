@@ -46,7 +46,7 @@ class VisualizerKinderlabor:
         self.__data_loader = data_loader
         self.__save_plots_to_disk = save_plots_to_disk
 
-    def visualize_some_samples(self):
+    def visualize_some_train_samples(self):
         train_loader, valid_loader, test_loader = self.__data_loader.get_data_loaders()
         mean, std = self.__data_loader.get_mean_std()
         # Get a batch of training data
@@ -199,7 +199,7 @@ class VisualizerKinderlabor:
             print("Loaders are different! Please check you provide the right instance to the visualizer!")
             return
 
-        probs_known = [prob for (prob, act) in zip(best_probs, actual) if act != -1]
+        probs_known = [prob for (prob, act, pred) in zip(best_probs, actual, predicted) if (act != -1 and act == pred)]
         probs_unknown = [prob for (prob, act) in zip(best_probs, actual) if act == -1]
 
         plt.hist(probs_known, bins=50, label="Known", histtype='step', color='green')

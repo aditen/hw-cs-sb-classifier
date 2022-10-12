@@ -34,12 +34,8 @@ So far, the code has these main parts:
 
 # :ledger: TODOs
 
-- Open Set Experiments
-    - Compare Entropic to SoftMax for with different splits (for known as well as unknowns)
-    - Allow split of training/test set as in S2 (S1 and S3 does not really make sense)
 - Minor code adaptions
-    - In data collection methodology comparison: Add table with classes and number of samples
-    - Discuss with profs whether SimpleNet should have two versions: one with 2D bottleneck and other? -> Adapt code
-    - Visualization of dataset could be stored per split and not per run (class distribution and some samples for 1
-      baseline run per type and split)
+    - In data collection methodology comparison: 
+      - Add table with classes and number of samples
+      - Add second table with splits and number of samples for appendix
     - Larger axis name font and add option to not display titles in visualizer (as this is the caption in thesis)
