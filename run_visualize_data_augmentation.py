@@ -10,24 +10,24 @@ from data_loading import DataloaderKinderlabor
 
 vis_augs = [DataAugmentationOptions(to_tensor=False, grayscale=False, invert=False),
             DataAugmentationOptions(to_tensor=False, invert=False),
+            DataAugmentationOptions(to_tensor=False),
+            DataAugmentationOptions(to_tensor=True, gaussian_noise_sigma=0.025),
+            DataAugmentationOptions(to_tensor=True, gaussian_noise_sigma=0.05),
+            DataAugmentationOptions(to_tensor=True, gaussian_noise_sigma=0.1),
             DataAugmentationOptions(to_tensor=False, auto_contrast=True),
             DataAugmentationOptions(to_tensor=False, equalize=True),
             DataAugmentationOptions(to_tensor=False, rotate=(-90, 90)),
             DataAugmentationOptions(to_tensor=False, translate=(0.5, 0.5)),
             DataAugmentationOptions(to_tensor=False, scale=(0.5, 1.5)),
-            DataAugmentationOptions(to_tensor=False, crop_center=True),
-            DataAugmentationOptions(to_tensor=True, gaussian_noise_sigma=0.15),
-            DataAugmentationOptions(to_tensor=True, auto_contrast=True, gaussian_noise_sigma=0.15)]
-titles = ["Original", "Grayscale", "Contrast", "Equalize", "Rotate", "Translate", "Scale", "Crop", "Noise",
-          "Noise+AC"]
+            DataAugmentationOptions(to_tensor=False, crop_center=True)]
+titles = ["Original", "Grayscale", "Invert", "Noise 1", "Noise 2", "Noise 3", "Contrast", "Equalize", "Rotate",
+          "Translate", "Scale", "Crop"]
 
 all_ids_to_show = [312, 1089, 31382, 34428, 43024, 1299]
 
 if __name__ == "__main__":
-    full_df = DataloaderKinderlabor.full_anonymized_df()
-    filtered_df = full_df.iloc[all_ids_to_show]
     raw_imgs = []
-    for i, _ in filtered_df.iterrows():
+    for i in all_ids_to_show:
         raw_imgs.append(Image.open(f'{DataloaderKinderlabor.IMG_CSV_FOLDER}{i}.jpeg'))
 
     n_cols = len(vis_augs)

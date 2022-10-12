@@ -35,6 +35,7 @@ So far, the code has these main parts:
 # :ledger: TODOs
 
 - Minor code adaptions
+    - Add running.py with Runner class where experiments can be run and one single run_script with arg parser flags 
     - In data collection methodology comparison: 
       - Add table with classes and number of samples
       - Add second table with splits and number of samples for appendix

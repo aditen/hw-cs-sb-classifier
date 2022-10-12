@@ -295,7 +295,8 @@ class VisualizerKinderlabor:
                 if model_idx == 0:
                     ax.set_ylabel('Error Rate (%)')
                 else:
-                    ax.set_ylabel(None)
+                    ax.set_ylabel('Error Rate (%)')
+                #    ax.set_ylabel(None)
                 model_idx += 1
 
         # add legend
