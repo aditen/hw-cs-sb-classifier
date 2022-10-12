@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
         ims = []
         for i, row in uk_df.iterrows():
-            ims.append(Image.open(f'{DataloaderKinderlabor.IMG_CSV_FOLDER}{row["id"]}.jpeg'))
+            ims.append(Image.open(f'{DataloaderKinderlabor.IMG_CSV_FOLDER}{i}.jpeg'))
 
         n_imgs_to_display = int(math.floor(len(ims) / 4) * 4)
         print(f'Displaying {n_imgs_to_display} out of {len(ims)} images')
