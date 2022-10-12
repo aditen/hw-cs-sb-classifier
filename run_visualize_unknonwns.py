@@ -9,9 +9,6 @@ from data_loading import DataloaderKinderlabor
 # TODO: move to run_visualize_samples as an own row
 if __name__ == "__main__":
     df = DataloaderKinderlabor.full_anonymized_df()
-    classes = df['class'].unique()
-    print(f'classes currently in df: {classes}')
-
     task_types = df['type'].unique().tolist()
     print(f'task types: {task_types}')
 
@@ -22,8 +19,8 @@ if __name__ == "__main__":
         print(f'Unknowns for task type {task_type}: {len(uk_df)}')
 
         ims = []
-        for i, _ in uk_df.iterrows():
-            ims.append(Image.open(f'{DataloaderKinderlabor.IMG_CSV_FOLDER}{i}.jpeg'))
+        for i, row in uk_df.iterrows():
+            ims.append(Image.open(f'{DataloaderKinderlabor.IMG_CSV_FOLDER}{row["id"]}.jpeg'))
 
         n_imgs_to_display = int(math.floor(len(ims) / 4) * 4)
         print(f'Displaying {n_imgs_to_display} out of {len(ims)} images')
