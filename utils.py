@@ -27,8 +27,8 @@ class UtilsKinderlabor:
             if not os.path.isdir(label_folder):
                 os.mkdir(label_folder)
         for idx, row in df.iterrows():
-            shutil.copy(f'{base_origin_folder}{str(row["id"])}.jpeg',
-                        f'{base_target_folder}{row["label"]}/{str(row["id"])}.jpeg')
+            shutil.copy(f'{base_origin_folder}{str(idx)}.jpeg',
+                        f'{base_target_folder}{row["label"]}/{str(idx)}.jpeg')
 
 
 class_name_dict = {"TURN_RIGHT": "↷", "TURN_LEFT": "↶",

@@ -6,6 +6,7 @@ venv/
 output_visualizations/*
 !output_visualizations/.gitkeep
 kinderlabor_dataset/*
+kinderlabor_dataset_bu
 !kinderlabor_dataset/.gitkeep
 !kinderlabor_dataset/*.jpeg
 !kinderlabor_dataset/dataset_anonymized.csv

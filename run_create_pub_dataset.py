@@ -71,7 +71,8 @@ if __name__ == "__main__":
             full_df.loc[test.index, data_split_dict[split]] = "test"
 
     full_df = full_df.drop(['request', 'student', 'class', 'sheet', 'field', 'exercise'], axis=1)
-    full_df.to_csv('./kinderlabor_dataset/dataset_anonymized.csv', sep=";")
+    full_df.to_csv('./kinderlabor_dataset/dataset_anonymized.csv', sep=";", index_label="id")
 
     for idx, row in full_df.iterrows():
-        shutil.copy(f'C:/Users/41789/Documents/uni/ma/kinderlabor_unterlagen/train_data/20220925_corr_v2/{idx}.jpeg', f'./kinderlabor_dataset/{row["id"]}.jpeg')
+        shutil.copy(f'C:/Users/41789/Documents/uni/ma/kinderlabor_unterlagen/train_data/20220925_corr_v2/{idx}.jpeg',
+                    f'./kinderlabor_dataset/{idx}.jpeg')

@@ -12,6 +12,7 @@ from torchvision.datasets import ImageFolder
 from data_augmentation import DataAugmentationOptions, DataAugmentationUtils
 from utils import UtilsKinderlabor, data_split_dict, TaskType, DataSplit, Unknowns
 
+
 # TODO: finish S2 unknown strategy! only allow if both unknowns are S2 and bypass in other cases
 class DataloaderKinderlabor:
     BASE_FOLDER = "./kinderlabor_dataset/"
@@ -234,7 +235,7 @@ class DataloaderKinderlabor:
     @staticmethod
     def full_anonymized_df(include_inspects=False):
         df = pd.read_csv(
-            f'./kinderlabor_dataset/dataset_anonymized.csv', sep=";")
+            f'./kinderlabor_dataset/dataset_anonymized.csv', sep=";", index_col="id")
         if include_inspects is not True:
             df = df[df['label'] != 'INSPECT']
         return df
@@ -243,7 +244,7 @@ class DataloaderKinderlabor:
     def raw_herby_df():
         df = pd.read_csv(
             'C:/Users/41789/Documents/uni/ma/kinderlabor_unterlagen/train_data/20220925_corr_v2/dataset.csv',
-            sep=";")
+            sep=";", index_col="id")
         # filter exercise that was different in print than in Herby version
         df = df[(df['exercise'] != '12e') & (df['exercise'] != '12f')]
         # filter Kinderlabor 4 because drawing fields there are no type, just some random unknowns basically
