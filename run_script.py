@@ -8,6 +8,8 @@ if __name__ == "__main__":
                         help='Plot examples from the Tasks in the Dataset')
     parser.add_argument('--compare-model-sizes', default=False, action='store_true',
                         help='Compare Model Sizes')
+    parser.add_argument('--compare-data-collection', default=False, action='store_true',
+                        help='Compare Data Collection Methodologies. WARNING: REQUIRES PSEUDONYMOUS DATASET!')
     parser.add_argument('--plot-augmentations', default=False, action='store_true',
                         help='Plot Augmentations on selected Samples from the Dataset')
     parser.add_argument('--train-baseline', default=False, action='store_true',
@@ -19,6 +21,8 @@ if __name__ == "__main__":
         RunnerKinderlabor.plot_examples()
     if parsed_args.compare_model_sizes:
         RunnerKinderlabor.compare_model_sizes()
+    if parsed_args.compare_data_collection:
+        RunnerKinderlabor.compare_data_collection()
     if parsed_args.plot_augmentations:
         RunnerKinderlabor.plot_augmentations()
     if parsed_args.train_baseline:

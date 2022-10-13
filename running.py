@@ -128,6 +128,26 @@ class RunnerKinderlabor:
         plt.show()
 
     @staticmethod
+    def compare_data_collection():
+        if not os.path.isfile('C:/Users/41789/Documents/uni/ma/kinderlabor_unterlagen/train_data/20220925_corr_v2/dataset.csv'):
+            raise ValueError('Did not find non-anonymized dataset on your machine! Please contact the admins')
+        df = DataloaderKinderlabor.raw_herby_df()
+        classes = df['class'].unique()
+        print(f'classes currently in df: {classes}')
+        sheets = df['sheet'].unique()
+        print(f'Sheets in df: {sheets}')
+
+        task_types = df['type'].unique().tolist()
+        print(f'task types: {task_types}')
+
+        sheet_df = df[(df['sheet'] == 'Datensammelblatt Kinderlabor')
+                      | (df['sheet'] == 'Data Collection 1. Klasse')]
+        single_booklet_df = df[(df['student'] == 'Laura_Heft_komplett_Test')]
+        mini_booklet_df = df[(df['sheet'].str.startswith('Mini-Booklet'))]
+        booklet_df = df[df['sheet'].str.startswith("Kinderlabor")]
+        VisualizerKinderlabor.visualize_methodology_comparison(sheet_df, single_booklet_df, mini_booklet_df, booklet_df)
+
+    @staticmethod
     def train_baseline():
         run_configs = [
             ("none", DataAugmentationOptions.none_aug()),
