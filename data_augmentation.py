@@ -82,6 +82,13 @@ class DataAugmentationUtils:
     def __get_transforms(options: DataAugmentationOptions):
         transforms_list = []
 
+        # covert to tensor (but not if visualizing pil image)
+        if options.to_tensor:
+            transforms_list.append(transforms.ToTensor())
+
+        if options.gaussian_noise_sigma is not None and options.gaussian_noise_sigma != 0.:
+            transforms_list.append(GaussianNoise(options.gaussian_noise_sigma))
+
         # because it is not necessary for all the unknown data sets, some are already gray scaled
         if options.grayscale:
             transforms_list.append(transforms.Grayscale())
@@ -137,13 +144,6 @@ class DataAugmentationUtils:
 
         if isinstance(options.normalize, tuple):
             transforms_list.append(transforms.Normalize(mean=[options.normalize[0]], std=[options.normalize[1]]))
-
-        # covert to tensor (but not if visualizing pil image)
-        if options.to_tensor:
-            transforms_list.append(transforms.ToTensor())
-
-        if options.gaussian_noise_sigma is not None and options.gaussian_noise_sigma != 0.:
-            transforms_list.append(GaussianNoise(options.gaussian_noise_sigma))
 
         return transforms_list
 
