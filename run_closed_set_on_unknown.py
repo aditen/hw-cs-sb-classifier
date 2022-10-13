@@ -1,7 +1,7 @@
 from data_augmentation import DataAugmentationOptions
 from data_loading import DataloaderKinderlabor
 from grayscale_model import ModelVersion
-from run_baseline import get_run_id
+from running import get_run_id
 from utils import TaskType, DataSplit, Unknowns, long_names_tasks
 from training import TrainerKinderlabor, LossFunction
 from visualizing import VisualizerKinderlabor
