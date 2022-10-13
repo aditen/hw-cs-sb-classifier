@@ -8,9 +8,11 @@ import matplotlib.colors
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from PIL import Image
 from matplotlib import pyplot as plt
 from matplotlib.gridspec import GridSpecFromSubplotSpec
 from matplotlib.ticker import MaxNLocator
+from mpl_toolkits.axes_grid1 import ImageGrid
 from sklearn.metrics import ConfusionMatrixDisplay, balanced_accuracy_score
 from tqdm import tqdm
 
@@ -305,3 +307,21 @@ class VisualizerKinderlabor:
         fig.tight_layout()
         plt.show()
         fig.savefig("./output_visualizations/base_plot.pdf", dpi=75)
+
+    @staticmethod
+    def plot_samples(indices, n_cols, n_rows):
+        ims = []
+        for idx in indices:
+            ims.append(Image.open(f'{DataloaderKinderlabor.IMG_CSV_FOLDER}{idx}.jpeg'))
+
+        fig = plt.figure(figsize=(n_cols, n_rows))
+        grid = ImageGrid(fig, 111, nrows_ncols=(n_rows, n_cols), axes_pad=0.1, share_all=True)
+
+        for ax, im in zip(grid, ims):
+            im = im.resize((32, 32))
+            ax.imshow(im)
+            ax.get_xaxis().set_ticks([])
+            ax.get_yaxis().set_ticks([])
+
+        fig.tight_layout()
+        return fig
