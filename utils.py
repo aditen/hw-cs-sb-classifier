@@ -8,15 +8,14 @@ import pandas as pd
 import torch
 
 from grayscale_model import ModelVersion
-from training import LossFunction
 
 
 class UtilsKinderlabor:
     @staticmethod
-    def random_seed():
-        random.seed(42)
-        torch.manual_seed(42)
-        np.random.seed(42)
+    def random_seed(seed=42):
+        random.seed(seed)
+        torch.manual_seed(seed)
+        np.random.seed(seed)
 
     @staticmethod
     def copy_to_label_folders(base_origin_folder, base_target_folder, df: pd.DataFrame):
@@ -52,6 +51,14 @@ short_names_models = {
     ModelVersion.LE_NET: "lenet",
     ModelVersion.SM: "slim_simpnet"
 }
+
+
+class LossFunction(Enum):
+    ENTROPIC = "ENTROPIC"
+    OBJECTOSPHERE = "OBJECTOSPHERE"
+    SOFTMAX = "SOFTMAX"
+    BCE = "BCE"
+
 
 short_names_losses = {
     LossFunction.BCE: "BCE",

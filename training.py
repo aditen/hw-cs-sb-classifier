@@ -1,7 +1,6 @@
 import copy
 import math
 import os
-from enum import Enum
 
 import torch
 from sklearn.metrics import f1_score, balanced_accuracy_score
@@ -16,14 +15,7 @@ from data_augmentation import DataAugmentationUtils
 from data_loading import DataloaderKinderlabor
 from grayscale_model import ModelVersion, get_model
 from open_set_loss import EntropicOpenSetLoss, ObjectosphereLoss
-from utils import UtilsKinderlabor
-
-
-class LossFunction(Enum):
-    ENTROPIC = "ENTROPIC"
-    OBJECTOSPHERE = "OBJECTOSPHERE"
-    SOFTMAX = "SOFTMAX"
-    BCE = "BCE"
+from utils import UtilsKinderlabor, LossFunction
 
 
 class TrainerKinderlabor:

@@ -12,9 +12,9 @@ from tabulate import tabulate
 from data_augmentation import DataAugmentationOptions, DataAugmentationUtils
 from data_loading import DataloaderKinderlabor
 from grayscale_model import ModelVersion, get_model
-from training import TrainerKinderlabor, LossFunction
+from training import TrainerKinderlabor
 from utils import TaskType, DataSplit, data_split_dict, short_names_tasks, short_names_models, long_names_tasks, \
-    Unknowns, short_names_losses
+    Unknowns, short_names_losses, LossFunction
 from visualizing import VisualizerKinderlabor
 
 csv_path_baseline = './output_visualizations/runs_base.csv'
@@ -35,13 +35,33 @@ class RunnerKinderlabor:
     @staticmethod
     def create_dataset_folders():
         for data_split in DataSplit:
+            # avoid double work forced
+            if data_split == DataSplit.HOLD_OUT_CLASSES:
+                continue
             for task_type in TaskType:
-                loader = DataloaderKinderlabor(task_type=task_type, data_split=data_split)
+                loader = DataloaderKinderlabor(task_type=task_type, data_split=data_split, force_reload_data=True)
                 visualizer = VisualizerKinderlabor(loader,
                                                    run_id=f"data_split[{data_split_dict[data_split]}]"
                                                           f"_task[{long_names_tasks[task_type]}]")
                 visualizer.visualize_class_distributions()
                 visualizer.visualize_some_train_samples()
+        # create unknown folders
+        for task_type in TaskType:
+            DataloaderKinderlabor(task_type=task_type, force_reload_data=True,
+                                  data_split=DataSplit.HOLD_OUT_CLASSES,
+                                  known_unknowns=Unknowns.ALL_OF_TYPE)
+            DataloaderKinderlabor(task_type=task_type, force_reload_data=True,
+                                  data_split=DataSplit.HOLD_OUT_CLASSES,
+                                  known_unknowns=Unknowns.HOLD_OUT_CLASSES,
+                                  unknown_unknowns=Unknowns.HOLD_OUT_CLASSES)
+        # load other unknown datasets if not yet on disk - no force as kinderlabor ones are already created!
+        for uk_type in Unknowns:
+            if uk_type == Unknowns.HOLD_OUT_CLASSES or uk_type == Unknowns.HOLD_OUT_CLASSES:
+                continue
+            DataloaderKinderlabor(task_type=TaskType.COMMAND, force_reload_data=False,
+                                  data_split=DataSplit.HOLD_OUT_CLASSES,
+                                  known_unknowns=uk_type,
+                                  unknown_unknowns=uk_type)
 
     @staticmethod
     def plot_examples():

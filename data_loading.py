@@ -6,7 +6,7 @@ import shutil
 import pandas as pd
 import torch
 import torchvision.datasets
-from torch.utils.data import DataLoader, Dataset, Subset, ConcatDataset
+from torch.utils.data import DataLoader, Subset, ConcatDataset
 from torchvision.datasets import ImageFolder
 
 from data_augmentation import DataAugmentationOptions, DataAugmentationUtils
@@ -119,11 +119,14 @@ class DataloaderKinderlabor:
         return self.__dataset_folder_name
 
     def __initialize_dataset_folder(self):
-        need_to_check_uk_folders = self.__known_unknowns == Unknowns.HOLD_OUT_CLASSES and self.__unknown_unknowns == Unknowns.HOLD_OUT_CLASSES
-        uk_dir = f'{DataloaderKinderlabor.BASE_FOLDER}unknowns_hold_out'
+        need_to_check_uk_folders = self.__known_unknowns == Unknowns.HOLD_OUT_CLASSES or \
+                                   self.__unknown_unknowns == Unknowns.HOLD_OUT_CLASSES
+        uk_dir = f'{DataloaderKinderlabor.BASE_FOLDER}unknowns_hold_out_' \
+                 f'{"" if self.__task_type is None else self.__task_type.value}'
         if need_to_check_uk_folders and (self.__force_reload_data or not os.path.isdir(uk_dir)):
             if self.__task_type is None:
                 raise ValueError('Combination not possible! Unknowns are task specific!')
+            print(f'Creating unknowns hold out folder for task type {self.__task_type.value}')
             train_df = self.__df_with_uk.loc[
                 (self.__df_with_uk['label'] == "NOT_READABLE") & (self.__df_with_uk['S2'] == 'train')]
             valid_df = self.__df_with_uk.loc[
@@ -158,11 +161,16 @@ class DataloaderKinderlabor:
                 UtilsKinderlabor.copy_to_label_folders(base_origin_folder=DataloaderKinderlabor.IMG_CSV_FOLDER,
                                                        base_target_folder=f'{DataloaderKinderlabor.BASE_FOLDER}{self.__dataset_folder_name}/{set_name}/',
                                                        df=set_df)
-        else:
-            print(f"Skipping dataset folder generation, loading from folder {self.__dataset_folder_name}")
 
-    def __add_unknowns_to_df(self, dataset: Dataset, unknowns: Unknowns, n_to_add: int, unknown_cls_index: int = -1):
-        UtilsKinderlabor.random_seed()
+    def __add_unknowns_to_df(self, dataset: ImageFolder, unknowns: Unknowns, n_to_add: int,
+                             unknown_cls_index: int = -1):
+        # we seed differently not to have the exact same samples in all sets (when selecting randomly)
+        # but still maintain reproducibility. Some overlaps can be ignored as train = test never happens,
+        # it is mainly relevant for the validation set checking overfitting
+        root_orig = dataset.root.split("/")
+        set_folder = root_orig[len(root_orig) - 1]
+        seed_dict = {"train_set": 1, "validation_set": 55, "test_set": 42}
+        UtilsKinderlabor.random_seed(seed_dict[set_folder])
         uu_augmentation = copy.deepcopy(self.__augmentation_options)
         uu_augmentation.grayscale = False
         uu_augmentation.invert = False
@@ -207,6 +215,7 @@ class DataloaderKinderlabor:
                 (self.__full_df['label'] == 'NOT_READABLE') & (self.__full_df['type'] == self.__task_type.value)]
             uk_dir = f'./kinderlabor_dataset/unknowns_{self.__task_type.value}/'
             if not os.path.isdir(uk_dir):
+                print(f"Creating directory for all unknowns of type {self.__task_type}")
                 os.makedirs(uk_dir)
                 UtilsKinderlabor.copy_to_label_folders(base_origin_folder=DataloaderKinderlabor.IMG_CSV_FOLDER,
                                                        base_target_folder=uk_dir, df=uk_df)
@@ -216,8 +225,6 @@ class DataloaderKinderlabor:
                 target_transform=lambda _: unknown_cls_index)
             return ConcatDataset([dataset, img_folder])
         elif unknowns == Unknowns.GAUSSIAN_NOISE_005 or unknowns == Unknowns.GAUSSIAN_NOISE_015:
-            if not isinstance(dataset, ImageFolder):
-                raise ValueError("Cannot use original data set for gaussian noise as it is no image folder!")
             uu_augmentation.gaussian_noise_sigma = 0.15 if unknowns == Unknowns.GAUSSIAN_NOISE_015 else 0.05
             uu_augmentation.grayscale = True
             uu_augmentation.invert = True
@@ -229,12 +236,9 @@ class DataloaderKinderlabor:
             img_folder_uk = Subset(img_folder_uk, indices)
             return ConcatDataset([dataset, img_folder_uk])
         elif unknowns == Unknowns.HOLD_OUT_CLASSES:
-            if not isinstance(dataset, ImageFolder):
-                raise ValueError("Illegal combination! Need to check original dataset for instance (train/test/valid)")
-            root_orig = dataset.root.split("/")
-            set_folder = root_orig[len(root_orig) - 1]
             img_folder_uk = ImageFolder(
-                f"{DataloaderKinderlabor.BASE_FOLDER}unknowns_hold_out/{set_folder}",
+                f"{DataloaderKinderlabor.BASE_FOLDER}unknowns_hold_out_"
+                f"{'' if self.__task_type is None else self.__task_type.value}/{set_folder}",
                 DataAugmentationUtils.get_augmentations(self.__augmentation_options,
                                                         include_affine=False),
                 target_transform=lambda _: unknown_cls_index)
