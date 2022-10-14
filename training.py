@@ -65,7 +65,7 @@ class TrainerKinderlabor:
         n_epochs_no_improvement = 0
 
         for epoch_i in tqdm(range(n_epochs), unit="epoch", leave=True):
-            if n_epochs_no_improvement > n_epochs_wait_early_stop:
+            if n_epochs_no_improvement >= n_epochs_wait_early_stop:
                 break
             epochs.append(epoch_i + 1)
             running_loss = 0.0

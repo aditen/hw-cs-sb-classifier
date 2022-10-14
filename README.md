@@ -39,7 +39,6 @@ Set CUBLAS_WORKSPACE_CONFIG=:4096:8 in your environment - otherwise the experime
 # :ledger: TODOs
 
 - Minor code adaptions
-    - Migrate remaining run scripts to run_script with arg parser flags
     - In data collection methodology comparison:
         - Add table with classes and number of samples
         - Add second table with splits and number of samples for appendix
