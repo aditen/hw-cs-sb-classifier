@@ -1,5 +1,6 @@
 import math
 import os
+from typing import Optional
 
 import pandas as pd
 import torchvision.transforms
@@ -13,15 +14,21 @@ from data_loading import DataloaderKinderlabor
 from grayscale_model import ModelVersion, get_model
 from training import TrainerKinderlabor, LossFunction
 from utils import TaskType, DataSplit, data_split_dict, short_names_tasks, short_names_models, long_names_tasks, \
-    Unknowns
+    Unknowns, short_names_losses
 from visualizing import VisualizerKinderlabor
 
 csv_path_baseline = './output_visualizations/runs_base.csv'
 
 
-def get_run_id(task_type: TaskType, aug_name: str, data_split: DataSplit, model: ModelVersion):
-    return f"base_task[{short_names_tasks[task_type]}]_aug[{aug_name}]" \
-           f"_split[{data_split_dict[data_split]}]_model[{short_names_models[model]}]"
+def get_default_loss(task_type: TaskType):
+    return LossFunction.BCE if task_type == TaskType.CROSS else LossFunction.SOFTMAX
+
+
+def get_run_id(prefix: str, task_type: TaskType, aug_name: str, data_split: DataSplit, model: ModelVersion,
+               loss: LossFunction, training_unknowns: Optional[Unknowns]):
+    return f"{prefix}_tsk[{short_names_tasks[task_type]}]_agm[{aug_name}]" \
+           f"_spl[{data_split_dict[data_split]}]_mdl[{short_names_models[model]}]_ls[{short_names_losses[loss]}]" \
+           f"_tu[{'none' if training_unknowns is None else training_unknowns.name}]"
 
 
 class RunnerKinderlabor:
@@ -175,7 +182,9 @@ class RunnerKinderlabor:
             for run_config in run_configs:
                 for data_split in DataSplit:
                     for model in [ModelVersion.SM, ModelVersion.LE_NET]:
-                        run_id = get_run_id(task_type, run_config[0], data_split, model)
+                        run_id = get_run_id(prefix="base", task_type=task_type, aug_name=run_config[0],
+                                            data_split=data_split, model=model, loss=get_default_loss(task_type),
+                                            training_unknowns=None)
                         print(
                             f'Running for augmentation {run_config[0]} and data split {data_split.value} '
                             f'and task {task_type.name} using model {model.name}')
@@ -189,9 +198,9 @@ class RunnerKinderlabor:
                         visualizer = VisualizerKinderlabor(loader, run_id=run_id)
 
                         # Train model and analyze training progress (mainly when it starts overfitting on validation set)
-                        trainer = TrainerKinderlabor(loader, load_model_from_disk=True,
-                                                     run_id=run_id,
-                                                     loss_function=LossFunction.SOFTMAX if task_type != TaskType.CROSS else LossFunction.BCE,
+                        trainer = TrainerKinderlabor(loader, run_id,
+                                                     load_model_from_disk=True,
+                                                     loss_function=get_default_loss(task_type),
                                                      model_version=model)
                         trainer.train_model(n_epochs=75)
                         visualizer.visualize_training_progress(trainer)
@@ -225,7 +234,9 @@ class RunnerKinderlabor:
         plot_tuples_all = []
         loader = None
         for task_type in TaskType:
-            run_id = get_run_id(task_type, "geo_ac", DataSplit.HOLD_OUT_CLASSES, ModelVersion.SM)
+            run_id = get_run_id(prefix="base", task_type=task_type, aug_name="geo_ac",
+                                data_split=DataSplit.HOLD_OUT_CLASSES, model=ModelVersion.SM,
+                                loss=get_default_loss(task_type), training_unknowns=None)
 
             # Initialize data loader: data splits and loading from images from disk
             loader = DataloaderKinderlabor(task_type=task_type,
@@ -237,9 +248,9 @@ class RunnerKinderlabor:
             visualizer = VisualizerKinderlabor(loader, run_id=f"{run_id}_open_set")
 
             # Train model and analyze training progress (mainly when it starts overfitting on validation set)
-            trainer = TrainerKinderlabor(loader, load_model_from_disk=True,
-                                         run_id=run_id,
-                                         loss_function=LossFunction.SOFTMAX if task_type != TaskType.CROSS else LossFunction.BCE,
+            trainer = TrainerKinderlabor(loader, run_id,
+                                         load_model_from_disk=True,
+                                         loss_function=get_default_loss(task_type),
                                          model_version=ModelVersion.SM)
             trainer.train_model(n_epochs=75)
             visualizer.visualize_training_progress(trainer)
@@ -257,11 +268,10 @@ class RunnerKinderlabor:
         all_trainers = []
         for uk_type in [None, Unknowns.FAKE_DATA, Unknowns.MNIST, Unknowns.EMNIST_LETTERS, Unknowns.GAUSSIAN_NOISE_015,
                         Unknowns.GAUSSIAN_NOISE_005]:
-            loss_fc = LossFunction.ENTROPIC if uk_type is not None else LossFunction.SOFTMAX
-            run_id = f'os_task[{task_type.name}]_uk[{"None" if uk_type is None else uk_type.name}]_loss[{loss_fc.name}]'
-            if uk_type is None:
-                # reuses baseline model as hyperparameters (epochs, early stopping) were slightly different
-                run_id = get_run_id(task_type, "geo_ac", DataSplit.HOLD_OUT_CLASSES, ModelVersion.SM)
+            loss_fc = LossFunction.ENTROPIC if uk_type is not None else get_default_loss(task_type)
+            run_id = get_run_id(prefix="base" if uk_type is None else "os", task_type=task_type, aug_name="geo_ac",
+                                data_split=DataSplit.HOLD_OUT_CLASSES, model=ModelVersion.SM,
+                                loss=get_default_loss(task_type), training_unknowns=uk_type)
 
             # Initialize data loader: data splits and loading from images from disk
             loader = DataloaderKinderlabor(task_type=task_type,
@@ -272,10 +282,12 @@ class RunnerKinderlabor:
 
             # visualize class distribution and some (train) samples
             visualizer = VisualizerKinderlabor(loader, run_id=run_id)
+            if uk_type is not None:
+                visualizer.visualize_some_train_samples()
 
             # Train model and analyze training progress (mainly when it starts overfitting on validation set)
-            trainer = TrainerKinderlabor(loader, load_model_from_disk=True,
-                                         run_id=run_id,
+            trainer = TrainerKinderlabor(loader, run_id,
+                                         load_model_from_disk=True,
                                          model_version=ModelVersion.SM,
                                          loss_function=loss_fc)
             trainer.train_model(n_epochs=125, sched=(50, 0.5), n_epochs_wait_early_stop=25)

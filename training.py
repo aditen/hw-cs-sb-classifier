@@ -27,11 +27,11 @@ class LossFunction(Enum):
 
 
 class TrainerKinderlabor:
-    def __init__(self, loader: DataloaderKinderlabor, load_model_from_disk=True, run_id=None,
+    def __init__(self, loader: DataloaderKinderlabor, run_id: str, load_model_from_disk=True,
                  model_version: ModelVersion = ModelVersion.SM, loss_function: LossFunction = None):
-        self.__model_dir = f'output_visualizations/{run_id if run_id is not None else loader.get_folder_name()}'
+        self.__model_dir = f'output_visualizations/{run_id}'
         if not os.path.isdir(self.__model_dir):
-            os.mkdir(self.__model_dir)
+            os.makedirs(self.__model_dir)
         self.__model_version = model_version
         self.__loader = loader
         self.__load_model_from_disk = load_model_from_disk

@@ -8,6 +8,7 @@ import pandas as pd
 import torch
 
 from grayscale_model import ModelVersion
+from training import LossFunction
 
 
 class UtilsKinderlabor:
@@ -50,6 +51,13 @@ short_names_models = {
     ModelVersion.LG: "simpnet",
     ModelVersion.LE_NET: "lenet",
     ModelVersion.SM: "slim_simpnet"
+}
+
+short_names_losses = {
+    LossFunction.BCE: "BCE",
+    LossFunction.SOFTMAX: "SM",
+    LossFunction.ENTROPIC: "EOS",
+    LossFunction.OBJECTOSPHERE: "OOS"
 }
 
 long_names_models = {
