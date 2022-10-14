@@ -259,6 +259,9 @@ class RunnerKinderlabor:
                         Unknowns.GAUSSIAN_NOISE_005]:
             loss_fc = LossFunction.ENTROPIC if uk_type is not None else LossFunction.SOFTMAX
             run_id = f'os_task[{task_type.name}]_uk[{"None" if uk_type is None else uk_type.name}]_loss[{loss_fc.name}]'
+            if uk_type is None:
+                # reuses baseline model as hyperparameters (epochs, early stopping) were slightly different
+                run_id = get_run_id(task_type, "geo_ac", DataSplit.HOLD_OUT_CLASSES, ModelVersion.SM)
 
             # Initialize data loader: data splits and loading from images from disk
             loader = DataloaderKinderlabor(task_type=task_type,

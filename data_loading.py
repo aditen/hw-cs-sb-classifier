@@ -219,6 +219,8 @@ class DataloaderKinderlabor:
             if not isinstance(dataset, ImageFolder):
                 raise ValueError("Cannot use original data set for gaussian noise as it is no image folder!")
             uu_augmentation.gaussian_noise_sigma = 0.15 if unknowns == Unknowns.GAUSSIAN_NOISE_015 else 0.05
+            uu_augmentation.grayscale = True
+            uu_augmentation.invert = True
             img_folder_uk = ImageFolder(dataset.root,
                                         transform=DataAugmentationUtils.get_augmentations(uu_augmentation,
                                                                                           include_affine=False),
@@ -234,7 +236,7 @@ class DataloaderKinderlabor:
             img_folder_uk = ImageFolder(
                 f"{DataloaderKinderlabor.BASE_FOLDER}unknowns_hold_out/{set_folder}",
                 DataAugmentationUtils.get_augmentations(self.__augmentation_options,
-                                                        include_affine=set_folder == 'train_set'),
+                                                        include_affine=False),
                 target_transform=lambda _: unknown_cls_index)
             return ConcatDataset([dataset, img_folder_uk])
         else:
