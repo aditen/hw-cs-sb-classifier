@@ -29,7 +29,6 @@ class LossFunction(Enum):
 class TrainerKinderlabor:
     def __init__(self, loader: DataloaderKinderlabor, load_model_from_disk=True, run_id=None,
                  model_version: ModelVersion = ModelVersion.SM, loss_function: LossFunction = None):
-        UtilsKinderlabor.random_seed()
         self.__model_dir = f'output_visualizations/{run_id if run_id is not None else loader.get_folder_name()}'
         if not os.path.isdir(self.__model_dir):
             os.mkdir(self.__model_dir)
@@ -43,6 +42,7 @@ class TrainerKinderlabor:
         self.__model_path = f"{self.__model_dir}/model.pt"
 
     def train_model(self, n_epochs=30, lr=0.01, sched=(10, 0.5), n_epochs_wait_early_stop=5):
+        UtilsKinderlabor.random_seed()
         if self.__load_model_from_disk and os.path.isfile(self.__model_path):
             print("Found model already on disk. Set load_model_from_disk=False on function call to force training!")
             return

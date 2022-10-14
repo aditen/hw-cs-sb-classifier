@@ -19,7 +19,7 @@ from tqdm import tqdm
 from data_loading import DataloaderKinderlabor
 from grayscale_model import ModelVersion
 from training import TrainerKinderlabor
-from utils import class_name_dict
+from utils import class_name_dict, UtilsKinderlabor
 from utils import short_names_tasks, TaskType, long_names_tasks, \
     long_names_models
 
@@ -168,6 +168,7 @@ class VisualizerKinderlabor:
         plt.show()
 
     def visualize_2d_space(self, trainer: TrainerKinderlabor):
+        UtilsKinderlabor.random_seed()
         actual, predicted, best_probs, _, coords, loader, __ = trainer.get_predictions()
         if loader != self.__data_loader:
             print("Loaders are different! Please check you provide the right instance to the visualizer!")

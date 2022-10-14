@@ -21,7 +21,6 @@ class DataloaderKinderlabor:
                  task_type: TaskType = None, data_split: DataSplit = None, filter_not_readable=True,
                  force_reload_data=False, known_unknowns: Unknowns = None, unknown_unknowns: Unknowns = None,
                  batch_size_train=64, batch_size_valid_test=32):
-        UtilsKinderlabor.random_seed()
         self.__augmentation_options = augmentation_options
         self.__task_type = task_type
         self.__data_split = data_split
@@ -163,6 +162,7 @@ class DataloaderKinderlabor:
             print(f"Skipping dataset folder generation, loading from folder {self.__dataset_folder_name}")
 
     def __add_unknowns_to_df(self, dataset: Dataset, unknowns: Unknowns, n_to_add: int, unknown_cls_index: int = -1):
+        UtilsKinderlabor.random_seed()
         uu_augmentation = copy.deepcopy(self.__augmentation_options)
         uu_augmentation.grayscale = False
         uu_augmentation.invert = False
@@ -194,7 +194,6 @@ class DataloaderKinderlabor:
             fm_set = Subset(fm_set, indices)
             return ConcatDataset([dataset, fm_set])
         elif unknowns == Unknowns.FAKE_DATA:
-            UtilsKinderlabor.random_seed()
             fd_set = torchvision.datasets.FakeData(size=n_to_add, image_size=(1, 32, 32),
                                                    transform=DataAugmentationUtils.get_augmentations(
                                                        uu_augmentation,
@@ -216,14 +215,13 @@ class DataloaderKinderlabor:
                                                                 include_affine=False),
                 target_transform=lambda _: unknown_cls_index)
             return ConcatDataset([dataset, img_folder])
-        elif unknowns == Unknowns.GAUSSIAN_NOISE_03 or unknowns == Unknowns.GAUSSIAN_NOISE_015:
+        elif unknowns == Unknowns.GAUSSIAN_NOISE_005 or unknowns == Unknowns.GAUSSIAN_NOISE_015:
             if not isinstance(dataset, ImageFolder):
                 raise ValueError("Cannot use original data set for gaussian noise as it is no image folder!")
-            aug_uk = DataAugmentationOptions(
-                gaussian_noise_sigma=0.15 if unknowns == Unknowns.GAUSSIAN_NOISE_015 else 0.3,
-                auto_contrast=self.__augmentation_options.auto_contrast)
+            uu_augmentation.gaussian_noise_sigma = 0.15 if unknowns == Unknowns.GAUSSIAN_NOISE_015 else 0.05
             img_folder_uk = ImageFolder(dataset.root,
-                                        transform=DataAugmentationUtils.get_augmentations(aug_uk, include_affine=False),
+                                        transform=DataAugmentationUtils.get_augmentations(uu_augmentation,
+                                                                                          include_affine=False),
                                         target_transform=lambda y: unknown_cls_index)
             indices = torch.randperm(len(img_folder_uk))[:n_to_add]
             img_folder_uk = Subset(img_folder_uk, indices)
@@ -239,7 +237,6 @@ class DataloaderKinderlabor:
                                                         include_affine=set_folder == 'train_set'),
                 target_transform=lambda _: unknown_cls_index)
             return ConcatDataset([dataset, img_folder_uk])
-
         else:
             raise ValueError(f'Unknowns {self.__known_unknowns} not yet supported!')
 

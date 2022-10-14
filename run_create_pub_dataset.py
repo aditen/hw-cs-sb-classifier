@@ -63,7 +63,7 @@ if __name__ == "__main__":
             elif split == DataSplit.TRAIN_SHEETS_TEST_BOOKLETS:
                 train, test = __split_sheets_booklets(task_df)
             else:
-                raise ValueError()
+                raise ValueError(f'No function for split {split.name}')
             valid = train.sample(frac=0.15)
             train = train.drop(valid.index)
             full_df.loc[train.index, data_split_dict[split]] = "train"

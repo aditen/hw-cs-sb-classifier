@@ -20,6 +20,8 @@ if __name__ == "__main__":
                         help='Plot baseline results using matplotlib')
     parser.add_argument('--evaluate-unknowns-on-closed-set', default=False, action='store_true',
                         help='Evaluate unknowns on closet set SoftMax Models')
+    parser.add_argument('--compare-training-unknowns', default=False, action='store_true',
+                        help='Compare Open Set Performance using different Unknowns in Training')
     parsed_args = parser.parse_args()
 
     if parsed_args.create_dataset_folders:
@@ -38,3 +40,6 @@ if __name__ == "__main__":
         RunnerKinderlabor.plot_baseline()
     if parsed_args.evaluate_unknowns_on_closed_set:
         RunnerKinderlabor.evaluate_unknowns_on_closed_set()
+    if parsed_args.compare_training_unknowns:
+        RunnerKinderlabor.compare_training_unknowns()
+
