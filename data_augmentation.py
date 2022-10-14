@@ -82,13 +82,6 @@ class DataAugmentationUtils:
     def __get_transforms(options: DataAugmentationOptions):
         transforms_list = []
 
-        # covert to tensor (but not if visualizing pil image)
-        if options.to_tensor:
-            transforms_list.append(transforms.ToTensor())
-
-        if options.gaussian_noise_sigma is not None and options.gaussian_noise_sigma != 0.:
-            transforms_list.append(GaussianNoise(options.gaussian_noise_sigma))
-
         # because it is not necessary for all the unknown data sets, some are already gray scaled
         if options.grayscale:
             transforms_list.append(transforms.Grayscale())
@@ -105,13 +98,20 @@ class DataAugmentationUtils:
             transforms_list.append(transforms.CenterCrop((22, 22)))
             transforms_list.append(transforms.Resize((32, 32)))
 
+        # Equalize is yes or no, needs to happen before toTensor because it only works on uint8 dtype
+        if options.equalize:
+            transforms_list.append(transforms.RandomEqualize(p=1.))
+
+        # covert to tensor (but not if visualizing pil image)
+        if options.to_tensor:
+            transforms_list.append(transforms.ToTensor())
+
+        if options.gaussian_noise_sigma is not None and options.gaussian_noise_sigma != 0.:
+            transforms_list.append(GaussianNoise(options.gaussian_noise_sigma))
+
         # Auto Contrast is yes or no
         if options.auto_contrast:
             transforms_list.append(transforms.RandomAutocontrast(p=1.))
-
-        # Equalize is yes or no
-        if options.equalize:
-            transforms_list.append(transforms.RandomEqualize(p=1.))
 
         # Rotation, translation or scaling can be
         if options.rotate or options.translate or options.scale:

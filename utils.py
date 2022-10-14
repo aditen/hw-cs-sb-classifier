@@ -12,10 +12,15 @@ from grayscale_model import ModelVersion
 
 class UtilsKinderlabor:
     @staticmethod
+    def get_torch_device():
+        return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    @staticmethod
     def random_seed(seed=42):
         random.seed(seed)
         torch.manual_seed(seed)
         np.random.seed(seed)
+        torch.use_deterministic_algorithms(True)
 
     @staticmethod
     def copy_to_label_folders(base_origin_folder, base_target_folder, df: pd.DataFrame):

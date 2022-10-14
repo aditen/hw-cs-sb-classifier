@@ -222,7 +222,7 @@ class RunnerKinderlabor:
                                                      load_model_from_disk=True,
                                                      loss_function=get_default_loss(task_type),
                                                      model_version=model)
-                        trainer.train_model(n_epochs=75)
+                        trainer.train_model(n_epochs=75, lr=0.01, sched=(10, 0.5), n_epochs_wait_early_stop=10)
                         visualizer.visualize_training_progress(trainer)
 
                         # Predict on test samples

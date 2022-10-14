@@ -4,13 +4,15 @@ import functools
 import torch
 from torch.nn import functional as F
 
+from utils import UtilsKinderlabor
+
 _device = None
 
 
 def device(x):
     global _device
     if _device is None:
-        _device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        _device = UtilsKinderlabor.get_torch_device()
     return x.to(_device)
 
 

@@ -32,11 +32,15 @@ So far, the code has these main parts:
 - About scripting transforms as well: see https://github.com/deepjavalibrary/djl/issues/1556, works by adding
   environment variable PYTORCH_EXTRA_LIBRARY_PATH=python3.9/site-packages/torchvision/_C.so (.pyd on Windows)
 
+# :mag: Reproducibility
+In order to reproduce the experiments, seeds as well as deterministic convolutions were used on an Nvidia 1050 TI
+Set CUBLAS_WORKSPACE_CONFIG=:4096:8 in your environment - otherwise the experiments throw an error or may be different
+
 # :ledger: TODOs
 
 - Minor code adaptions
-    - Migrate remaining run scripts to run_script with arg parser flags 
-    - In data collection methodology comparison: 
-      - Add table with classes and number of samples
-      - Add second table with splits and number of samples for appendix
+    - Migrate remaining run scripts to run_script with arg parser flags
+    - In data collection methodology comparison:
+        - Add table with classes and number of samples
+        - Add second table with splits and number of samples for appendix
     - Larger axis name font and add option to not display titles in visualizer (as this is the caption in thesis)

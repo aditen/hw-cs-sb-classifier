@@ -33,7 +33,7 @@ class TrainerKinderlabor:
         self.__loss_fc = loss_function
         self.__model_path = f"{self.__model_dir}/model.pt"
 
-    def train_model(self, n_epochs=30, lr=0.01, sched=(10, 0.5), n_epochs_wait_early_stop=5):
+    def train_model(self, n_epochs=75, lr=0.01, sched=(10, 0.5), n_epochs_wait_early_stop=10):
         UtilsKinderlabor.random_seed()
         if self.__load_model_from_disk and os.path.isfile(self.__model_path):
             print("Found model already on disk. Set load_model_from_disk=False on function call to force training!")
@@ -42,7 +42,7 @@ class TrainerKinderlabor:
         train_loader, valid_loader, _ = self.__loader.get_data_loaders()
         n_train, n_valid, __ = self.__loader.get_num_samples()
 
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        device = UtilsKinderlabor.get_torch_device()
 
         # initialize model as well as optimizer, scheduler
         model = get_model(num_classes=len(self.__loader.get_classes()), model_version=self.__model_version)
@@ -64,7 +64,7 @@ class TrainerKinderlabor:
         losses_train, acc_train, losses_valid, acc_valid = [], [], [], []
         n_epochs_no_improvement = 0
 
-        for epoch_i in tqdm(range(n_epochs), unit="epoch"):
+        for epoch_i in tqdm(range(n_epochs), unit="epoch", leave=True):
             if n_epochs_no_improvement > n_epochs_wait_early_stop:
                 break
             epochs.append(epoch_i + 1)
@@ -163,7 +163,7 @@ class TrainerKinderlabor:
         _, __, test_loader = self.__loader.get_data_loaders()
         _, __, n_test = self.__loader.get_num_samples()
 
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        device = UtilsKinderlabor.get_torch_device()
         model = get_model(num_classes=len(self.__loader.get_classes()), model_version=self.__model_version).to(device)
         model.load_state_dict(torch.load(self.__model_path))
         model.eval()
@@ -174,7 +174,7 @@ class TrainerKinderlabor:
 
         actual, predicted = [], []
         with torch.no_grad():
-            for inputs, labels in tqdm(test_loader, unit="test batch"):
+            for inputs, labels in tqdm(test_loader, unit="test batch", leave=False):
                 inputs = inputs.to(device)
                 labels = labels.to(device)
                 outputs, outputs_2d = model(inputs)

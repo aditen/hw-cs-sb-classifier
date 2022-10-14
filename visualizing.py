@@ -119,7 +119,7 @@ class VisualizerKinderlabor:
             imgs_err_kn, actual_err_kn, pred_err_kn = zip(
                 *((err, ac, pr) for err, ac, pr, prob in err_samples if ac != -1))
             num_errs_to_show = min(64, len(imgs_err_kn))
-            print(f'Num errors to show: {num_errs_to_show}/{len(imgs_err_kn)}')
+            print(f'Num errors shown in errors plot (max 64): {num_errs_to_show}/{len(imgs_err_kn)}')
             fig, axs = plt.subplots(nrows=math.ceil(num_errs_to_show / 4), ncols=4)
             fig.set_figheight(6.4 * num_errs_to_show / 16)
             for img_idx in range(num_errs_to_show):
