@@ -13,7 +13,8 @@ from data_augmentation import DataAugmentationOptions, DataAugmentationUtils
 from data_loading import DataloaderKinderlabor
 from grayscale_model import ModelVersion, get_model
 from training import TrainerKinderlabor, LossFunction
-from utils import TaskType, DataSplit, data_split_dict, short_names_tasks, short_names_models
+from utils import TaskType, DataSplit, data_split_dict, short_names_tasks, short_names_models, long_names_tasks, \
+    Unknowns
 from visualizing import VisualizerKinderlabor
 
 csv_path_baseline = './output_visualizations/runs_base.csv'
@@ -25,6 +26,17 @@ def get_run_id(task_type: TaskType, aug_name: str, data_split: DataSplit, model:
 
 
 class RunnerKinderlabor:
+    @staticmethod
+    def create_dataset_folders():
+        for data_split in DataSplit:
+            for task_type in TaskType:
+                loader = DataloaderKinderlabor(task_type=task_type, data_split=data_split)
+                visualizer = VisualizerKinderlabor(loader,
+                                                   run_id=f"data_split[{data_split_dict[data_split]}]"
+                                                          f"_task[{long_names_tasks[task_type]}]")
+                visualizer.visualize_class_distributions()
+                visualizer.visualize_some_train_samples()
+
     @staticmethod
     def plot_examples():
         EMPTIES = [98, 312, 3320, 35317, 35883]
@@ -129,7 +141,8 @@ class RunnerKinderlabor:
 
     @staticmethod
     def compare_data_collection():
-        if not os.path.isfile('C:/Users/41789/Documents/uni/ma/kinderlabor_unterlagen/train_data/20220925_corr_v2/dataset.csv'):
+        if not os.path.isfile(
+                'C:/Users/41789/Documents/uni/ma/kinderlabor_unterlagen/train_data/20220925_corr_v2/dataset.csv'):
             raise ValueError('Did not find non-anonymized dataset on your machine! Please contact the admins')
         df = DataloaderKinderlabor.raw_herby_df()
         classes = df['class'].unique()
@@ -207,3 +220,34 @@ class RunnerKinderlabor:
             VisualizerKinderlabor.visualize_baseline_results_as_plot(csv_path_baseline)
         else:
             raise ValueError('CSV of baseline results not found! Please train baseline models first.')
+
+    @staticmethod
+    def evaluate_unknowns_on_closed_set():
+        plot_tuples_all = []
+        loader = None
+        for task_type in TaskType:
+            run_id = get_run_id(task_type, "geo_ac", DataSplit.HOLD_OUT_CLASSES, ModelVersion.SM)
+
+            # Initialize data loader: data splits and loading from images from disk
+            loader = DataloaderKinderlabor(task_type=task_type,
+                                           data_split=DataSplit.HOLD_OUT_CLASSES,
+                                           unknown_unknowns=Unknowns.ALL_OF_TYPE,
+                                           augmentation_options=DataAugmentationOptions.geo_ac_aug())
+
+            # visualize class distribution and some (train) samples
+            visualizer = VisualizerKinderlabor(loader, run_id=f"{run_id}_open_set")
+
+            # Train model and analyze training progress (mainly when it starts overfitting on validation set)
+            trainer = TrainerKinderlabor(loader, load_model_from_disk=True,
+                                         run_id=run_id,
+                                         loss_function=LossFunction.SOFTMAX if task_type != TaskType.CROSS else LossFunction.BCE,
+                                         model_version=ModelVersion.SM)
+            trainer.train_model(n_epochs=75)
+            visualizer.visualize_training_progress(trainer)
+            trainer.predict_on_test_samples()
+            visualizer.visualize_prob_histogram(trainer)
+            visualizer.visualize_model_errors(trainer)
+            visualizer.visualize_2d_space(trainer)
+            plot_tuples_all.append((long_names_tasks[task_type], trainer))
+        visualizer = VisualizerKinderlabor(loader, run_id="closed_set_on_unknown")
+        visualizer.visualize_open_set_recognition_curve(plot_tuples_all)

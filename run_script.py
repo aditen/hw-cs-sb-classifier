@@ -4,6 +4,8 @@ from running import RunnerKinderlabor
 
 if __name__ == "__main__":
     parser = ArgumentParser(description='Run Script for Thesis Experiments')
+    parser.add_argument('--create-dataset-folders', default=False, action='store_true',
+                        help='Create Dataset Folders for experiments')
     parser.add_argument('--plot-examples', default=False, action='store_true',
                         help='Plot examples from the Tasks in the Dataset')
     parser.add_argument('--compare-model-sizes', default=False, action='store_true',
@@ -16,7 +18,12 @@ if __name__ == "__main__":
                         help='Train all baseline models on the Dataset. WARNING: TAKES LONG!')
     parser.add_argument('--plot-baseline', default=False, action='store_true',
                         help='Plot baseline results using matplotlib')
+    parser.add_argument('--evaluate-unknowns-on-closed-set', default=False, action='store_true',
+                        help='Evaluate unknowns on closet set SoftMax Models')
     parsed_args = parser.parse_args()
+
+    if parsed_args.create_dataset_folders:
+        RunnerKinderlabor.create_dataset_folders()
     if parsed_args.plot_examples:
         RunnerKinderlabor.plot_examples()
     if parsed_args.compare_model_sizes:
@@ -29,3 +36,5 @@ if __name__ == "__main__":
         RunnerKinderlabor.train_baseline()
     if parsed_args.plot_baseline:
         RunnerKinderlabor.plot_baseline()
+    if parsed_args.evaluate_unknowns_on_closed_set:
+        RunnerKinderlabor.evaluate_unknowns_on_closed_set()
