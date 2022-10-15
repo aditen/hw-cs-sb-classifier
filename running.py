@@ -397,4 +397,5 @@ class RunnerKinderlabor:
             all_trainers.append((uk_type.value if uk_type is not None else "Softmax", trainer))
             visualizer.visualize_2d_space(trainer)
         visualizer = VisualizerKinderlabor(loader, run_id="os_approaches_osrc")
-        visualizer.visualize_open_set_recognition_curve(all_trainers)
+        visualizer.visualize_open_set_recognition_curve(all_trainers, plot_suffix="_training_unknowns",
+                                                        plot_xlim=[0.05, 1])

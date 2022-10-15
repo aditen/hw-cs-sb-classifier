@@ -87,7 +87,7 @@ class VisualizerKinderlabor:
                     f'{self.__visualization_dir}/learning_progress.pdf')
             plt.show()
         else:
-            print("No training done yet! Please call this function after training")
+            print("No training done yet, skipping learning progress plot!")
 
     def visualize_model_errors(self, trainer: TrainerKinderlabor):
         # reminder: err_samples is tuple of form (img, actual, pred)
@@ -216,7 +216,8 @@ class VisualizerKinderlabor:
                 f'{self.__visualization_dir}/probs.pdf')
         plt.show()
 
-    def visualize_open_set_recognition_curve(self, trainers: List[Tuple[str, TrainerKinderlabor]], balanced=True):
+    def visualize_open_set_recognition_curve(self, trainers: List[Tuple[str, TrainerKinderlabor]], balanced=True,
+                                             plot_suffix="", plot_xlim=None):
         for label, trainer in trainers:
             actual, predicted, best_probs, _, coords, loader, __ = trainer.get_predictions()
             thresh_vals = np.arange(0, 1, 1. / 1000).tolist()
@@ -249,10 +250,12 @@ class VisualizerKinderlabor:
         plt.ylabel("Balanced Accuracy" if balanced else "Correct Classification Rate")
         # plt.title(("Balanced " if balanced else "") + "Open Set Recognition Curve")
         plt.xscale('log')
+        if plot_xlim is not None:
+            plt.xlim(plot_xlim)
         plt.legend()
         if self.__save_plots_to_disk:
             plt.savefig(
-                f'{self.__visualization_dir}/osrc.pdf')
+                f'{self.__visualization_dir}/osrc{plot_suffix if plot_suffix is not None else ""}.pdf')
         plt.show()
 
     @staticmethod
