@@ -381,6 +381,9 @@ class RunnerKinderlabor:
             if uk_type is not None:
                 visualizer.visualize_some_train_samples()
 
+            print(
+                f'Running for uknowns {"none" if uk_type is None else uk_type.name}')
+
             # Train model and analyze training progress (mainly when it starts overfitting on validation set)
             trainer = TrainerKinderlabor(loader, run_id,
                                          load_model_from_disk=True,

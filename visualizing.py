@@ -181,7 +181,7 @@ class VisualizerKinderlabor:
                   'brown', 'purple', 'lime']
         already_plotted_legends = set()
         vis_indices = np.random.choice(len(labels), min(len(labels), 1000))
-        for i in tqdm(vis_indices, unit="Coordinates"):
+        for i in tqdm(vis_indices, unit="Coordinates", leave=False):
             # Plot unknowns as black color
             color = colors[actual[i]] if actual[i] >= 0 else "black"
             if labels[i] not in already_plotted_legends:
@@ -222,7 +222,7 @@ class VisualizerKinderlabor:
             thresh_vals = np.arange(0, 1, 1. / 1000).tolist()
             fps, ccrs, balanced_accs = [], [], []
 
-            for thresh in tqdm(thresh_vals, unit="thresh"):
+            for thresh in tqdm(thresh_vals, unit="thresh", leave=False):
                 prob_vals_uk = [prob for (label, prob) in zip(actual, best_probs) if label < 0]
                 n_fp = len([prob for prob in prob_vals_uk if prob > thresh])
                 fps.append(n_fp / len(prob_vals_uk))
