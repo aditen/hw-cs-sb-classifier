@@ -87,7 +87,7 @@ class VisualizerKinderlabor:
                     f'{self.__visualization_dir}/learning_progress.pdf')
             plt.show()
         else:
-            print("No training done yet, skipping learning progress plot!")
+            print("No training done on trainer instance, skipping learning progress plot!")
 
     def visualize_model_errors(self, trainer: TrainerKinderlabor):
         # reminder: err_samples is tuple of form (img, actual, pred)

@@ -123,8 +123,8 @@ class RunnerKinderlabor:
                                   known_unknowns=Unknowns.ALL_OF_TYPE)
             loader = DataloaderKinderlabor(task_type=task_type, force_reload_data=True,
                                            data_split=DataSplit.HOLD_OUT_CLASSES,
-                                           known_unknowns=Unknowns.HOLD_OUT_CLASSES,
-                                           unknown_unknowns=Unknowns.HOLD_OUT_CLASSES)
+                                           known_unknowns=Unknowns.HOLD_OUT_CLASSES_REST_FAKE_DATA,
+                                           unknown_unknowns=Unknowns.HOLD_OUT_CLASSES_REST_FAKE_DATA)
             visualizer = VisualizerKinderlabor(loader,
                                                run_id=f"data_split[{data_split_dict[DataSplit.HOLD_OUT_CLASSES]}]"
                                                       f"_task[{long_names_tasks[task_type]}]")
@@ -132,7 +132,7 @@ class RunnerKinderlabor:
             visualizer.visualize_some_train_samples()
         # load other unknown datasets if not yet on disk - no force as kinderlabor ones are already created!
         for uk_type in Unknowns:
-            if uk_type == Unknowns.HOLD_OUT_CLASSES or uk_type == Unknowns.HOLD_OUT_CLASSES:
+            if uk_type == Unknowns.HOLD_OUT_CLASSES_REST_FAKE_DATA or uk_type == Unknowns.HOLD_OUT_CLASSES_REST_FAKE_DATA:
                 continue
             DataloaderKinderlabor(task_type=TaskType.COMMAND, force_reload_data=False,
                                   data_split=DataSplit.HOLD_OUT_CLASSES,
@@ -327,8 +327,9 @@ class RunnerKinderlabor:
 
     @staticmethod
     def evaluate_unknowns_on_closed_set():
-        plot_tuples_all = []
         loader = None
+        # S2 Task comparison
+        plot_tuples_all = []
         for task_type in TaskType:
             run_id = get_run_id(prefix="base", task_type=task_type, aug_name="geo_ac",
                                 data_split=DataSplit.HOLD_OUT_CLASSES, model=ModelVersion.SM,
@@ -398,4 +399,45 @@ class RunnerKinderlabor:
             visualizer.visualize_2d_space(trainer)
         visualizer = VisualizerKinderlabor(loader, run_id="os_approaches_osrc")
         visualizer.visualize_open_set_recognition_curve(all_trainers, plot_suffix="_training_unknowns",
-                                                        plot_xlim=[0.05, 1])
+                                                        plot_xlim=[0.01, 1])
+
+    @staticmethod
+    def compare_unknowns_split():
+        task_type = TaskType.COMMAND
+        all_trainers = []
+        for uk_type in [None, Unknowns.FAKE_DATA, Unknowns.HOLD_OUT_CLASSES_REST_FAKE_DATA]:
+            loss_fc = LossFunction.ENTROPIC if uk_type is not None else get_default_loss(task_type)
+            run_id = get_run_id(prefix="base" if uk_type is None else "os", task_type=task_type, aug_name="geo_ac",
+                                data_split=DataSplit.HOLD_OUT_CLASSES, model=ModelVersion.SM,
+                                loss=get_default_loss(task_type), training_unknowns=uk_type)
+
+            # Initialize data loader: data splits and loading from images from disk
+            loader = DataloaderKinderlabor(task_type=task_type,
+                                           data_split=DataSplit.HOLD_OUT_CLASSES,
+                                           known_unknowns=uk_type,
+                                           unknown_unknowns=Unknowns.HOLD_OUT_CLASSES_REST_FAKE_DATA,
+                                           augmentation_options=DataAugmentationOptions.geo_ac_aug())
+
+            # visualize class distribution and some (train) samples
+            visualizer = VisualizerKinderlabor(loader, run_id=run_id)
+            if uk_type is not None:
+                visualizer.visualize_some_train_samples()
+
+            print(
+                f'Running for uknowns {"none" if uk_type is None else uk_type.name}')
+
+            # Train model and analyze training progress (mainly when it starts overfitting on validation set)
+            trainer = TrainerKinderlabor(loader, run_id,
+                                         load_model_from_disk=True,
+                                         model_version=ModelVersion.SM,
+                                         loss_function=loss_fc)
+            trainer.train_model(n_epochs=125, sched=(50, 0.5), n_epochs_wait_early_stop=25)
+            visualizer.visualize_training_progress(trainer)
+            trainer.predict_on_test_samples()
+            visualizer.visualize_prob_histogram(trainer)
+            visualizer.visualize_model_errors(trainer)
+            all_trainers.append((uk_type.value if uk_type is not None else "Softmax", trainer))
+            visualizer.visualize_2d_space(trainer)
+        visualizer = VisualizerKinderlabor(loader, run_id="os_approaches_osrc")
+        visualizer.visualize_open_set_recognition_curve(all_trainers, plot_suffix="_uk_split",
+                                                        plot_xlim=[0.01, 1])

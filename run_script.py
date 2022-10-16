@@ -24,6 +24,8 @@ if __name__ == "__main__":
                         help='Evaluate unknowns on closet set SoftMax Models')
     parser.add_argument('--compare-training-unknowns', default=False, action='store_true',
                         help='Compare Open Set Performance using different Unknowns in Training')
+    parser.add_argument('--compare-unknowns-split', default=False, action='store_true',
+                        help='Compare Splitting Unknowns to be in train/validation set as well')
     parsed_args = parser.parse_args()
 
     if parsed_args.admin_create_dataset:
@@ -46,3 +48,5 @@ if __name__ == "__main__":
         RunnerKinderlabor.evaluate_unknowns_on_closed_set()
     if parsed_args.compare_training_unknowns:
         RunnerKinderlabor.compare_training_unknowns()
+    if parsed_args.compare_unknowns_split:
+        RunnerKinderlabor.compare_unknowns_split()

@@ -119,8 +119,8 @@ class DataloaderKinderlabor:
         return self.__dataset_folder_name
 
     def __initialize_dataset_folder(self):
-        need_to_check_uk_folders = self.__known_unknowns == Unknowns.HOLD_OUT_CLASSES or \
-                                   self.__unknown_unknowns == Unknowns.HOLD_OUT_CLASSES
+        need_to_check_uk_folders = self.__known_unknowns == Unknowns.HOLD_OUT_CLASSES_REST_FAKE_DATA or \
+                                   self.__unknown_unknowns == Unknowns.HOLD_OUT_CLASSES_REST_FAKE_DATA
         uk_dir = f'{DataloaderKinderlabor.BASE_FOLDER}unknowns_hold_out_' \
                  f'{"" if self.__task_type is None else self.__task_type.value}'
         if need_to_check_uk_folders and (self.__force_reload_data or not os.path.isdir(uk_dir)):
@@ -169,6 +169,7 @@ class DataloaderKinderlabor:
         # it is mainly relevant for the validation set checking overfitting
         root_orig = dataset.root.split("/")
         set_folder = root_orig[len(root_orig) - 1]
+        include_affine = set_folder == "train_set"
         seed_dict = {"train_set": 1, "validation_set": 55, "test_set": 42}
         UtilsKinderlabor.random_seed(seed_dict[set_folder])
         uu_augmentation = copy.deepcopy(self.__augmentation_options)
@@ -178,7 +179,7 @@ class DataloaderKinderlabor:
             emnist_set = torchvision.datasets.EMNIST(root="./dataset_root_emnist", split="letters",
                                                      download=True,
                                                      transform=DataAugmentationUtils.get_augmentations(
-                                                         uu_augmentation, include_affine=False),
+                                                         uu_augmentation, include_affine=include_affine),
                                                      target_transform=lambda _: unknown_cls_index)
             indices = torch.randperm(len(emnist_set))[:n_to_add]
             emnist_set = Subset(emnist_set, indices)
@@ -187,7 +188,7 @@ class DataloaderKinderlabor:
             fm_set = torchvision.datasets.FashionMNIST(root="./dataset_root_fashion_mnist", download=True,
                                                        transform=DataAugmentationUtils.get_augmentations(
                                                            uu_augmentation,
-                                                           include_affine=False),
+                                                           include_affine=include_affine),
                                                        target_transform=lambda _: unknown_cls_index)
             indices = torch.randperm(len(fm_set))[:n_to_add]
             fm_set = Subset(fm_set, indices)
@@ -196,7 +197,7 @@ class DataloaderKinderlabor:
             fm_set = torchvision.datasets.MNIST(root="./dataset_root_mnist", download=True,
                                                 transform=DataAugmentationUtils.get_augmentations(
                                                     uu_augmentation,
-                                                    include_affine=False),
+                                                    include_affine=include_affine),
                                                 target_transform=lambda _: unknown_cls_index)
             indices = torch.randperm(len(fm_set))[:n_to_add]
             fm_set = Subset(fm_set, indices)
@@ -205,7 +206,7 @@ class DataloaderKinderlabor:
             fd_set = torchvision.datasets.FakeData(size=n_to_add, image_size=(1, 32, 32),
                                                    transform=DataAugmentationUtils.get_augmentations(
                                                        uu_augmentation,
-                                                       include_affine=False),
+                                                       include_affine=include_affine),
                                                    target_transform=lambda _: torch.tensor(unknown_cls_index))
             return ConcatDataset([dataset, fd_set])
         elif unknowns == Unknowns.ALL_OF_TYPE:
@@ -221,7 +222,7 @@ class DataloaderKinderlabor:
                                                        base_target_folder=uk_dir, df=uk_df)
             img_folder = ImageFolder(
                 uk_dir, DataAugmentationUtils.get_augmentations(self.__augmentation_options,
-                                                                include_affine=False),
+                                                                include_affine=include_affine),
                 target_transform=lambda _: unknown_cls_index)
             return ConcatDataset([dataset, img_folder])
         elif unknowns == Unknowns.GAUSSIAN_NOISE_005 or unknowns == Unknowns.GAUSSIAN_NOISE_015:
@@ -230,19 +231,27 @@ class DataloaderKinderlabor:
             uu_augmentation.invert = True
             img_folder_uk = ImageFolder(dataset.root,
                                         transform=DataAugmentationUtils.get_augmentations(uu_augmentation,
-                                                                                          include_affine=False),
+                                                                                          include_affine=include_affine),
                                         target_transform=lambda y: unknown_cls_index)
             indices = torch.randperm(len(img_folder_uk))[:n_to_add]
             img_folder_uk = Subset(img_folder_uk, indices)
             return ConcatDataset([dataset, img_folder_uk])
-        elif unknowns == Unknowns.HOLD_OUT_CLASSES:
+        elif unknowns == Unknowns.HOLD_OUT_CLASSES_REST_FAKE_DATA:
             img_folder_uk = ImageFolder(
                 f"{DataloaderKinderlabor.BASE_FOLDER}unknowns_hold_out_"
                 f"{'' if self.__task_type is None else self.__task_type.value}/{set_folder}",
                 DataAugmentationUtils.get_augmentations(self.__augmentation_options,
-                                                        include_affine=False),
+                                                        include_affine=include_affine),
                 target_transform=lambda _: unknown_cls_index)
-            return ConcatDataset([dataset, img_folder_uk])
+            fd_set = torchvision.datasets.FakeData(size=n_to_add - len(img_folder_uk), image_size=(1, 32, 32),
+                                                   transform=DataAugmentationUtils.get_augmentations(
+                                                       uu_augmentation,
+                                                       include_affine=include_affine),
+                                                   target_transform=lambda _: torch.tensor(unknown_cls_index))
+            # do not any fake data in test set!
+            if set_folder == "test_set":
+                return ConcatDataset([dataset, img_folder_uk])
+            return ConcatDataset([dataset, img_folder_uk, fd_set])
         else:
             raise ValueError(f'Unknowns {self.__known_unknowns} not yet supported!')
 
