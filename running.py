@@ -201,15 +201,15 @@ class RunnerKinderlabor:
                     DataAugmentationOptions(to_tensor=False, invert=False),
                     DataAugmentationOptions(to_tensor=False),
                     DataAugmentationOptions(to_tensor=True, gaussian_noise_sigma=0.05),
+                    DataAugmentationOptions(to_tensor=True, gaussian_noise_sigma=0.05, auto_contrast=True),
                     DataAugmentationOptions(to_tensor=True, gaussian_noise_sigma=0.15),
-                    DataAugmentationOptions(to_tensor=True, gaussian_noise_sigma=0.15, auto_contrast=True),
                     DataAugmentationOptions(to_tensor=False, auto_contrast=True),
                     DataAugmentationOptions(to_tensor=False, equalize=True),
                     DataAugmentationOptions(to_tensor=False, rotate=(-90, 90)),
                     DataAugmentationOptions(to_tensor=False, translate=(0.5, 0.5)),
                     DataAugmentationOptions(to_tensor=False, scale=(0.5, 1.5)),
                     DataAugmentationOptions(to_tensor=False, crop_center=True)]
-        titles = ["Original", "Grayscale", "Invert", "Noise 1", "Noise 2", "Noise 2+", "Contrast", "Equalize", "Rotate",
+        titles = ["Original", "Grayscale", "Invert", "Noise 1", "Noise 1+", "Noise 2", "Contrast", "Equalize", "Rotate",
                   "Translate", "Scale", "Crop"]
 
         all_ids_to_show = [312, 1089, 31382, 34428, 43024, 1299]
@@ -236,8 +236,9 @@ class RunnerKinderlabor:
             ax.get_xaxis().set_ticks([])
             ax.get_yaxis().set_ticks([])
             if i < len(titles):
-                ax.set_title(titles[i], rotation=90, y=1.1)
+                ax.set_title(titles[i], rotation=90)
 
+        plt.tight_layout()
         fig.savefig("./output_visualizations/augmentations.pdf")
         plt.show()
 
