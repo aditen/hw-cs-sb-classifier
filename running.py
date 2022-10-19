@@ -16,7 +16,7 @@ from data_augmentation import DataAugmentationOptions, DataAugmentationUtils
 from data_loading import DataloaderKinderlabor
 from grayscale_model import ModelVersion, get_model
 from training import TrainerKinderlabor
-from utils import UtilsKinderlabor, data_split_dict, TaskType, DataSplit
+from utils import UtilsKinderlabor, data_split_dict, TaskType, DataSplit, class_name_dict
 from utils import short_names_tasks, short_names_models, long_names_tasks, \
     Unknowns, short_names_losses, LossFunction
 from visualizing import VisualizerKinderlabor
@@ -200,17 +200,17 @@ class RunnerKinderlabor:
         vis_augs = [DataAugmentationOptions(to_tensor=False, grayscale=False, invert=False),
                     DataAugmentationOptions(to_tensor=False, invert=False),
                     DataAugmentationOptions(to_tensor=False),
-                    DataAugmentationOptions(to_tensor=True, gaussian_noise_sigma=0.05),
-                    DataAugmentationOptions(to_tensor=True, gaussian_noise_sigma=0.05, auto_contrast=True),
-                    DataAugmentationOptions(to_tensor=True, gaussian_noise_sigma=0.15),
                     DataAugmentationOptions(to_tensor=False, auto_contrast=True),
                     DataAugmentationOptions(to_tensor=False, equalize=True),
                     DataAugmentationOptions(to_tensor=False, rotate=(-90, 90)),
                     DataAugmentationOptions(to_tensor=False, translate=(0.5, 0.5)),
                     DataAugmentationOptions(to_tensor=False, scale=(0.5, 1.5)),
-                    DataAugmentationOptions(to_tensor=False, crop_center=True)]
-        titles = ["Original", "Grayscale", "Invert", "Noise 1", "Noise 1+", "Noise 2", "Contrast", "Equalize", "Rotate",
-                  "Translate", "Scale", "Crop"]
+                    DataAugmentationOptions(to_tensor=False, crop_center=True),
+                    DataAugmentationOptions(to_tensor=True, gaussian_noise_sigma=0.05),
+                    DataAugmentationOptions(to_tensor=True, gaussian_noise_sigma=0.05, auto_contrast=True),
+                    DataAugmentationOptions(to_tensor=True, gaussian_noise_sigma=0.15)]
+        titles = ["Original", "Grayscale", "Invert", "Contrast", "Equalize", "Rotate",
+                  "Translate", "Scale", "Crop", "Noise 1", "Noise 1+", "Noise 2"]
 
         all_ids_to_show = [312, 1089, 31382, 34428, 43024, 1299]
 
@@ -236,9 +236,9 @@ class RunnerKinderlabor:
             ax.get_xaxis().set_ticks([])
             ax.get_yaxis().set_ticks([])
             if i < len(titles):
-                ax.set_title(titles[i], rotation=90)
+                ax.set_title(titles[i], rotation=90, fontsize=12, y=1.025)
 
-        plt.tight_layout()
+        fig.tight_layout()
         fig.savefig("./output_visualizations/augmentations.pdf")
         plt.show()
 
@@ -248,8 +248,36 @@ class RunnerKinderlabor:
                 'C:/Users/41789/Documents/uni/ma/kinderlabor_unterlagen/train_data/20220925_corr_v2/dataset.csv'):
             raise ValueError('Did not find non-anonymized dataset on your machine! Please contact the admins')
         df = DataloaderKinderlabor.raw_herby_df()
-        classes = df['class'].unique()
+        classes = df['class'].unique().tolist()
         print(f'classes currently in df: {classes}')
+        table_rows_meta = []
+        table_rows_samples = []
+        symbols_task = {}
+        for task_type in TaskType:
+            symbols_task[task_type] = df[df['type'] == task_type.value]['label'].unique().tolist()
+        for cls in classes:
+            df_class = df[df['class'] == cls]
+            n_students = len(df_class['student'].unique())
+            n_sheets = len(df_class[(df_class['sheet'] == 'Datensammelblatt Kinderlabor')
+                                    | (df_class['sheet'] == 'Data Collection 1. Klasse')]['request'].unique())
+            n_mini_booklet = len(df_class[(df_class['sheet'].str.startswith('Mini-Booklet'))]['request'].unique())
+            n_booklet = len(df_class[df_class['sheet'].str.startswith("Kinderlabor")]['request'].unique())
+            data_row_meta = [cls, "Photo", "tbd", n_students, n_sheets, n_mini_booklet, n_booklet]
+            table_rows_meta.append(data_row_meta)
+            data_row_samples = [cls]
+            for task_type in TaskType:
+                df_task = df_class[df_class['type'] == task_type.value]
+                symbols_type = symbols_task[task_type]
+                for symbol in symbols_type:
+                    data_row_samples.append(len(df_task[df_task['label'] == symbol]))
+            table_rows_samples.append(data_row_samples)
+        headers_meta = ["Class", "Capture", "S2", "# of Students", "Sheet Pages", "Mini Booklet Pages", "Booklet Pages"]
+        headers_samples = ["Class"]
+        for task_type in TaskType:
+            headers_samples += [class_name_dict[x] for x in symbols_task[task_type]]
+        print(tabulate(table_rows_meta, headers=headers_meta, tablefmt='latex'))
+        print(tabulate(table_rows_samples, headers=headers_samples, tablefmt='latex'))
+
         sheets = df['sheet'].unique()
         print(f'Sheets in df: {sheets}')
 

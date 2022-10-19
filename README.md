@@ -40,6 +40,5 @@ Set CUBLAS_WORKSPACE_CONFIG=:4096:8 in your environment - otherwise the experime
 
 - Minor code adaptions
     - In data collection methodology comparison:
-        - Add table with classes and number of samples
         - Add second table with splits and number of samples for appendix
     - Larger font in plots
