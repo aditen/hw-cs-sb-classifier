@@ -3,19 +3,18 @@ import math
 import os
 
 import torch
+import torch.nn.functional as F
 from sklearn.metrics import f1_score, balanced_accuracy_score
 from torch import nn, optim
 from torch.nn import CrossEntropyLoss, BCEWithLogitsLoss
 from torch.optim import lr_scheduler
 from tqdm import tqdm
 
-import torch.nn.functional as F
-
 from data_augmentation import DataAugmentationUtils
 from data_loading import DataloaderKinderlabor
 from grayscale_model import ModelVersion, get_model
 from open_set_loss import EntropicOpenSetLoss, ObjectosphereLoss
-from utils import UtilsKinderlabor, LossFunction
+from utils import UtilsKinderlabor, LossFunction, UnwrapTupleModel
 
 
 class TrainerKinderlabor:
@@ -236,8 +235,13 @@ class TrainerKinderlabor:
         model_including_transforms = nn.Sequential(
             DataAugmentationUtils.get_scriptable_augmentation(self.__loader.get_augmentation_options()),
             model)
-        scripted = torch.jit.script(model_including_transforms)
+
+        # TODO: set to true if DJL supports transforms out of the box (without specifying _C file)
+        transforms_supported = False
+        unwrap_tuple_model = UnwrapTupleModel(model_including_transforms if transforms_supported else model)
+        scripted = torch.jit.script(unwrap_tuple_model)
         scripted.save(f"{self.__model_path}.scripted")
+
         synset_path = f'{self.__model_dir}/synset.txt'
         if os.path.isfile(synset_path):
             os.remove(synset_path)

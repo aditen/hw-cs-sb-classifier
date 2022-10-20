@@ -6,6 +6,7 @@ from enum import Enum
 import numpy as np
 import pandas as pd
 import torch
+from torch import nn
 
 from grayscale_model import ModelVersion
 
@@ -107,3 +108,13 @@ class Unknowns(Enum):
     GAUSSIAN_NOISE_005 = "GAUSSIAN_NOISE_005"
     GAUSSIAN_NOISE_015 = "GAUSSIAN_NOISE_015"
     HOLD_OUT_CLASSES_REST_FAKE_DATA = "HOLD_OUT_CLASSES_REST_FAKE_DATA"
+
+
+class UnwrapTupleModel(nn.Module):
+    def __init__(self, model_returning_tuple: nn.Module):
+        super(UnwrapTupleModel, self).__init__()
+        self.model = model_returning_tuple
+
+    def forward(self, x):
+        out, out_2d = self.model(x)
+        return out
