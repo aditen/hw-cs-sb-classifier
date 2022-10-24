@@ -198,19 +198,16 @@ class RunnerKinderlabor:
     @staticmethod
     def plot_augmentations():
         vis_augs = [DataAugmentationOptions(to_tensor=False, grayscale=False, invert=False),
-                    DataAugmentationOptions(to_tensor=False, invert=False),
                     DataAugmentationOptions(to_tensor=False),
                     DataAugmentationOptions(to_tensor=False, auto_contrast=True),
-                    DataAugmentationOptions(to_tensor=False, equalize=True),
                     DataAugmentationOptions(to_tensor=False, rotate=(-90, 90)),
                     DataAugmentationOptions(to_tensor=False, translate=(0.5, 0.5)),
                     DataAugmentationOptions(to_tensor=False, scale=(0.5, 1.5)),
                     DataAugmentationOptions(to_tensor=False, crop_center=True),
                     DataAugmentationOptions(to_tensor=True, gaussian_noise_sigma=0.05),
-                    DataAugmentationOptions(to_tensor=True, gaussian_noise_sigma=0.05, auto_contrast=True),
                     DataAugmentationOptions(to_tensor=True, gaussian_noise_sigma=0.15)]
-        titles = ["Original", "Grayscale", "Invert", "Contrast", "Equalize", "Rotate",
-                  "Translate", "Scale", "Crop", "Noise 1", "Noise 1+", "Noise 2"]
+        titles = ["Original", "None", "Contrast", "Rotate",
+                  "Translate", "Scale", "Crop", "Noise 1", "Noise 2"]
 
         all_ids_to_show = [312, 1089, 31382, 34428, 43024, 1299]
 
@@ -296,7 +293,6 @@ class RunnerKinderlabor:
         run_configs = [
             ("none", DataAugmentationOptions.none_aug()),
             ("ac", DataAugmentationOptions.auto_ctr_aug()),
-            ("eq", DataAugmentationOptions.eq_aug()),
             ("geo", DataAugmentationOptions.geo_aug()),
             ("geo_ac", DataAugmentationOptions.geo_ac_aug()),
             ("crop", DataAugmentationOptions.crop_aug()),

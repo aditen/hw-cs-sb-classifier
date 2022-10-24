@@ -145,6 +145,7 @@ class SimpleNetSlimmed2D(nn.Module):
             nn.Dropout(0.1),
             nn.Linear(64, 2),
         )
+        # no bias as EOS requires no bias
         self.after2D = nn.Linear(2, classes, bias=False)
 
     def forward(self, x):
@@ -156,7 +157,7 @@ class SimpleNetSlimmed2D(nn.Module):
         return out, out_2d
 
 
-class SimpleNetSlimmed:
+class SimpleNetSlimmed(nn.Module):
     def __init__(self, classes=10, in_channels=1):
         super(SimpleNetSlimmed, self).__init__()
         self.features = _make_simplenet_layers(in_channels=in_channels, channel_divisor=4)
