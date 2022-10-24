@@ -306,7 +306,7 @@ class RunnerKinderlabor:
         for task_type in TaskType:
             for run_config in run_configs:
                 for data_split in DataSplit:
-                    for model in [ModelVersion.SM_BOTTLENECK, ModelVersion.LE_NET]:
+                    for model in [ModelVersion.SM_NO_BOTTLENECK, ModelVersion.LE_NET]:
                         run_id = get_run_id(prefix="base", task_type=task_type, aug_name=run_config[0],
                                             data_split=data_split, model=model, loss=get_default_loss(task_type),
                                             training_unknowns=None)
@@ -361,7 +361,7 @@ class RunnerKinderlabor:
         plot_tuples_all = []
         for task_type in TaskType:
             run_id = get_run_id(prefix="base", task_type=task_type, aug_name="geo_ac",
-                                data_split=DataSplit.HOLD_OUT_CLASSES, model=ModelVersion.SM_BOTTLENECK,
+                                data_split=DataSplit.HOLD_OUT_CLASSES, model=ModelVersion.SM_NO_BOTTLENECK,
                                 loss=get_default_loss(task_type), training_unknowns=None)
 
             # Initialize data loader: data splits and loading from images from disk
@@ -377,9 +377,7 @@ class RunnerKinderlabor:
             trainer = TrainerKinderlabor(loader, run_id,
                                          load_model_from_disk=True,
                                          loss_function=get_default_loss(task_type),
-                                         model_version=ModelVersion.SM_BOTTLENECK)
-            trainer.train_model(n_epochs=75)
-            visualizer.visualize_training_progress(trainer)
+                                         model_version=ModelVersion.SM_NO_BOTTLENECK)
             trainer.predict_on_test_samples()
             visualizer.visualize_prob_histogram(trainer)
             visualizer.visualize_model_errors(trainer)
