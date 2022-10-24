@@ -53,9 +53,9 @@ class DataSplit(Enum):
 
 data_split_dict = {DataSplit.TRAIN_SHEETS_TEST_BOOKLETS: "S1", DataSplit.HOLD_OUT_CLASSES: "S2", DataSplit.RANDOM: "S3"}
 short_names_models = {
-    ModelVersion.LG: "simpnet",
     ModelVersion.LE_NET: "lenet",
-    ModelVersion.SM: "slim_simpnet"
+    ModelVersion.SM_NO_BOTTLENECK: "slim_nobn",
+    ModelVersion.SM_BOTTLENECK: "slim_bn",
 }
 
 
@@ -74,9 +74,9 @@ short_names_losses = {
 }
 
 long_names_models = {
-    ModelVersion.LG: "SimpleNet",
     ModelVersion.LE_NET: "LeNet-5",
-    ModelVersion.SM: "Slimmed SimpleNet"
+    ModelVersion.SM_NO_BOTTLENECK: "Slimmed SimpleNet",
+    ModelVersion.SM_BOTTLENECK: "Slimmed Simplenet (2D Bottleneck)",
 }
 
 

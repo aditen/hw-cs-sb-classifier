@@ -306,7 +306,7 @@ class RunnerKinderlabor:
         for task_type in TaskType:
             for run_config in run_configs:
                 for data_split in DataSplit:
-                    for model in [ModelVersion.SM, ModelVersion.LE_NET]:
+                    for model in [ModelVersion.SM_BOTTLENECK, ModelVersion.LE_NET]:
                         run_id = get_run_id(prefix="base", task_type=task_type, aug_name=run_config[0],
                                             data_split=data_split, model=model, loss=get_default_loss(task_type),
                                             training_unknowns=None)
@@ -327,7 +327,7 @@ class RunnerKinderlabor:
                                                      load_model_from_disk=True,
                                                      loss_function=get_default_loss(task_type),
                                                      model_version=model)
-                        trainer.train_model(n_epochs=75, lr=0.01, sched=(10, 0.5), n_epochs_wait_early_stop=10)
+                        trainer.train_model(n_epochs=75, lr=0.01, n_epochs_wait_early_stop=10)
                         visualizer.visualize_training_progress(trainer)
 
                         # Predict on test samples
@@ -361,7 +361,7 @@ class RunnerKinderlabor:
         plot_tuples_all = []
         for task_type in TaskType:
             run_id = get_run_id(prefix="base", task_type=task_type, aug_name="geo_ac",
-                                data_split=DataSplit.HOLD_OUT_CLASSES, model=ModelVersion.SM,
+                                data_split=DataSplit.HOLD_OUT_CLASSES, model=ModelVersion.SM_BOTTLENECK,
                                 loss=get_default_loss(task_type), training_unknowns=None)
 
             # Initialize data loader: data splits and loading from images from disk
@@ -377,7 +377,7 @@ class RunnerKinderlabor:
             trainer = TrainerKinderlabor(loader, run_id,
                                          load_model_from_disk=True,
                                          loss_function=get_default_loss(task_type),
-                                         model_version=ModelVersion.SM)
+                                         model_version=ModelVersion.SM_BOTTLENECK)
             trainer.train_model(n_epochs=75)
             visualizer.visualize_training_progress(trainer)
             trainer.predict_on_test_samples()
@@ -396,7 +396,7 @@ class RunnerKinderlabor:
                         Unknowns.GAUSSIAN_NOISE_005]:
             loss_fc = LossFunction.ENTROPIC if uk_type is not None else get_default_loss(task_type)
             run_id = get_run_id(prefix="os" if uk_type is None else "os", task_type=task_type, aug_name="geo_ac",
-                                data_split=DataSplit.HOLD_OUT_CLASSES, model=ModelVersion.SM,
+                                data_split=DataSplit.HOLD_OUT_CLASSES, model=ModelVersion.SM_BOTTLENECK,
                                 loss=get_default_loss(task_type), training_unknowns=uk_type)
 
             # Initialize data loader: data splits and loading from images from disk
@@ -417,9 +417,9 @@ class RunnerKinderlabor:
             # Train model and analyze training progress (mainly when it starts overfitting on validation set)
             trainer = TrainerKinderlabor(loader, run_id,
                                          load_model_from_disk=True,
-                                         model_version=ModelVersion.SM,
+                                         model_version=ModelVersion.SM_BOTTLENECK,
                                          loss_function=loss_fc)
-            trainer.train_model(n_epochs=125, sched=(50, 0.5), n_epochs_wait_early_stop=25)
+            trainer.train_model(n_epochs=125, n_epochs_wait_early_stop=25)
             visualizer.visualize_training_progress(trainer)
             trainer.predict_on_test_samples()
             visualizer.visualize_prob_histogram(trainer)
@@ -437,7 +437,7 @@ class RunnerKinderlabor:
         for uk_type in [None, Unknowns.FAKE_DATA, Unknowns.HOLD_OUT_CLASSES_REST_FAKE_DATA]:
             loss_fc = LossFunction.ENTROPIC if uk_type is not None else get_default_loss(task_type)
             run_id = get_run_id(prefix="base" if uk_type is None else "os", task_type=task_type, aug_name="geo_ac",
-                                data_split=DataSplit.HOLD_OUT_CLASSES, model=ModelVersion.SM,
+                                data_split=DataSplit.HOLD_OUT_CLASSES, model=ModelVersion.SM_BOTTLENECK,
                                 loss=get_default_loss(task_type), training_unknowns=uk_type)
 
             # Initialize data loader: data splits and loading from images from disk
@@ -458,9 +458,9 @@ class RunnerKinderlabor:
             # Train model and analyze training progress (mainly when it starts overfitting on validation set)
             trainer = TrainerKinderlabor(loader, run_id,
                                          load_model_from_disk=True,
-                                         model_version=ModelVersion.SM,
+                                         model_version=ModelVersion.SM_BOTTLENECK,
                                          loss_function=loss_fc)
-            trainer.train_model(n_epochs=125, sched=(50, 0.5), n_epochs_wait_early_stop=25)
+            trainer.train_model(n_epochs=125, n_epochs_wait_early_stop=25)
             visualizer.visualize_training_progress(trainer)
             trainer.predict_on_test_samples()
             visualizer.visualize_prob_histogram(trainer)

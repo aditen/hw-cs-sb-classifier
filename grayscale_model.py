@@ -6,16 +6,18 @@ import torch.nn.functional as F
 
 
 class ModelVersion(Enum):
-    SM_BOTTLENECK = 4
-    SM_NO_BOTTLENECK = 4
-    LE_NET = -2
+    SM_BOTTLENECK = "SM_BOTTLENECK"
+    SM_NO_BOTTLENECK = "SM_NO_BOTTLENECK"
+    LE_NET = "LE_NET"
 
 
 def get_model(model_version: ModelVersion, num_classes):
     num_classes = 1 if num_classes == 2 else num_classes
+    if model_version == ModelVersion.SM_NO_BOTTLENECK:
+        raise ValueError('Not implemented yet!')
     if model_version == ModelVersion.LE_NET:
         return LeNet(n_classes=num_classes)
-    return SimpleNet(version=model_version, classes=num_classes)
+    return SimpleNet(classes=num_classes)
 
 
 # adapted to n_classes
@@ -55,9 +57,9 @@ https://github.com/Coderx7/SimpleNet_Pytorch
 
 # Note: LG = default
 class SimpleNet(nn.Module):
-    def __init__(self, classes=10, in_channels=1, version: ModelVersion = ModelVersion.SM_BOTTLENECK):
+    def __init__(self, classes=10, in_channels=1):
         super(SimpleNet, self).__init__()
-        self.features = self._make_layers(in_channels=in_channels, channel_divisor=version.value)
+        self.features = self._make_layers(in_channels=in_channels, channel_divisor=4)
         self.classifier = nn.Linear(2, classes, bias=False)
 
     def forward(self, x):

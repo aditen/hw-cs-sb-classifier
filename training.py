@@ -7,7 +7,6 @@ import torch.nn.functional as F
 from sklearn.metrics import f1_score, balanced_accuracy_score
 from torch import nn, optim
 from torch.nn import CrossEntropyLoss, BCEWithLogitsLoss
-from torch.optim import lr_scheduler
 from tqdm import tqdm
 
 from data_augmentation import DataAugmentationUtils
@@ -19,7 +18,7 @@ from utils import UtilsKinderlabor, LossFunction, UnwrapTupleModel
 
 class TrainerKinderlabor:
     def __init__(self, loader: DataloaderKinderlabor, run_id: str, load_model_from_disk=True,
-                 model_version: ModelVersion = ModelVersion.SM, loss_function: LossFunction = None):
+                 model_version: ModelVersion = ModelVersion.SM_NO_BOTTLENECK, loss_function: LossFunction = None):
         self.__model_dir = f'output_visualizations/{run_id}'
         if not os.path.isdir(self.__model_dir):
             os.makedirs(self.__model_dir)
@@ -47,9 +46,7 @@ class TrainerKinderlabor:
         model = get_model(num_classes=len(self.__loader.get_classes()), model_version=self.__model_version)
         model = model.to(device)
         criterion = self.__get_loss()
-        optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
-        # Decay LR every nth epoch by factor x
-        scheduler = lr_scheduler.StepLR(optimizer, step_size=sched[0], gamma=sched[1])
+        optimizer = optim.Adam(model.parameters(), lr=lr)
 
         # enable training mode (allow batch norm to be adjusted etc.)
         model.train()
@@ -101,8 +98,6 @@ class TrainerKinderlabor:
                 # statistics
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
-
-            scheduler.step()
 
             epoch_loss = running_loss / n_train
             losses_train.append(epoch_loss)
