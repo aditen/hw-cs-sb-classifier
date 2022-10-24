@@ -395,7 +395,7 @@ class RunnerKinderlabor:
         for uk_type in [None, Unknowns.FAKE_DATA, Unknowns.MNIST, Unknowns.EMNIST_LETTERS, Unknowns.GAUSSIAN_NOISE_015,
                         Unknowns.GAUSSIAN_NOISE_005]:
             loss_fc = LossFunction.ENTROPIC if uk_type is not None else get_default_loss(task_type)
-            run_id = get_run_id(prefix="base" if uk_type is None else "os", task_type=task_type, aug_name="geo_ac",
+            run_id = get_run_id(prefix="os" if uk_type is None else "os", task_type=task_type, aug_name="geo_ac",
                                 data_split=DataSplit.HOLD_OUT_CLASSES, model=ModelVersion.SM,
                                 loss=get_default_loss(task_type), training_unknowns=uk_type)
 

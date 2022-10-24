@@ -101,7 +101,7 @@ class VisualizerKinderlabor:
         if -1 in [err[1] for err in err_samples]:
             imgs_uu, actual_uu, pred_uu, probs_uu = zip(
                 *((err, ac, pr, prob) for err, ac, pr, prob in err_samples if ac == -1))
-            num_errs_to_show = min(64, len(imgs_uu))
+            num_errs_to_show = min(256, len(imgs_uu))
             fig, axs = plt.subplots(nrows=math.ceil(num_errs_to_show / 4), ncols=4)
             fig.set_figheight(6.4 * num_errs_to_show / 16)
             for img_idx in range(num_errs_to_show):

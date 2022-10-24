@@ -6,8 +6,8 @@ import torch.nn.functional as F
 
 
 class ModelVersion(Enum):
-    SM = 4
-    LG = 1
+    SM_BOTTLENECK = 4
+    SM_NO_BOTTLENECK = 4
     LE_NET = -2
 
 
@@ -55,10 +55,10 @@ https://github.com/Coderx7/SimpleNet_Pytorch
 
 # Note: LG = default
 class SimpleNet(nn.Module):
-    def __init__(self, classes=10, in_channels=1, version: ModelVersion = ModelVersion.SM):
+    def __init__(self, classes=10, in_channels=1, version: ModelVersion = ModelVersion.SM_BOTTLENECK):
         super(SimpleNet, self).__init__()
         self.features = self._make_layers(in_channels=in_channels, channel_divisor=version.value)
-        self.classifier = nn.Linear(2, classes)
+        self.classifier = nn.Linear(2, classes, bias=False)
 
     def forward(self, x):
         out_2d = self.features(x)
