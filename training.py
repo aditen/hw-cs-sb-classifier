@@ -1,6 +1,7 @@
 import copy
 import math
 import os
+from typing import Optional
 
 import torch
 import torch.nn.functional as F
@@ -13,7 +14,7 @@ from data_augmentation import DataAugmentationUtils
 from data_loading import DataloaderKinderlabor
 from grayscale_model import ModelVersion, get_model
 from open_set_loss import EntropicOpenSetLoss, ObjectosphereLoss
-from utils import UtilsKinderlabor, LossFunction, UnwrapTupleModel
+from utils import UtilsKinderlabor, LossFunction, UnwrapTupleModel, EarlyStopCriterion
 
 
 class TrainerKinderlabor:
@@ -25,16 +26,17 @@ class TrainerKinderlabor:
         self.__model_version = model_version
         self.__loader = loader
         self.__load_model_from_disk = load_model_from_disk
-        self.__epochs, self.__train_loss, self.__valid_loss, self.__train_acc, self.__valid_acc = [], [], [], [], []
+        self.__epochs, self.__train_loss, self.__valid_loss, self.__train_metric, self.__valid_metric = [], [], [], [], []
         self.__test_actual, self.__test_predicted, self.__2d, self.__best_probs, self.__err_samples, self.__performance = \
             [], [], [], [], [], math.nan
         self.__loss_fc = loss_function
         self.__model_path = f"{self.__model_dir}/model.pt"
 
-    # TODO: remove scheduler
-    # TODO: use balanced accuracy metric here! Need list of all actual and all preds in train and test
-    # TODO: then allow flag what to early stop on :-)
-    def train_model(self, n_epochs=75, lr=0.01, sched=(10, 0.5), n_epochs_wait_early_stop=10):
+    def train_model(self, n_epochs=125, lr=0.001, n_epochs_wait_early_stop=25,
+                    early_stop_criterion: Optional[EarlyStopCriterion] = None):
+        # default is loss
+        if early_stop_criterion is None:
+            early_stop_criterion = EarlyStopCriterion.LOSS
         UtilsKinderlabor.random_seed()
         if self.__load_model_from_disk and os.path.isfile(self.__model_path):
             print("Found model already on disk. Set load_model_from_disk=False on function call to force training!")
@@ -56,11 +58,11 @@ class TrainerKinderlabor:
 
         # initialize best model
         best_model = copy.deepcopy(model.state_dict())
-        best_loss = math.inf
-        best_acc = 0.
+        best_metric = -math.inf
 
         epochs = []
-        losses_train, acc_train, losses_valid, acc_valid = [], [], [], []
+        losses_train, early_stop_train, losses_valid, early_stop_valid, = [], [], [], []
+        actual_train, pred_train, actual_valid, pred_valid, prob_mat_train, prob_mat_valid = [], [], [], [], [], []
         n_epochs_no_improvement = 0
 
         for epoch_i in tqdm(range(n_epochs), unit="epoch", leave=True):
@@ -68,7 +70,6 @@ class TrainerKinderlabor:
                 break
             epochs.append(epoch_i + 1)
             running_loss = 0.0
-            running_corrects = torch.tensor(0).to(device)
 
             model.train()
 
@@ -100,15 +101,20 @@ class TrainerKinderlabor:
 
                 # statistics
                 running_loss += loss.item() * inputs.size(0)
-                running_corrects += torch.sum(preds == labels.data)
+                pred_train += preds.cpu().tolist()
+                actual_train += labels.cpu().tolist()
 
             epoch_loss = running_loss / n_train
             losses_train.append(epoch_loss)
-            epoch_acc = running_corrects.double() / n_train
-            acc_train.append(epoch_acc.item())
+            if early_stop_criterion == EarlyStopCriterion.LOSS:
+                early_stop_train.append(epoch_loss)
+            elif early_stop_criterion == EarlyStopCriterion.BALANCED_ACC:
+                early_stop_train.append(balanced_accuracy_score(actual_train, pred_train))
+            else:
+                raise ValueError('Unsupported early stop criterion')
 
             model.eval()
-            eval_loss, eval_corr = 0., torch.tensor(0).to(device)
+            eval_loss = 0.
             with torch.no_grad():
                 for inputs, labels in valid_loader:
                     inputs = inputs.to(device)
@@ -127,16 +133,26 @@ class TrainerKinderlabor:
                     else:
                         loss = criterion(outputs, labels)
                     eval_loss += loss.item() * inputs.size(0)
-                    eval_corr += torch.sum(preds == labels.data)
+                    pred_valid += preds.cpu().tolist()
+                    actual_valid += labels.cpu().tolist()
 
-            eval_acc = eval_corr.double() / n_valid
-            acc_valid.append(eval_acc.item())
-            losses_valid.append(eval_loss / n_valid)
+            loss_valid = eval_loss / n_valid
+            losses_valid.append(loss_valid)
 
-            if eval_loss < best_loss:
-                best_loss = eval_loss
-                best_acc = eval_acc.item()
+            if early_stop_criterion == EarlyStopCriterion.LOSS:
+                early_stop_valid.append(loss_valid)
+                # here we invert because if we use the loss, lower is better
+                epoch_crit = -loss_valid
+            elif early_stop_criterion == EarlyStopCriterion.BALANCED_ACC:
+                ba = balanced_accuracy_score(actual_valid, pred_valid)
+                epoch_crit = ba
+                early_stop_valid.append(balanced_accuracy_score(actual_valid, pred_valid))
+            else:
+                raise ValueError('Unsupported early stop criterion')
+
+            if epoch_crit > best_metric:
                 best_model = copy.deepcopy(model.state_dict())
+                best_metric = epoch_crit
                 n_epochs_no_improvement = 0
             else:
                 n_epochs_no_improvement += 1
@@ -144,17 +160,19 @@ class TrainerKinderlabor:
         if len(epochs) < n_epochs:
             print(f'Early stopping criterion reached in epoch {len(epochs)}')
 
-        print(f"Best model accuracy: {(best_acc * 100):.2f}%")
+        print(
+            f"Best validation metric: {(best_metric * 100):.2f}"
+            f"{'%' if early_stop_criterion == EarlyStopCriterion.BALANCED_ACC else ''}")
         torch.save(best_model, self.__model_path)
 
         self.__epochs = epochs
         self.__train_loss = losses_train
         self.__valid_loss = losses_valid
-        self.__train_acc = acc_train
-        self.__valid_acc = acc_valid
+        self.__train_metric = early_stop_train
+        self.__valid_metric = early_stop_valid
 
     def get_training_progress(self):
-        return self.__epochs, self.__train_loss, self.__valid_loss, self.__train_acc, self.__valid_acc
+        return self.__epochs, self.__train_loss, self.__valid_loss, self.__train_metric, self.__valid_metric
 
     def predict_on_test_samples(self):
         _, __, test_loader = self.__loader.get_data_loaders()

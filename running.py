@@ -16,7 +16,7 @@ from data_augmentation import DataAugmentationOptions, DataAugmentationUtils
 from data_loading import DataloaderKinderlabor
 from grayscale_model import ModelVersion, get_model
 from training import TrainerKinderlabor
-from utils import UtilsKinderlabor, data_split_dict, TaskType, DataSplit, class_name_dict
+from utils import UtilsKinderlabor, data_split_dict, TaskType, DataSplit, class_name_dict, EarlyStopCriterion
 from utils import short_names_tasks, short_names_models, long_names_tasks, \
     Unknowns, short_names_losses, LossFunction
 from visualizing import VisualizerKinderlabor
@@ -206,8 +206,8 @@ class RunnerKinderlabor:
                     DataAugmentationOptions(to_tensor=False, crop_center=True),
                     DataAugmentationOptions(to_tensor=True, gaussian_noise_sigma=0.05),
                     DataAugmentationOptions(to_tensor=True, gaussian_noise_sigma=0.15)]
-        titles = ["Original", "None", "Contrast", "Rotate",
-                  "Translate", "Scale", "Crop", "Noise 1", "Noise 2"]
+        titles = ["Original", "Input", "Contrast", "Rotate",
+                  "Translate", "Scale", "Crop", "Noise .05", "Noise .15"]
 
         all_ids_to_show = [312, 1089, 31382, 34428, 43024, 1299]
 
@@ -323,7 +323,8 @@ class RunnerKinderlabor:
                                                      load_model_from_disk=True,
                                                      loss_function=get_default_loss(task_type),
                                                      model_version=model)
-                        trainer.train_model(n_epochs=125, lr=0.001, n_epochs_wait_early_stop=25)
+                        trainer.train_model(n_epochs=125, lr=0.001, n_epochs_wait_early_stop=25,
+                                            early_stop_criterion=EarlyStopCriterion.BALANCED_ACC)
                         visualizer.visualize_training_progress(trainer)
 
                         # Predict on test samples
@@ -387,7 +388,7 @@ class RunnerKinderlabor:
     def compare_training_unknowns():
         task_type = TaskType.COMMAND
         all_trainers = []
-        for uk_type in [None, Unknowns.FAKE_DATA, Unknowns.EMNIST_LETTERS, Unknowns.GAUSSIAN_NOISE_015]:
+        for uk_type in [None, Unknowns.FAKE_DATA, Unknowns.EMNIST_LETTERS, Unknowns.GAUSSIAN_NOISE_005]:
             loss_fc = LossFunction.ENTROPIC if uk_type is not None else get_default_loss(task_type)
             run_id = get_run_id(prefix="os_ku_ext" if uk_type is None else "os", task_type=task_type, aug_name="geo_ac",
                                 data_split=DataSplit.HOLD_OUT_CLASSES, model=ModelVersion.SM_BOTTLENECK,

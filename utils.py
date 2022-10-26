@@ -66,6 +66,13 @@ class LossFunction(Enum):
     BCE = "BCE"
 
 
+# TODO: if time remains add 'balanced' early stop that is adapted from paper
+#  'Large-Scale Open-Set Classification Protocols for ImageNet'
+class EarlyStopCriterion(Enum):
+    LOSS = "LOSS"
+    BALANCED_ACC = "BALANCED_ACC"
+
+
 short_names_losses = {
     LossFunction.BCE: "BCE",
     LossFunction.SOFTMAX: "SM",
