@@ -31,6 +31,9 @@ class TrainerKinderlabor:
         self.__loss_fc = loss_function
         self.__model_path = f"{self.__model_dir}/model.pt"
 
+    # TODO: remove scheduler
+    # TODO: use balanced accuracy metric here! Need list of all actual and all preds in train and test
+    # TODO: then allow flag what to early stop on :-)
     def train_model(self, n_epochs=75, lr=0.01, sched=(10, 0.5), n_epochs_wait_early_stop=10):
         UtilsKinderlabor.random_seed()
         if self.__load_model_from_disk and os.path.isfile(self.__model_path):

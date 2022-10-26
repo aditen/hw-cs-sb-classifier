@@ -165,7 +165,7 @@ class DataAugmentationUtils:
         all_transforms = DataAugmentationUtils.__get_transforms(options)
         img_folder = ImageFolder(train_set_path, transform=transforms.Compose(
             [tf for tf in all_transforms if not isinstance(tf, transforms.RandomAffine)]))
-        dataloader_std_mean = DataLoader(img_folder, batch_size=8, shuffle=True, num_workers=8)
+        dataloader_std_mean = DataLoader(img_folder, shuffle=True)
 
         mean_sum = 0.
         n_total = 0

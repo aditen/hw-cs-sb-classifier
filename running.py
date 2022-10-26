@@ -323,7 +323,7 @@ class RunnerKinderlabor:
                                                      load_model_from_disk=True,
                                                      loss_function=get_default_loss(task_type),
                                                      model_version=model)
-                        trainer.train_model(n_epochs=75, lr=0.01, n_epochs_wait_early_stop=10)
+                        trainer.train_model(n_epochs=125, lr=0.001, n_epochs_wait_early_stop=25)
                         visualizer.visualize_training_progress(trainer)
 
                         # Predict on test samples
@@ -387,10 +387,9 @@ class RunnerKinderlabor:
     def compare_training_unknowns():
         task_type = TaskType.COMMAND
         all_trainers = []
-        for uk_type in [None, Unknowns.FAKE_DATA, Unknowns.MNIST, Unknowns.EMNIST_LETTERS, Unknowns.GAUSSIAN_NOISE_015,
-                        Unknowns.GAUSSIAN_NOISE_005]:
+        for uk_type in [None, Unknowns.FAKE_DATA, Unknowns.EMNIST_LETTERS, Unknowns.GAUSSIAN_NOISE_015]:
             loss_fc = LossFunction.ENTROPIC if uk_type is not None else get_default_loss(task_type)
-            run_id = get_run_id(prefix="os" if uk_type is None else "os", task_type=task_type, aug_name="geo_ac",
+            run_id = get_run_id(prefix="os_ku_ext" if uk_type is None else "os", task_type=task_type, aug_name="geo_ac",
                                 data_split=DataSplit.HOLD_OUT_CLASSES, model=ModelVersion.SM_BOTTLENECK,
                                 loss=get_default_loss(task_type), training_unknowns=uk_type)
 
@@ -414,7 +413,7 @@ class RunnerKinderlabor:
                                          load_model_from_disk=True,
                                          model_version=ModelVersion.SM_BOTTLENECK,
                                          loss_function=loss_fc)
-            trainer.train_model(n_epochs=125, n_epochs_wait_early_stop=25)
+            trainer.train_model(n_epochs=200, n_epochs_wait_early_stop=50, lr=0.001)
             visualizer.visualize_training_progress(trainer)
             trainer.predict_on_test_samples()
             visualizer.visualize_prob_histogram(trainer)
@@ -422,7 +421,7 @@ class RunnerKinderlabor:
             all_trainers.append((uk_type.value if uk_type is not None else "Softmax", trainer))
             visualizer.visualize_2d_space(trainer)
         visualizer = VisualizerKinderlabor(loader, run_id="os_approaches_osrc")
-        visualizer.visualize_open_set_recognition_curve(all_trainers, plot_suffix="_training_unknowns",
+        visualizer.visualize_open_set_recognition_curve(all_trainers, plot_suffix="_uk_ext",
                                                         plot_xlim=[0.01, 1])
 
     @staticmethod
@@ -431,6 +430,7 @@ class RunnerKinderlabor:
         all_trainers = []
         for uk_type in [None, Unknowns.FAKE_DATA, Unknowns.HOLD_OUT_CLASSES_REST_FAKE_DATA]:
             loss_fc = LossFunction.ENTROPIC if uk_type is not None else get_default_loss(task_type)
+            # TODO: change prefix to os_ku_int
             run_id = get_run_id(prefix="os", task_type=task_type, aug_name="geo_ac",
                                 data_split=DataSplit.HOLD_OUT_CLASSES, model=ModelVersion.SM_BOTTLENECK,
                                 loss=get_default_loss(task_type), training_unknowns=uk_type)
@@ -455,7 +455,7 @@ class RunnerKinderlabor:
                                          load_model_from_disk=True,
                                          model_version=ModelVersion.SM_BOTTLENECK,
                                          loss_function=loss_fc)
-            trainer.train_model(n_epochs=125, n_epochs_wait_early_stop=25)
+            trainer.train_model(n_epochs=200, n_epochs_wait_early_stop=50, lr=0.001)
             visualizer.visualize_training_progress(trainer)
             trainer.predict_on_test_samples()
             visualizer.visualize_prob_histogram(trainer)
@@ -463,5 +463,5 @@ class RunnerKinderlabor:
             all_trainers.append((uk_type.value if uk_type is not None else "Softmax", trainer))
             visualizer.visualize_2d_space(trainer)
         visualizer = VisualizerKinderlabor(loader, run_id="os_approaches_osrc")
-        visualizer.visualize_open_set_recognition_curve(all_trainers, plot_suffix="_uk_split",
+        visualizer.visualize_open_set_recognition_curve(all_trainers, plot_suffix="_uk_int",
                                                         plot_xlim=[0.01, 1])
