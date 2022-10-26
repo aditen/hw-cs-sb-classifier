@@ -377,7 +377,8 @@ class RunnerKinderlabor:
             trainer.predict_on_test_samples()
             visualizer.visualize_prob_histogram(trainer)
             visualizer.visualize_model_errors(trainer)
-            visualizer.visualize_2d_space(trainer)
+            # do not do this, only if the base model was bottleneck as well
+            # visualizer.visualize_2d_space(trainer)
             plot_tuples_all.append((long_names_tasks[task_type], trainer))
         visualizer = VisualizerKinderlabor(loader, run_id="closed_set_on_unknown")
         visualizer.visualize_open_set_recognition_curve(plot_tuples_all)
@@ -430,7 +431,7 @@ class RunnerKinderlabor:
         all_trainers = []
         for uk_type in [None, Unknowns.FAKE_DATA, Unknowns.HOLD_OUT_CLASSES_REST_FAKE_DATA]:
             loss_fc = LossFunction.ENTROPIC if uk_type is not None else get_default_loss(task_type)
-            run_id = get_run_id(prefix="base" if uk_type is None else "os", task_type=task_type, aug_name="geo_ac",
+            run_id = get_run_id(prefix="os", task_type=task_type, aug_name="geo_ac",
                                 data_split=DataSplit.HOLD_OUT_CLASSES, model=ModelVersion.SM_BOTTLENECK,
                                 loss=get_default_loss(task_type), training_unknowns=uk_type)
 

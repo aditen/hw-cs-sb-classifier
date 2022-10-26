@@ -220,23 +220,26 @@ class VisualizerKinderlabor:
                                              plot_suffix="", plot_xlim=None):
         for label, trainer in trainers:
             actual, predicted, best_probs, _, coords, loader, __ = trainer.get_predictions()
-            thresh_vals = np.arange(0, 1, 1. / 1000).tolist()
+            thresh_vals = [prob for (prob, act, pred) in zip(best_probs, actual, predicted) if
+                           (act == -1)]
+            thresh_vals.sort()
+
             fps, ccrs, balanced_accs = [], [], []
 
             for thresh in tqdm(thresh_vals, unit="thresh", leave=False):
                 prob_vals_uk = [prob for (label, prob) in zip(actual, best_probs) if label < 0]
-                n_fp = len([prob for prob in prob_vals_uk if prob > thresh])
+                n_fp = len([prob for prob in prob_vals_uk if prob >= thresh])
                 fps.append(n_fp / len(prob_vals_uk))
 
                 prob_vals_k = [prob for (label, prob) in zip(actual, best_probs) if label >= 0]
                 labels_k = [label for (label, prob) in zip(actual, best_probs) if label >= 0]
                 pred_k = [pred for (label, pred) in zip(actual, predicted) if label >= 0]
                 n_ccr = [1 for (label, pred, prob) in zip(labels_k, pred_k, prob_vals_k) if
-                         (label == pred and prob >= thresh)]
+                         (label == pred and prob > thresh)]
                 ccrs.append(len(n_ccr) / len(prob_vals_k))
 
                 for i in range(len(pred_k)):
-                    if prob_vals_k[i] < thresh:
+                    if prob_vals_k[i] <= thresh:
                         pred_k[i] = -1
                 warnings.filterwarnings('ignore', category=UserWarning)
                 balanced_acc = balanced_accuracy_score(labels_k, pred_k)
@@ -266,7 +269,7 @@ class VisualizerKinderlabor:
         sns.set_theme(font_scale=1.75, style='whitegrid')
         fig = plt.figure(figsize=(21., 19.2))
         all_tasks = list(TaskType)
-        all_models = [ModelVersion.SM, ModelVersion.LE_NET]
+        all_models = [ModelVersion.SM_NO_BOTTLENECK, ModelVersion.LE_NET]
         grid = plt.GridSpec(len(all_tasks), 1)
 
         for task_type in all_tasks:
