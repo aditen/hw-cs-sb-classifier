@@ -161,7 +161,7 @@ class TrainerKinderlabor:
             print(f'Early stopping criterion reached in epoch {len(epochs)}')
 
         print(
-            f"Best validation metric: {(best_metric * 100):.2f}"
+            f"Best validation metric: {(best_metric * (100 if early_stop_criterion == EarlyStopCriterion.BALANCED_ACC else 1)):.2f}"
             f"{'%' if early_stop_criterion == EarlyStopCriterion.BALANCED_ACC else ''}")
         torch.save(best_model, self.__model_path)
 

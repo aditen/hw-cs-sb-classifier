@@ -404,7 +404,8 @@ class RunnerKinderlabor:
             # visualizer.visualize_2d_space(trainer)
             plot_tuples_all.append((long_names_tasks[task_type], trainer))
         visualizer = VisualizerKinderlabor(loader, run_id="closed_set_on_unknown")
-        visualizer.visualize_open_set_recognition_curve(plot_tuples_all)
+        visualizer.visualize_open_set_recognition_curve(plot_tuples_all,
+                                                        x_vals_table=[0.01, 0.05, 0.1, 0.33, 0.5])
 
     @staticmethod
     def compare_training_unknowns():
@@ -436,7 +437,8 @@ class RunnerKinderlabor:
                                          load_model_from_disk=True,
                                          model_version=ModelVersion.SM_BOTTLENECK,
                                          loss_function=loss_fc)
-            trainer.train_model(n_epochs=200, n_epochs_wait_early_stop=50, lr=0.001)
+            trainer.train_model(n_epochs=200, n_epochs_wait_early_stop=50, lr=0.001,
+                                early_stop_criterion=EarlyStopCriterion.BALANCED_ACC if uk_type is None else EarlyStopCriterion.LOSS)
             visualizer.visualize_training_progress(trainer)
             trainer.predict_on_test_samples()
             visualizer.visualize_prob_histogram(trainer)
@@ -445,7 +447,7 @@ class RunnerKinderlabor:
             visualizer.visualize_2d_space(trainer)
         visualizer = VisualizerKinderlabor(loader, run_id="os_approaches_osrc")
         visualizer.visualize_open_set_recognition_curve(all_trainers, plot_suffix="_uk_ext",
-                                                        plot_xlim=[0.01, 1])
+                                                        x_vals_table=[0.01, 0.05, 0.1, 0.33, 0.5])
 
     @staticmethod
     def compare_unknowns_split():
@@ -453,8 +455,7 @@ class RunnerKinderlabor:
         all_trainers = []
         for uk_type in [None, Unknowns.FAKE_DATA, Unknowns.HOLD_OUT_CLASSES_REST_FAKE_DATA]:
             loss_fc = LossFunction.ENTROPIC if uk_type is not None else get_default_loss(task_type)
-            # TODO: change prefix to os_ku_int
-            run_id = get_run_id(prefix="os", task_type=task_type, aug_name="geo_ac",
+            run_id = get_run_id(prefix="os_ku_int", task_type=task_type, aug_name="geo_ac",
                                 data_split=DataSplit.HOLD_OUT_CLASSES, model=ModelVersion.SM_BOTTLENECK,
                                 loss=get_default_loss(task_type), training_unknowns=uk_type)
 
@@ -478,7 +479,8 @@ class RunnerKinderlabor:
                                          load_model_from_disk=True,
                                          model_version=ModelVersion.SM_BOTTLENECK,
                                          loss_function=loss_fc)
-            trainer.train_model(n_epochs=200, n_epochs_wait_early_stop=50, lr=0.001)
+            trainer.train_model(n_epochs=200, n_epochs_wait_early_stop=50, lr=0.001,
+                                early_stop_criterion=EarlyStopCriterion.BALANCED_ACC if uk_type is None else EarlyStopCriterion.LOSS)
             visualizer.visualize_training_progress(trainer)
             trainer.predict_on_test_samples()
             visualizer.visualize_prob_histogram(trainer)
@@ -487,4 +489,4 @@ class RunnerKinderlabor:
             visualizer.visualize_2d_space(trainer)
         visualizer = VisualizerKinderlabor(loader, run_id="os_approaches_osrc")
         visualizer.visualize_open_set_recognition_curve(all_trainers, plot_suffix="_uk_int",
-                                                        plot_xlim=[0.01, 1])
+                                                        x_vals_table=[0.01, 0.05, 0.1, 0.33, 0.5])

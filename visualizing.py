@@ -2,7 +2,7 @@ import math
 import os.path
 import os.path
 import warnings
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 import matplotlib.colors
 import numpy as np
@@ -14,6 +14,7 @@ from matplotlib.gridspec import GridSpecFromSubplotSpec
 from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.axes_grid1 import ImageGrid
 from sklearn.metrics import ConfusionMatrixDisplay, balanced_accuracy_score
+from tabulate import tabulate
 from tqdm import tqdm
 
 from data_loading import DataloaderKinderlabor
@@ -22,6 +23,8 @@ from training import TrainerKinderlabor
 from utils import class_name_dict, UtilsKinderlabor
 from utils import short_names_tasks, TaskType, long_names_tasks, \
     long_names_models
+
+from scipy.interpolate import interp1d
 
 
 def show_on_axis(ax, img_np, class_name, mean, std, class_name_predicted=None):
@@ -216,8 +219,10 @@ class VisualizerKinderlabor:
                 f'{self.__visualization_dir}/probs.pdf')
         plt.show()
 
-    def visualize_open_set_recognition_curve(self, trainers: List[Tuple[str, TrainerKinderlabor]], balanced=True,
-                                             plot_suffix="", plot_xlim=None):
+    def visualize_open_set_recognition_curve(self, trainers: List[Tuple[str, TrainerKinderlabor]],
+                                             plot_suffix="",
+                                             x_vals_table: Optional[List[float]] = None):
+        table_rows = []
         for label, trainer in trainers:
             actual, predicted, best_probs, _, coords, loader, __ = trainer.get_predictions()
             thresh_vals = [prob for (prob, act, pred) in zip(best_probs, actual, predicted) if
@@ -244,22 +249,21 @@ class VisualizerKinderlabor:
                 warnings.filterwarnings('ignore', category=UserWarning)
                 balanced_acc = balanced_accuracy_score(labels_k, pred_k)
                 balanced_accs.append(balanced_acc)
-
-            if balanced:
-                plt.plot(fps, balanced_accs, label=label)
-            else:
-                plt.plot(fps, ccrs, label=label)
+            plt.plot(fps, balanced_accs, label=label)
+            if x_vals_table is not None:
+                interp_fc = interp1d(fps, balanced_accs)
+                points = [label] + [interp_fc(x) for x in x_vals_table]
+                table_rows.append(points)
         plt.xlabel("False Positive Rate")
-        plt.ylabel("Balanced Accuracy" if balanced else "Correct Classification Rate")
-        # plt.title(("Balanced " if balanced else "") + "Open Set Recognition Curve")
+        plt.ylabel("Balanced Correct Classification Rate")
         plt.xscale('log')
-        if plot_xlim is not None:
-            plt.xlim(plot_xlim)
         plt.legend()
         if self.__save_plots_to_disk:
             plt.savefig(
                 f'{self.__visualization_dir}/osrc{plot_suffix if plot_suffix is not None else ""}.pdf')
         plt.show()
+        if x_vals_table is not None:
+            print(tabulate(table_rows, headers=["Protocol"] + x_vals_table))
 
     @staticmethod
     def visualize_baseline_results_as_plot(csv_path: str):
