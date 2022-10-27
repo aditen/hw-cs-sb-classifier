@@ -37,8 +37,4 @@ In order to reproduce the experiments, seeds as well as deterministic convolutio
 Set CUBLAS_WORKSPACE_CONFIG=:4096:8 in your environment - otherwise the experiments throw an error or may be different
 
 # :ledger: TODOs
-
-- Minor code adaptions
-    - In data collection methodology comparison:
-        - Add second table with splits and number of samples for appendix
-    - Larger font in plots
+* Minor hyperparameter tweaks, maybe add models to git

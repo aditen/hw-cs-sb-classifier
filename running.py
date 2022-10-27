@@ -268,18 +268,40 @@ class RunnerKinderlabor:
                 for symbol in symbols_type:
                     data_row_samples.append(len(df_task[df_task['label'] == symbol]))
             table_rows_samples.append(data_row_samples)
-        headers_meta = ["Class", "Capture", "S2", "# of Students", "Sheet Pages", "Mini Booklet Pages", "Booklet Pages"]
-        headers_samples = ["Class"]
+        headers_meta = ["School Class", "Capture", "S2", "# of Students", "Sheet Pages", "Mini Booklet Pages",
+                        "Booklet Pages"]
+        headers_samples = ["School Class"]
         for task_type in TaskType:
             headers_samples += [class_name_dict[x] for x in symbols_task[task_type]]
         print(tabulate(table_rows_meta, headers=headers_meta, tablefmt='latex'))
         print(tabulate(table_rows_samples, headers=headers_samples, tablefmt='latex'))
 
-        sheets = df['sheet'].unique()
-        print(f'Sheets in df: {sheets}')
+        df_exp = DataloaderKinderlabor.full_anonymized_df()
 
-        task_types = df['type'].unique().tolist()
-        print(f'task types: {task_types}')
+        symbols_task_splits = {}
+        for task_type in TaskType:
+            headers_data_split = ["Data Split"]
+            table_rows_splits = []
+            symbols_task_splits[task_type] = df_exp[df_exp['type'] == task_type.value]['label'].unique().tolist()
+            for data_split in DataSplit:
+                # this adds rows
+                df_train = df_exp[df_exp[data_split_dict[data_split]] == "train"]
+                df_valid = df_exp[df_exp[data_split_dict[data_split]] == "valid"]
+                df_test = df_exp[df_exp[data_split_dict[data_split]] == "test"]
+                data_row_splits = [data_split_dict[data_split]]
+                df_task_train = df_train[df_train['type'] == task_type.value]
+                df_task_valid = df_valid[df_valid['type'] == task_type.value]
+                df_task_test = df_test[df_test['type'] == task_type.value]
+                symbols_type = symbols_task_splits[task_type]
+                for symbol in symbols_type:
+                    data_row_splits.append(
+                        f"{len(df_task_train[df_task_train['label'] == symbol])}/"
+                        f"{len(df_task_valid[df_task_valid['label'] == symbol])}/"
+                        f"{len(df_task_test[df_task_test['label'] == symbol])}")
+                table_rows_splits.append(data_row_splits)
+            headers_data_split += [class_name_dict[x] for x in symbols_task_splits[task_type]]
+
+            print(tabulate(table_rows_splits, headers=headers_data_split, tablefmt='latex'))
 
         sheet_df = df[(df['sheet'] == 'Datensammelblatt Kinderlabor')
                       | (df['sheet'] == 'Data Collection 1. Klasse')]

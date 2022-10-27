@@ -1,9 +1,14 @@
 from argparse import ArgumentParser
 
+import matplotlib.pyplot as plt
+
 from running import RunnerKinderlabor
 
 if __name__ == "__main__":
     parser = ArgumentParser(description='Run Script for Thesis Experiments')
+    parser.add_argument('--no-plot-windows', default=False, action='store_true',
+                        help='Do not show plot windows interactively. Tip: They are stored on disk, '
+                             'check output_visualizations folder')
     parser.add_argument('--admin-create-dataset', default=False, action='store_true',
                         help='ATTENTION: ADMIN only! Create Anonymized dataset')
     parser.add_argument('--create-dataset-folders', default=False, action='store_true',
@@ -28,6 +33,13 @@ if __name__ == "__main__":
                         help='Compare Splitting Unknowns to be in train/validation set as well')
     parsed_args = parser.parse_args()
 
+
+    def intercept_plot_opener():
+        pass
+
+
+    if parsed_args.no_plot_windows:
+        plt.show = intercept_plot_opener
     if parsed_args.admin_create_dataset:
         RunnerKinderlabor.admin_create_dataset()
     if parsed_args.create_dataset_folders:
