@@ -60,11 +60,13 @@ class DataAugmentationOptions:
 
     @staticmethod
     def geo_aug():
-        return DataAugmentationOptions(scale=(0.85, 1.15), translate=(0.2, 0.2))
+        return DataAugmentationOptions(scale=(0.85, 1.15), translate=(0.2, 0.2),
+                                       rotate=(-20, 20))
 
     @staticmethod
     def geo_ac_aug():
-        return DataAugmentationOptions(auto_contrast=True, scale=(0.85, 1.15), translate=(0.2, 0.2))
+        return DataAugmentationOptions(auto_contrast=True, scale=(0.85, 1.15), translate=(0.2, 0.2),
+                                       rotate=(-20, 20))
 
     @staticmethod
     def crop_aug():
