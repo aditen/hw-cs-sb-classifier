@@ -2,6 +2,7 @@
 import functools
 
 import torch
+from torch import nn
 from torch.nn import functional as F
 
 from utils import UtilsKinderlabor
@@ -28,6 +29,21 @@ def loss_reducer(func):
             return torch.sum(result)
 
     return __loss_reducer__
+
+
+class BinaryEOSLoss:
+    def __init__(self):
+        self.__bce = nn.BCEWithLogitsLoss()
+
+    @loss_reducer
+    def __call__(self, logit_values, target, sample_weights=None):
+        known_indexes = target != -1
+        unknown_indexes = ~known_indexes
+        target[unknown_indexes] = 0.5
+        sample_loss = self.__bce(logit_values, target)
+        if sample_weights is not None:
+            sample_loss = sample_loss * sample_weights
+        return sample_loss
 
 
 class EntropicOpenSetLoss:

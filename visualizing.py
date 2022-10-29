@@ -212,6 +212,8 @@ class VisualizerKinderlabor:
         if len(probs_unknown) > 0:
             plt.hist(probs_unknown, bins=50, label="Unknown", histtype='step', color='red')
 
+        plt.xlabel("Confidence")
+        plt.ylabel("Number of Samples")
         plt.yscale('log')
         plt.legend()
         if self.__save_plots_to_disk:
@@ -269,7 +271,7 @@ class VisualizerKinderlabor:
                 f'{self.__visualization_dir}/osrc{plot_suffix if plot_suffix is not None else ""}.pdf')
         plt.show()
         if x_vals_table is not None:
-            print(tabulate(table_rows, headers=["Protocol"] + x_vals_table))
+            print(tabulate(table_rows, headers=["Protocol"] + x_vals_table, tablefmt="latex"))
 
     @staticmethod
     def visualize_baseline_results_as_plot(csv_path: str):

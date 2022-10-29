@@ -412,8 +412,9 @@ class RunnerKinderlabor:
         task_type = TaskType.COMMAND
         all_trainers = []
         for uk_type in [None, Unknowns.FAKE_DATA, Unknowns.EMNIST_LETTERS, Unknowns.GAUSSIAN_NOISE_005]:
-            loss_fc = LossFunction.ENTROPIC if uk_type is not None else get_default_loss(task_type)
-            run_id = get_run_id(prefix="os_ku_ext" if uk_type is None else "os", task_type=task_type, aug_name="geo_ac",
+            default_os_loss = LossFunction.ENTROPIC
+            loss_fc = default_os_loss if uk_type is not None else get_default_loss(task_type)
+            run_id = get_run_id(prefix="os_ku_ext" if uk_type is not None else "os", task_type=task_type, aug_name="geo_ac",
                                 data_split=DataSplit.HOLD_OUT_CLASSES, model=ModelVersion.SM_BOTTLENECK,
                                 loss=get_default_loss(task_type), training_unknowns=uk_type)
 
@@ -430,7 +431,7 @@ class RunnerKinderlabor:
                 visualizer.visualize_some_train_samples()
 
             print(
-                f'Running for uknowns {"none" if uk_type is None else uk_type.name}')
+                f'Running for unknowns {"none" if uk_type is None else uk_type.name}')
 
             # Train model and analyze training progress (mainly when it starts overfitting on validation set)
             trainer = TrainerKinderlabor(loader, run_id,
@@ -454,10 +455,11 @@ class RunnerKinderlabor:
         task_type = TaskType.COMMAND
         all_trainers = []
         for uk_type in [None, Unknowns.FAKE_DATA, Unknowns.HOLD_OUT_CLASSES_REST_FAKE_DATA]:
-            loss_fc = LossFunction.ENTROPIC if uk_type is not None else get_default_loss(task_type)
-            run_id = get_run_id(prefix="os_ku_int", task_type=task_type, aug_name="geo_ac",
+            default_os_loss = LossFunction.ENTROPIC
+            loss_fc = default_os_loss if uk_type is not None else get_default_loss(task_type)
+            run_id = get_run_id(prefix="os_ku_int" if uk_type is not None else "os", task_type=task_type, aug_name="geo_ac",
                                 data_split=DataSplit.HOLD_OUT_CLASSES, model=ModelVersion.SM_BOTTLENECK,
-                                loss=get_default_loss(task_type), training_unknowns=uk_type)
+                                loss=loss_fc, training_unknowns=uk_type)
 
             # Initialize data loader: data splits and loading from images from disk
             loader = DataloaderKinderlabor(task_type=task_type,
@@ -472,7 +474,7 @@ class RunnerKinderlabor:
                 visualizer.visualize_some_train_samples()
 
             print(
-                f'Running for uknowns {"none" if uk_type is None else uk_type.name}')
+                f'Running for unknowns {"none" if uk_type is None else uk_type.name}')
 
             # Train model and analyze training progress (mainly when it starts overfitting on validation set)
             trainer = TrainerKinderlabor(loader, run_id,

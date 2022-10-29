@@ -13,7 +13,7 @@ from tqdm import tqdm
 from data_augmentation import DataAugmentationUtils
 from data_loading import DataloaderKinderlabor
 from grayscale_model import ModelVersion, get_model
-from open_set_loss import EntropicOpenSetLoss, ObjectosphereLoss
+from open_set_loss import EntropicOpenSetLoss, ObjectosphereLoss, BinaryEOSLoss
 from utils import UtilsKinderlabor, LossFunction, UnwrapTupleModel, EarlyStopCriterion
 
 
@@ -92,7 +92,7 @@ class TrainerKinderlabor:
                     _, preds = torch.max(outputs, 1)
                 if isinstance(criterion, ObjectosphereLoss):
                     loss = criterion(outputs, labels, outputs_2d, reduction='mean')
-                elif isinstance(criterion, EntropicOpenSetLoss):
+                elif isinstance(criterion, (EntropicOpenSetLoss, BinaryEOSLoss)):
                     loss = criterion(outputs, labels, reduction='mean')
                 else:
                     loss = criterion(outputs, labels)
@@ -128,7 +128,7 @@ class TrainerKinderlabor:
                         _, preds = torch.max(outputs, 1)
                     if isinstance(criterion, ObjectosphereLoss):
                         loss = criterion(outputs, labels, outputs_2d, reduction='mean')
-                    elif isinstance(criterion, EntropicOpenSetLoss):
+                    elif isinstance(criterion, (EntropicOpenSetLoss, BinaryEOSLoss)):
                         loss = criterion(outputs, labels, reduction='mean')
                     else:
                         loss = criterion(outputs, labels)
@@ -161,7 +161,7 @@ class TrainerKinderlabor:
             print(f'Early stopping criterion reached in epoch {len(epochs)}')
 
         print(
-            f"Best validation metric: {(best_metric * (100 if early_stop_criterion == EarlyStopCriterion.BALANCED_ACC else 1)):.2f}"
+            f"Best validation metric: {(best_metric * (100 if early_stop_criterion == EarlyStopCriterion.BALANCED_ACC else -1)):.2f}"
             f"{'%' if early_stop_criterion == EarlyStopCriterion.BALANCED_ACC else ''}")
         torch.save(best_model, self.__model_path)
 
@@ -208,7 +208,7 @@ class TrainerKinderlabor:
                     loss = torch.tensor(0)
                 elif isinstance(criterion, ObjectosphereLoss):
                     loss = criterion(outputs, labels, outputs_2d, reduction='mean')
-                elif isinstance(criterion, EntropicOpenSetLoss):
+                elif isinstance(criterion, (EntropicOpenSetLoss, BinaryEOSLoss)):
                     loss = criterion(outputs, labels, reduction='mean')
                 else:
                     loss = criterion(outputs, labels)
@@ -272,6 +272,8 @@ class TrainerKinderlabor:
             return nn.BCEWithLogitsLoss(reduction='mean')
         elif self.__loss_fc == LossFunction.ENTROPIC:
             return EntropicOpenSetLoss(num_of_classes=len(self.__loader.get_classes()))
+        elif self.__loss_fc == LossFunction.ENTROPIC_BCE:
+            return BinaryEOSLoss()
         elif self.__loss_fc == LossFunction.OBJECTOSPHERE:
             return ObjectosphereLoss(num_of_classes=len(self.__loader.get_classes()))
         else:

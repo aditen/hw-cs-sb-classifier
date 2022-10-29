@@ -64,6 +64,7 @@ class LossFunction(Enum):
     OBJECTOSPHERE = "OBJECTOSPHERE"
     SOFTMAX = "SOFTMAX"
     BCE = "BCE"
+    ENTROPIC_BCE = "ENTROPIC_BCE"
 
 
 # TODO: if time remains add 'balanced' early stop that is adapted from paper
@@ -77,6 +78,7 @@ short_names_losses = {
     LossFunction.BCE: "BCE",
     LossFunction.SOFTMAX: "SM",
     LossFunction.ENTROPIC: "EOS",
+    LossFunction.ENTROPIC_BCE: "EOS_BIN",
     LossFunction.OBJECTOSPHERE: "OOS"
 }
 
