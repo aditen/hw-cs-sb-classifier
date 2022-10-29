@@ -252,7 +252,13 @@ class VisualizerKinderlabor:
             plt.plot(fps, balanced_accs, label=label)
             if x_vals_table is not None:
                 interp_fc = interp1d(fps, balanced_accs)
-                points = [label] + [interp_fc(x) for x in x_vals_table]
+                min_fp, max_fp = min(fps), max(fps)
+                points = [label]
+                for x in x_vals_table:
+                    if min_fp <= x <= max_fp:
+                        points.append(interp_fc(x))
+                    else:
+                        points.append("-")
                 table_rows.append(points)
         plt.xlabel("False Positive Rate")
         plt.ylabel("Balanced Correct Classification Rate")
