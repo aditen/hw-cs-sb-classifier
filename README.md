@@ -37,4 +37,4 @@ In order to reproduce the experiments, seeds as well as deterministic convolutio
 Set CUBLAS_WORKSPACE_CONFIG=:4096:8 in your environment - otherwise the experiments throw an error or may be different
 
 # :ledger: TODOs
-* Minor hyperparameter tweaks, maybe add models to git
+* Check with probs if adding models to git is desired as then he does not need to train them

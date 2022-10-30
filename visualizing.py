@@ -258,7 +258,7 @@ class VisualizerKinderlabor:
                 points = [label]
                 for x in x_vals_table:
                     if min_fp <= x <= max_fp:
-                        points.append(interp_fc(x))
+                        points.append(f'{interp_fc(x):.4f}')
                     else:
                         points.append("-")
                 table_rows.append(points)
@@ -271,7 +271,7 @@ class VisualizerKinderlabor:
                 f'{self.__visualization_dir}/osrc{plot_suffix if plot_suffix is not None else ""}.pdf')
         plt.show()
         if x_vals_table is not None:
-            print(tabulate(table_rows, headers=["Protocol"] + x_vals_table, tablefmt="latex"))
+            print(tabulate(table_rows, headers=["Known Unknowns"] + x_vals_table, tablefmt="latex"))
 
     @staticmethod
     def visualize_baseline_results_as_plot(csv_path: str):
