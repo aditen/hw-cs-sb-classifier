@@ -8,14 +8,15 @@ import torch.nn.functional as F
 class ModelVersion(Enum):
     SM_BOTTLENECK = "SM_BOTTLENECK"
     SM_NO_BOTTLENECK = "SM_NO_BOTTLENECK"
+    SM_EOS = "SM_EOS"
     LE_NET = "LE_NET"
 
 
 def get_model(model_version: ModelVersion, num_classes: int):
     num_classes = 1 if num_classes == 2 else num_classes
-    if model_version == ModelVersion.SM_NO_BOTTLENECK:
-        return SimpleNetSlimmed(classes=num_classes)
-    if model_version == ModelVersion.LE_NET:
+    if model_version == ModelVersion.SM_NO_BOTTLENECK or model_version == ModelVersion.SM_EOS:
+        return SimpleNetSlimmed(classes=num_classes, use_bias=model_version != ModelVersion.SM_EOS)
+    elif model_version == ModelVersion.LE_NET:
         return LeNet(n_classes=num_classes)
     elif model_version == ModelVersion.SM_BOTTLENECK:
         return SimpleNetSlimmed2D(classes=num_classes)
@@ -158,13 +159,13 @@ class SimpleNetSlimmed2D(nn.Module):
 
 
 class SimpleNetSlimmed(nn.Module):
-    def __init__(self, classes=10, in_channels=1):
+    def __init__(self, classes=10, in_channels=1, use_bias=True):
         super(SimpleNetSlimmed, self).__init__()
         self.features = _make_simplenet_layers(in_channels=in_channels, channel_divisor=4)
         self.classifier = nn.Sequential(
             nn.Flatten(),
             nn.Dropout(0.1),
-            nn.Linear(64, classes),
+            nn.Linear(64, classes, bias=use_bias),
         )
 
     def forward(self, x):

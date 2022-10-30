@@ -268,7 +268,7 @@ class VisualizerKinderlabor:
         plt.legend()
         if self.__save_plots_to_disk:
             plt.savefig(
-                f'{self.__visualization_dir}/osrc{plot_suffix if plot_suffix is not None else ""}.pdf')
+                f'{self.__visualization_dir}/oscr{plot_suffix if plot_suffix is not None else ""}.pdf')
         plt.show()
         if x_vals_table is not None:
             print(tabulate(table_rows, headers=["Known Unknowns"] + x_vals_table, tablefmt="latex"))

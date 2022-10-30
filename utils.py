@@ -56,6 +56,7 @@ short_names_models = {
     ModelVersion.LE_NET: "lenet",
     ModelVersion.SM_NO_BOTTLENECK: "slim_nobn",
     ModelVersion.SM_BOTTLENECK: "slim_bn",
+    ModelVersion.SM_EOS: "slim_eos",
 }
 
 
@@ -86,6 +87,7 @@ long_names_models = {
     ModelVersion.LE_NET: "LeNet-5",
     ModelVersion.SM_NO_BOTTLENECK: "Slimmed SimpleNet",
     ModelVersion.SM_BOTTLENECK: "Slimmed Simplenet (2D Bottleneck)",
+    ModelVersion.SM_EOS: "Slimmed SimpleNet EOS compatible",
 }
 
 

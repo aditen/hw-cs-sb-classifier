@@ -409,14 +409,13 @@ class RunnerKinderlabor:
 
     @staticmethod
     def compare_training_unknowns():
-        for task_type in TaskType:
+        for task_type in [TaskType.CROSS, TaskType.COMMAND]:
             all_trainers = []
             for uk_type in [None, Unknowns.FAKE_DATA, Unknowns.EMNIST_LETTERS, Unknowns.GAUSSIAN_NOISE_005]:
                 default_os_loss = LossFunction.ENTROPIC_BCE if task_type == TaskType.CROSS else LossFunction.ENTROPIC
                 loss_fc = default_os_loss if uk_type is not None else get_default_loss(task_type)
-                run_id = get_run_id(prefix="os_ku_ext" if uk_type is not None else "os", task_type=task_type,
-                                    aug_name="geo_ac",
-                                    data_split=DataSplit.HOLD_OUT_CLASSES, model=ModelVersion.SM_BOTTLENECK,
+                run_id = get_run_id(prefix="os", task_type=task_type, aug_name="geo_ac",
+                                    data_split=DataSplit.HOLD_OUT_CLASSES, model=ModelVersion.SM_EOS,
                                     loss=loss_fc, training_unknowns=uk_type)
                 # Initialize data loader: data splits and loading from images from disk
                 loader = DataloaderKinderlabor(task_type=task_type,
@@ -425,10 +424,10 @@ class RunnerKinderlabor:
                                                unknown_unknowns=Unknowns.ALL_OF_TYPE,
                                                augmentation_options=DataAugmentationOptions.geo_ac_aug())
 
-                # visualize class distribution and some (train) samples
-                visualizer = VisualizerKinderlabor(loader, run_id=run_id)
+                visualizer_general = VisualizerKinderlabor(loader, run_id=run_id)
+                visualizer_specific = VisualizerKinderlabor(loader, run_id=run_id + "_ku")
                 if uk_type is not None:
-                    visualizer.visualize_some_train_samples()
+                    visualizer_general.visualize_some_train_samples()
 
                 print(
                     f'Running for unknowns {"none" if uk_type is None else uk_type.name} '
@@ -437,16 +436,16 @@ class RunnerKinderlabor:
                 # Train model and analyze training progress (mainly when it starts overfitting on validation set)
                 trainer = TrainerKinderlabor(loader, run_id,
                                              load_model_from_disk=True,
-                                             model_version=ModelVersion.SM_BOTTLENECK,
+                                             model_version=ModelVersion.SM_EOS,
                                              loss_function=loss_fc)
                 trainer.train_model(n_epochs=200, n_epochs_wait_early_stop=50, lr=0.001,
                                     early_stop_criterion=EarlyStopCriterion.BALANCED_ACC if uk_type is None else EarlyStopCriterion.LOSS)
-                visualizer.visualize_training_progress(trainer)
+                visualizer_general.visualize_training_progress(trainer)
                 trainer.predict_on_test_samples()
-                visualizer.visualize_prob_histogram(trainer)
-                visualizer.visualize_model_errors(trainer)
+                visualizer_specific.visualize_prob_histogram(trainer)
+                visualizer_specific.visualize_model_errors(trainer)
                 all_trainers.append((uk_type.value if uk_type is not None else "Softmax", trainer))
-                visualizer.visualize_2d_space(trainer)
+                # visualizer.visualize_2d_space(trainer)
             visualizer = VisualizerKinderlabor(loader, run_id=f"os_approaches_oscr_{task_type.value}")
             visualizer.visualize_open_set_recognition_curve(all_trainers, plot_suffix="_uk_ext",
                                                             x_vals_table=[0.01, 0.05, 0.1, 0.33, 0.5])
@@ -458,9 +457,8 @@ class RunnerKinderlabor:
         for uk_type in [None, Unknowns.FAKE_DATA, Unknowns.HOLD_OUT_CLASSES_REST_FAKE_DATA]:
             default_os_loss = LossFunction.ENTROPIC
             loss_fc = default_os_loss if uk_type is not None else get_default_loss(task_type)
-            run_id = get_run_id(prefix="os_ku_int" if uk_type is not None else "os", task_type=task_type,
-                                aug_name="geo_ac",
-                                data_split=DataSplit.HOLD_OUT_CLASSES, model=ModelVersion.SM_BOTTLENECK,
+            run_id = get_run_id(prefix="os", task_type=task_type, aug_name="geo_ac",
+                                data_split=DataSplit.HOLD_OUT_CLASSES, model=ModelVersion.SM_EOS,
                                 loss=loss_fc, training_unknowns=uk_type)
 
             # Initialize data loader: data splits and loading from images from disk
@@ -471,9 +469,10 @@ class RunnerKinderlabor:
                                            augmentation_options=DataAugmentationOptions.geo_ac_aug())
 
             # visualize class distribution and some (train) samples
-            visualizer = VisualizerKinderlabor(loader, run_id=run_id)
+            visualizer_general = VisualizerKinderlabor(loader, run_id=run_id)
+            visualizer_specific = VisualizerKinderlabor(loader, run_id=run_id + "_split")
             if uk_type is not None:
-                visualizer.visualize_some_train_samples()
+                visualizer_general.visualize_some_train_samples()
 
             print(
                 f'Running for unknowns {"none" if uk_type is None else uk_type.name}')
@@ -481,16 +480,16 @@ class RunnerKinderlabor:
             # Train model and analyze training progress (mainly when it starts overfitting on validation set)
             trainer = TrainerKinderlabor(loader, run_id,
                                          load_model_from_disk=True,
-                                         model_version=ModelVersion.SM_BOTTLENECK,
+                                         model_version=ModelVersion.SM_EOS,
                                          loss_function=loss_fc)
             trainer.train_model(n_epochs=200, n_epochs_wait_early_stop=50, lr=0.001,
                                 early_stop_criterion=EarlyStopCriterion.BALANCED_ACC if uk_type is None else EarlyStopCriterion.LOSS)
-            visualizer.visualize_training_progress(trainer)
+            visualizer_general.visualize_training_progress(trainer)
             trainer.predict_on_test_samples()
-            visualizer.visualize_prob_histogram(trainer)
-            visualizer.visualize_model_errors(trainer)
+            visualizer_specific.visualize_prob_histogram(trainer)
+            visualizer_specific.visualize_model_errors(trainer)
             all_trainers.append((uk_type.value if uk_type is not None else "Softmax", trainer))
-            visualizer.visualize_2d_space(trainer)
-        visualizer = VisualizerKinderlabor(loader, run_id="os_approaches_osrc")
-        visualizer.visualize_open_set_recognition_curve(all_trainers, plot_suffix="_uk_int",
+            # visualizer.visualize_2d_space(trainer)
+        visualizer = VisualizerKinderlabor(loader, run_id="os_approaches_oscr")
+        visualizer.visualize_open_set_recognition_curve(all_trainers, plot_suffix="_uk_split",
                                                         x_vals_table=[0.01, 0.05, 0.1, 0.33, 0.5])
