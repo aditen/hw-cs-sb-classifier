@@ -84,7 +84,7 @@ class TrainerKinderlabor:
                 # forward
                 # track history if only in train
                 outputs, outputs_2d = model(inputs)
-                if self.__loss_fc == LossFunction.BCE:
+                if self.__loss_fc == LossFunction.BCE or self.__loss_fc == LossFunction.ENTROPIC_BCE:
                     preds = torch.round(torch.sigmoid(outputs)).flatten()
                     outputs = outputs.flatten()
                     labels = labels.float()
@@ -120,7 +120,7 @@ class TrainerKinderlabor:
                     inputs = inputs.to(device)
                     labels = labels.to(device)
                     outputs, outputs_2d = model(inputs)
-                    if self.__loss_fc == LossFunction.BCE:
+                    if self.__loss_fc == LossFunction.BCE or self.__loss_fc == LossFunction.ENTROPIC_BCE:
                         preds = torch.round(torch.sigmoid(outputs)).flatten()
                         outputs = outputs.flatten()
                         labels = labels.float()
@@ -193,7 +193,7 @@ class TrainerKinderlabor:
                 inputs = inputs.to(device)
                 labels = labels.to(device)
                 outputs, outputs_2d = model(inputs)
-                if self.__loss_fc == LossFunction.BCE:
+                if self.__loss_fc == LossFunction.BCE or self.__loss_fc == LossFunction.ENTROPIC_BCE:
                     probs = torch.sigmoid(outputs)
                     preds = torch.round(probs).flatten()
                     probs = torch.max(torch.ones(probs.shape).to(device) - probs, probs).flatten().tolist()

@@ -37,10 +37,11 @@ class BinaryEOSLoss:
 
     @loss_reducer
     def __call__(self, logit_values, target, sample_weights=None):
-        known_indexes = target != -1
+        target_vec = torch.clone(target)
+        known_indexes = target_vec != -1
         unknown_indexes = ~known_indexes
-        target[unknown_indexes] = 0.5
-        sample_loss = self.__bce(logit_values, target)
+        target_vec[unknown_indexes] = 0.5
+        sample_loss = self.__bce(logit_values, target_vec)
         if sample_weights is not None:
             sample_loss = sample_loss * sample_weights
         return sample_loss
