@@ -404,7 +404,7 @@ class RunnerKinderlabor:
             # visualizer.visualize_2d_space(trainer)
             plot_tuples_all.append((long_names_tasks[task_type], trainer))
         visualizer = VisualizerKinderlabor(loader, run_id="closed_set_on_unknown")
-        visualizer.visualize_open_set_recognition_curve(plot_tuples_all,
+        visualizer.visualize_open_set_recognition_curve(plot_tuples_all, plot_suffix="_closed_set",
                                                         x_vals_table=[0.01, 0.05, 0.1, 0.33, 0.5])
 
     @staticmethod
