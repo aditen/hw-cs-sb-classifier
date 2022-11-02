@@ -235,7 +235,7 @@ class VisualizerKinderlabor:
 
             for thresh in tqdm(thresh_vals, unit="thresh", leave=False):
                 prob_vals_uk = [prob for (label, prob) in zip(actual, best_probs) if label < 0]
-                n_fp = len([prob for prob in prob_vals_uk if prob >= thresh])
+                n_fp = len([prob for prob in prob_vals_uk if prob > thresh])
                 fps.append(n_fp / len(prob_vals_uk))
 
                 prob_vals_k = [prob for (label, prob) in zip(actual, best_probs) if label >= 0]
