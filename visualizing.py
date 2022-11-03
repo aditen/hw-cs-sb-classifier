@@ -229,6 +229,7 @@ class VisualizerKinderlabor:
             actual, predicted, best_probs, _, coords, loader, __ = trainer.get_predictions()
             thresh_vals = [prob for (prob, act, pred) in zip(best_probs, actual, predicted) if
                            (act == -1)]
+            thresh_vals += [0]
             thresh_vals.sort()
 
             fps, ccrs, balanced_accs = [], [], []
