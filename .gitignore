@@ -1,15 +1,14 @@
 venv/
 **.pyc
 .idea
-**.pt
 **.scripted
 output_visualizations*
 !output_visualizations/.gitkeep
+!output_visualizations/**/model.pt
 kinderlabor_dataset/*
 kinderlabor_dataset_bu
 !kinderlabor_dataset/.gitkeep
 !kinderlabor_dataset/*.jpeg
 !kinderlabor_dataset/dataset_anonymized.csv
 playground*.py
-synset.txt
 dataset_root**

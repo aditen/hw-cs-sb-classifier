@@ -68,7 +68,7 @@ class LossFunction(Enum):
     ENTROPIC_BCE = "ENTROPIC_BCE"
 
 
-# TODO: if time remains add 'balanced' early stop that is adapted from paper
+# NOTE: here one could add 'balanced' early stop that is adapted from paper
 #  'Large-Scale Open-Set Classification Protocols for ImageNet'
 class EarlyStopCriterion(Enum):
     LOSS = "LOSS"
@@ -95,7 +95,6 @@ class TaskType(Enum):
     ORIENTATION = "ORIENTATION"
     COMMAND = "COMMAND"
     CROSS = "CROSS"
-
 
 short_names_tasks = {
     TaskType.COMMAND: "+1",
