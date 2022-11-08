@@ -12,7 +12,7 @@ if __name__ == "__main__":
     parser.add_argument('--admin-create-dataset', default=False, action='store_true',
                         help='ATTENTION: ADMIN only! Create Anonymized dataset')
     parser.add_argument('--create-dataset-folders', default=False, action='store_true',
-                        help='Create Dataset Folders for experiments')
+                        help='Create Dataset Folders for Experiments (otherwise happens automatically when necessary)')
     parser.add_argument('--plot-examples', default=False, action='store_true',
                         help='Plot examples from the Tasks in the Dataset')
     parser.add_argument('--compare-model-sizes', default=False, action='store_true',

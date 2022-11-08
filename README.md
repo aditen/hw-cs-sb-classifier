@@ -17,13 +17,14 @@ So far, the code has these main parts:
 - visualizing.py: The visualization class to visualize some samples, the training progress and confusion matrix
 - utils.py: Project-specific Utilities
 
-# :floppy_disk: Setup
+# :floppy_disk: Setup and Use
 
 - Install Python 3.8 or higher (check https://www.python.org/)
 - Create a virtual environment, e. g. with venv and install all the requirements stated in requirements.txt file (
-  see https://docs.python.org/3/library/venv.html)
-- Install PyTorch 1.11 or higher as stated in their docs: https://pytorch.org/get-started/locally/
-- You are ready to go :sunglasses:
+  see https://docs.python.org/3/library/venv.html).
+- You are ready to go :sunglasses: Run ``python ./run_script.py --help`` to see all commands the run script supports.
+*Hint: The usage of the --no-plot-windows flag is highly recommended!* 
+Otherwise, many windows are opened and the tight layout may not work as intended
 
 # :rocket: Herby Integration
 
@@ -40,4 +41,4 @@ If reproducibility is not that important, you can go to the utils.py file and co
 torch.use_deterministic_algorithms(True)
 
 # :ledger: TODOs
-* May originate from the future work of the thesis
+* May originate from the future work of the thesis (error analysis on student level etc.)
