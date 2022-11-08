@@ -5,6 +5,7 @@ venv/
 output_visualizations*
 !output_visualizations/.gitkeep
 !output_visualizations/**/model.pt
+!output_visualizations/runs_base.csv
 kinderlabor_dataset/*
 kinderlabor_dataset_bu
 !kinderlabor_dataset/.gitkeep

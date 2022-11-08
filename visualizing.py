@@ -272,7 +272,7 @@ class VisualizerKinderlabor:
                 f'{self.__visualization_dir}/oscr{plot_suffix if plot_suffix is not None else ""}.pdf')
         plt.show()
         if x_vals_table is not None:
-            print(tabulate(table_rows, headers=["Known Unknowns"] + x_vals_table, tablefmt="latex"))
+            print(tabulate(table_rows, headers=["Known Unknowns"] + x_vals_table, tablefmt="pretty"))
 
     @staticmethod
     def visualize_baseline_results_as_plot(csv_path: str):
