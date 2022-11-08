@@ -11,20 +11,27 @@ So far, the code has these main parts:
   building on a 32x32 grayscale image)
 - data_loading.py: The Data Loader class, which reads the CSV file, splits it into
   the three sets (training, validation, test sets) and then moves the images to the respective folder
-- grayscale_model.py: A neural network that operates on a grayscale image of size 32x32, inspired by the VGG model
-- run_xx: Different run scripts
-- training.py: The trainer class, which can train a model based on given data loaders and then predict on the test set
-- visualizing.py: The visualization class to visualize some samples, the training progress and confusion matrix
-- utils.py: Project-specific Utilities
+- grayscale_model.py: Implementation of adapted LeNet-5 and SimpleNet models to operate on a single channel (grayscale) image of size 32x32
+- open_set_loss.py: The implementation of the open set loss functions (Entropic Open Set, Binary EOS) 
+- running.py: The implementation of the experiments, each as a separate function
+- run_script.py: Run Script providing different flags to reproduce experiments
+- training.py: The trainer class, which can train a model based on given data loaders and can be used to predict on the test set
+- utils.py: Project-specific Utilities and types (mainly enumerations)
+- visualizing.py: The visualization class to visualize some samples, the training progress, confusion matrix and more
 
 # :floppy_disk: Setup and Use
 
 - Install Python 3.8 or higher (check https://www.python.org/)
 - Create a virtual environment, e. g. with venv and install all the requirements stated in requirements.txt file (
-  see https://docs.python.org/3/library/venv.html).
-- You are ready to go :sunglasses: Run ``python ./run_script.py --help`` to see all commands the run script supports.
+  venv is documented here: https://docs.python.org/3/library/venv.html).
+- Activate the virtual environment and you are ready to go :sunglasses: 
+
+Run ``python ./run_script.py --help`` to see all commands the run script supports.
+
 *Hint: The usage of the --no-plot-windows flag is highly recommended!* 
 Otherwise, many windows are opened and the tight layout may not work as intended
+
+*Hint 2: If you get an error message regarding determinism, check out the Reproducibility Section of this README file*
 
 # :rocket: Herby Integration
 

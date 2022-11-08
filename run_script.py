@@ -22,7 +22,10 @@ if __name__ == "__main__":
     parser.add_argument('--plot-augmentations', default=False, action='store_true',
                         help='Plot Augmentations on selected Samples from the Dataset')
     parser.add_argument('--train-baseline', default=False, action='store_true',
-                        help='Train all baseline models on the Dataset. WARNING: TAKES LONG!')
+                        help='Train all baseline models on the Dataset. '
+                             'If you want to retrain them from scratch, delete the respective .pt file '
+                             'or the whole folders in the output_visualizations directory. '
+                             'WARNING: Training a total of 108 models takes long, even if they are relatively simple!')
     parser.add_argument('--plot-baseline', default=False, action='store_true',
                         help='Plot baseline results using matplotlib')
     parser.add_argument('--evaluate-unknowns-on-closed-set', default=False, action='store_true',

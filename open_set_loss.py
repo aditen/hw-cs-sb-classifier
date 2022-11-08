@@ -73,7 +73,7 @@ class EntropicOpenSetLoss:
         return sample_loss
 
 
-# Objectosphere Loss as in Paper (self-implemented). Default eps is there 50 (!)
+# Objectosphere Loss as in Paper (self-implemented). Default eps is there 50. Not used in the experiments
 class ObjectosphereLoss:
     def __init__(self, num_of_classes=10, lmbda=0.0001, eps=50.):
         self.entropic = EntropicOpenSetLoss(num_of_classes=num_of_classes)
