@@ -33,8 +33,11 @@ So far, the code has these main parts:
   environment variable PYTORCH_EXTRA_LIBRARY_PATH=python3.9/site-packages/torchvision/_C.so (.pyd on Windows)
 
 # :mag: Reproducibility
-In order to reproduce the experiments, seeds as well as deterministic convolutions were used on an Nvidia 1050 TI
+In order to enable reproducibility of the experiments, seeds as well as deterministic convolutions were used on an Nvidia 1050 TI
 Set CUBLAS_WORKSPACE_CONFIG=:4096:8 in your environment - otherwise the experiments throw an error or may be different
 
+If reproducibility is not that important, you can go to the utils.py file and comment out the following line:
+torch.use_deterministic_algorithms(True)
+
 # :ledger: TODOs
-* Check with probs if adding models to git is desired as then he does not need to train them
+* May originate from the future work of the thesis

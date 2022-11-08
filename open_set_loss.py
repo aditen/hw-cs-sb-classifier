@@ -1,4 +1,4 @@
-# Copied from vast
+# Based on code of the vast lab. Check out https://github.com/Vastlab
 import functools
 
 import torch

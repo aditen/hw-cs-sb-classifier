@@ -364,7 +364,7 @@ class RunnerKinderlabor:
                                      'task': [row[2] for row in data_arr],
                                      'performance': [row[3] for row in data_arr],
                                      'model': [row[4] for row in data_arr]})
-        df.to_csv('./output_visualizations/runs_base.csv', sep=';')
+        df.to_csv(csv_path_baseline, sep=';')
 
     @staticmethod
     def plot_baseline():
