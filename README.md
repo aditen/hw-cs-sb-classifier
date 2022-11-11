@@ -11,11 +11,13 @@ So far, the code has these main parts:
   building on a 32x32 grayscale image)
 - data_loading.py: The Data Loader class, which reads the CSV file, splits it into
   the three sets (training, validation, test sets) and then moves the images to the respective folder
-- grayscale_model.py: Implementation of adapted LeNet-5 and SimpleNet models to operate on a single channel (grayscale) image of size 32x32
-- open_set_loss.py: The implementation of the open set loss functions (Entropic Open Set, Binary EOS) 
+- grayscale_model.py: Implementation of adapted LeNet-5 and SimpleNet models to operate on a single channel (grayscale)
+  image of size 32x32
+- open_set_loss.py: The implementation of the open set loss functions (Entropic Open Set, Binary EOS)
 - running.py: The implementation of the experiments, each as a separate function
 - run_script.py: Run Script providing different flags to reproduce experiments
-- training.py: The trainer class, which can train a model based on given data loaders and can be used to predict on the test set
+- training.py: The trainer class, which can train a model based on given data loaders and can be used to predict on the
+  test set
 - utils.py: Project-specific Utilities and types (mainly enumerations)
 - visualizing.py: The visualization class to visualize some samples, the training progress, confusion matrix and more
 
@@ -23,15 +25,16 @@ So far, the code has these main parts:
 
 - Install Python 3.8 or higher (check https://www.python.org/)
 - Create a virtual environment, e. g. with venv and install all the requirements stated in requirements.txt file (
-  venv is documented here: https://docs.python.org/3/library/venv.html).
-- Activate the virtual environment and you are ready to go :sunglasses: 
+  venv is documented here: https://docs.python.org/3/library/venv.html). The command to install the requirements is *pip install -r requirements.txt*
+- Activate the virtual environment and you are ready to go :sunglasses:
 
-Run ``python ./run_script.py --help`` to see all commands the run script supports.
+Run ``python ./run_script.py --help`` from the directory of the code to see all commands the run script supports.
 
-*Hint: The usage of the --no-plot-windows flag is highly recommended!* 
-Otherwise, many windows are opened and the tight layout may not work as intended
+*Hint: The usage of the --no-plot-windows flag is highly recommended when training the baseline experiment!*
+Otherwise, many windows are opened. **ATTENTION: this flag does not work for some other experiments!** 
+(leads to domain error)
 
-*Hint 2: If you get an error message regarding determinism, check out the Reproducibility Section of this README file*
+*Hint 2: If you get an error message regarding determinism, check out the Section 'Reproducibility' of this README file*
 
 # :rocket: Herby Integration
 
@@ -41,8 +44,12 @@ Otherwise, many windows are opened and the tight layout may not work as intended
   environment variable PYTORCH_EXTRA_LIBRARY_PATH=python3.9/site-packages/torchvision/_C.so (.pyd on Windows)
 
 # :mag: Reproducibility
-In order to enable reproducibility of the experiments, seeds as well as deterministic convolutions were used on an Nvidia 1050 TI
-Set CUBLAS_WORKSPACE_CONFIG=:4096:8 in your environment - otherwise the experiments throw an error or may be different
+
+In order to enable reproducibility of the experiments, seeds as well as deterministic convolutions were used on an
+Nvidia 1050 TI
+
+Set the variable CUBLAS_WORKSPACE_CONFIG=:4096:8 in your environment if you use CUDA. 
+Otherwise, the experiments throw a Cublas Error.
 
 If reproducibility is not that important, you can go to the utils.py file and comment out the following line:
 torch.use_deterministic_algorithms(True)
