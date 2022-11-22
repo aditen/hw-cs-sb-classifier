@@ -30,8 +30,10 @@ So far, the code has these main parts:
 
 Run ``python ./run_script.py --help`` from the directory of the code to see all commands the run script supports.
 
-*Hint: The usage of the --no-plot-windows flag is highly recommended when training the baseline experiment!*
-Otherwise, many windows are opened. **ATTENTION: this flag does not work for some other experiments!** 
+*General Hint: The author used PyCharm Professional and the scientific view of Matplotlib. The layout of charts can differ when using a different setup or not work entirely*
+
+*Hint 1: The usage of the --no-plot-windows flag is highly recommended when training the baseline experiment!*
+Otherwise, many windows are opened. **BUT ATTENTION: this flag does not work for some open/mixed set experiments!** 
 (leads to domain error)
 
 *Hint 2: If you get an error message regarding determinism, check out the Section 'Reproducibility' of this README file*
