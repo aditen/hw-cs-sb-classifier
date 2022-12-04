@@ -31,12 +31,15 @@ So far, the code has these main parts:
 
 Run ``python ./run_script.py --help`` from the directory of the code to see all commands the run script supports.
 
-*General Hint: The author used PyCharm Professional and the scientific view of Matplotlib. The layout of charts can differ when using a different setup or not work entirely*
+*General Hint: The author used PyCharm Professional and the scientific view of Matplotlib. 
+The layout of charts can differ or not work entirely in different execution environments*
 
-*Hint 1: The usage of the --no-plot-windows flag is highly recommended when training the baseline experiment!*
-Otherwise, many windows are opened. Also, if you do not use this flag then the visualizations on disk may be stored with the odd window tight layout
+*Hint 1: The usage of the --no-plot-windows flag is highly recommended when only wanting to generate plots and observe a selection of them!*
+Otherwise, many windows are opened. Also, if you do not use this flag then the visualizations on disk may be stored with the odd window tight layout from the non-scientific environment
 
 *Hint 2: If you get an error message regarding determinism, check out the Section 'Reproducibility' of this README file*
+
+*Hint 3: You can force the models to be retrained from scratch by either deleting the folder or changing the default value of the constructor parameter load_model_from_disk in the trainer class*
 
 # :rocket: Herby Integration
 

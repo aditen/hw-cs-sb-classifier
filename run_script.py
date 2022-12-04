@@ -27,7 +27,7 @@ if __name__ == "__main__":
                              'or the whole folders in the output_visualizations directory. '
                              'WARNING: Training a total of 108 models takes long, even if they are relatively simple!')
     parser.add_argument('--plot-baseline', default=False, action='store_true',
-                        help='Plot baseline results using matplotlib')
+                        help='Plot baseline results as error rates using matplotlib')
     parser.add_argument('--evaluate-unknowns-on-closed-set', default=False, action='store_true',
                         help='Evaluate unknowns on closet set SoftMax Models')
     parser.add_argument('--compare-training-unknowns', default=False, action='store_true',
