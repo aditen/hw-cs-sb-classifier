@@ -70,6 +70,7 @@ class VisualizerKinderlabor:
         if self.__save_plots_to_disk:
             plt.savefig(f'{self.__visualization_dir}/train_samples.pdf')
         plt.show()
+        plt.close()
 
     def visualize_training_progress(self, trainer: TrainerKinderlabor):
         epochs, train_loss, valid_loss, train_acc, valid_acc = trainer.get_training_progress()
@@ -89,6 +90,7 @@ class VisualizerKinderlabor:
                 plt.savefig(
                     f'{self.__visualization_dir}/learning_progress.pdf')
             plt.show()
+            plt.close()
         else:
             print("No training done on trainer instance, skipping learning progress plot!")
 
@@ -117,6 +119,7 @@ class VisualizerKinderlabor:
                 plt.savefig(
                     f'{self.__visualization_dir}/test_errors_unknown.pdf')
             plt.show()
+            plt.close()
 
         if len([1 for x in err_samples if x[1] != -1]) > 0:
             imgs_err_kn, actual_err_kn, pred_err_kn = zip(
@@ -135,6 +138,7 @@ class VisualizerKinderlabor:
                 plt.savefig(
                     f'{self.__visualization_dir}/test_errors_known.pdf')
             plt.show()
+            plt.close()
         else:
             print("Theoretically perfect model for knowns, no error on known classes to plot!")
 
@@ -145,6 +149,7 @@ class VisualizerKinderlabor:
             plt.savefig(
                 f'{self.__visualization_dir}/conf_matrix.pdf')
         plt.show()
+        plt.close()
 
     def visualize_class_distributions(self):
         train_df, valid_df, test_df, all_df = self.__data_loader.get_set_dfs()
@@ -169,6 +174,7 @@ class VisualizerKinderlabor:
             plt.savefig(
                 f'{self.__visualization_dir}/class_dist.pdf')
         plt.show()
+        plt.close()
 
     def visualize_2d_space(self, trainer: TrainerKinderlabor):
         UtilsKinderlabor.random_seed()
@@ -198,6 +204,7 @@ class VisualizerKinderlabor:
             plt.savefig(
                 f'{self.__visualization_dir}/scatter.pdf')
         plt.show()
+        plt.close()
 
     def visualize_prob_histogram(self, trainer: TrainerKinderlabor):
         actual, predicted, best_probs, _, coords, loader, __ = trainer.get_predictions()
@@ -208,6 +215,7 @@ class VisualizerKinderlabor:
         probs_known = [prob for (prob, act, pred) in zip(best_probs, actual, predicted) if (act != -1 and act == pred)]
         probs_unknown = [prob for (prob, act) in zip(best_probs, actual) if act == -1]
 
+        plt.figure()
         plt.hist(probs_known, bins=50, label="Known", histtype='step', color='green')
         if len(probs_unknown) > 0:
             plt.hist(probs_unknown, bins=50, label="Unknown", histtype='step', color='red')
@@ -220,10 +228,12 @@ class VisualizerKinderlabor:
             plt.savefig(
                 f'{self.__visualization_dir}/probs.pdf')
         plt.show()
+        plt.close()
 
     def visualize_open_set_recognition_curve(self, trainers: List[Tuple[str, TrainerKinderlabor]],
                                              plot_suffix="",
                                              x_vals_table: Optional[List[float]] = None):
+        plt.figure()
         table_rows = []
         for label, trainer in trainers:
             actual, predicted, best_probs, _, coords, loader, __ = trainer.get_predictions()
@@ -271,6 +281,7 @@ class VisualizerKinderlabor:
             plt.savefig(
                 f'{self.__visualization_dir}/oscr{plot_suffix if plot_suffix is not None else ""}.pdf')
         plt.show()
+        plt.close()
         if x_vals_table is not None:
             print(tabulate(table_rows, headers=["Known Unknowns"] + x_vals_table, tablefmt="pretty"))
 
@@ -327,6 +338,7 @@ class VisualizerKinderlabor:
         fig.tight_layout()
         plt.show()
         fig.savefig("./output_visualizations/base_plot.pdf", dpi=75)
+        plt.close()
 
     @staticmethod
     def plot_samples(indices, n_cols, n_rows):
@@ -388,3 +400,4 @@ class VisualizerKinderlabor:
             plt.show()
             fig.savefig(
                 f'output_visualizations/data_availability/sample_comp_{task_type}.pdf')
+            plt.close()

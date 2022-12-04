@@ -7,8 +7,8 @@ from running import RunnerKinderlabor
 if __name__ == "__main__":
     parser = ArgumentParser(description='Run Script for Thesis Experiments')
     parser.add_argument('--no-plot-windows', default=False, action='store_true',
-                        help='Do not show plot windows interactively. Tip: They are stored on disk, '
-                             'check output_visualizations folder')
+                        help='Do not show plot windows interactively which blocks code execution while a windows is ope'
+                             'n. Tip: They are stored on disk, check output_visualizations folder when using this flag')
     parser.add_argument('--admin-create-dataset', default=False, action='store_true',
                         help='ATTENTION: ADMIN only! Create Anonymized dataset')
     parser.add_argument('--create-dataset-folders', default=False, action='store_true',
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     parser.add_argument('--compare-training-unknowns', default=False, action='store_true',
                         help='Compare Open Set Performance using different Unknowns in Training')
     parser.add_argument('--compare-unknowns-split', default=False, action='store_true',
-                        help='Compare Splitting Unknowns to be in train/validation set as well')
+                        help='Compare Mixed Unknowns where some real unknown samples are in train/validation set')
     parsed_args = parser.parse_args()
 
 

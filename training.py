@@ -239,7 +239,7 @@ class TrainerKinderlabor:
         weighted_acc = balanced_accuracy_score(actual_without_uu, predicted_without_uu)
         self.__performance = weighted_acc
         print(
-            f'Test Accuracy: {test_acc * 100:.2f}%, Test Loss: {test_loss:.4f}, Macro-average F1 Score: {f1 * 100:.2f}%, Weighted Accuracy Score: {weighted_acc * 100:.2f}%')
+            f'Test Accuracy: {test_acc * 100:.2f}%, Test Loss: {test_loss:.4f}, Macro-average F1 Score: {f1 * 100:.2f}%, Balanced Accuracy Score: {weighted_acc * 100:.2f}%')
 
     def get_predictions(self):
         return self.__test_actual, self.__test_predicted, self.__best_probs, self.__err_samples, self.__2d, self.__loader, self.__performance
