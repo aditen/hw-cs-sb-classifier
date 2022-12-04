@@ -33,7 +33,8 @@ if __name__ == "__main__":
     parser.add_argument('--compare-training-unknowns', default=False, action='store_true',
                         help='Compare Open Set Performance using different Unknowns in Training')
     parser.add_argument('--compare-unknowns-split', default=False, action='store_true',
-                        help='Compare Mixed Unknowns where some real unknown samples are in train/validation set')
+                        help='Compare Mixed Unknowns where some unknown samples are in train/validation set '
+                             'and the rest in the test set')
     parsed_args = parser.parse_args()
 
 

@@ -50,21 +50,24 @@ Otherwise, many windows are opened. Also, if you do not use this flag then the v
 
 # :abc: Naming
 
-Generally, the code tries to use the same naming as the thesis. Sometimes, there are slight deviations. For example the following ones:
+Generally, the code tries to use the same naming as the thesis. Sometimes, there are slight deviations. 
+Known deviations are following ones:
 
 - OSCR = OSRC (Open Set Classification Rate Curve)
-- Instruction vs Command for the Task Type and Cross vs Checkbox for the Task Type
+- Task Types: Instruction == Command and Cross == Checkbox
+- Data Splits: TRAIN_SHEETS_TEST_BOOKLETS == S1, HOLD_OUT_CLASSES == S2, RANDOM == S3
 
 # :mag: Reproducibility
 
-In order to enable reproducibility of the experiments, seeds as well as deterministic convolutions were used on an
+In order to enable reproducibility of the experiments, seeds as well as deterministic convolutions were used on a
 Nvidia 1050 TI
 
-Set the variable CUBLAS_WORKSPACE_CONFIG=:4096:8 in your environment if you use CUDA. 
-Otherwise, the experiments throw a Cublas Error.
+Set the variable ``CUBLAS_WORKSPACE_CONFIG=:4096:8`` (CUBLAS_WORKSPACE_CONFIG is the key, :4096:8 is the value) 
+in your environment if you use CUDA. Otherwise, the experiments throw a Cublas Error if determinism is enabled.
+If your machine does not support this option, use a supported value, but results may differ slightly then.
 
 If reproducibility is not that important, you can go to the utils.py file and comment out the following line:
-torch.use_deterministic_algorithms(True)
+``torch.use_deterministic_algorithms(True)``
 
 # :ledger: TODOs
 * May originate from the future work of the thesis (error analysis on student level etc.)
