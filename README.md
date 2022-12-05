@@ -1,7 +1,9 @@
-# :computer: Models Code
+# :computer: Dataset and Experiment Implementation, Model Checkpoints
 
-This repository contains the code base to deal with the data set that was collected
-from Kinderlabor exercise (types). It can be used to analyse the data set as well as to train (DL) models on it.
+This repository contains the code base to deal with the dataset that was collected from Kinderlabor exercise (types). 
+It can be used to observe the dataset as well as to train (DL) models on it. The checkpoint of the models trained in 
+the experiments are provided in this repository as well.
+
 
 # :open_file_folder: Code structure
 
@@ -17,7 +19,7 @@ So far, the code has these main parts:
 - running.py: The implementation of the experiments, each as a separate function
 - run_script.py: Run Script that provides different flags to reproduce experiments
 - training.py: The trainer class, which can train a model based on given data loaders and can be used to predict on the
-  samples from test set
+  samples from the test set
 - utils.py: Project-specific Utilities and types (mainly enumerations)
 - visualizing.py: The visualization class to visualize some samples, the training progress, the confusion matrix and more
 
