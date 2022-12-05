@@ -1,7 +1,7 @@
 # :computer: Dataset and Experiment Implementation, Model Checkpoints
 
 This repository contains the code base to deal with the dataset that was collected from Kinderlabor exercise (types). 
-It can be used to observe the dataset as well as to train (DL) models on it. The checkpoint of the models trained in 
+It can be used to observe the dataset as well as to train (DL) models on it. The checkpoints of the models trained in 
 the experiments are provided in this repository as well.
 
 
